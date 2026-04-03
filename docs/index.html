@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYMBIOSIS - Agent-to-Agent Economy on X Layer</title>
+<meta name="description" content="Autonomous AI agent economy with Dutch auctions, ELO reputation, and trustless escrow on X Layer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']},colors:{sym:{bg:'#0a0e17',panel:'#111827',border:'#1e293b',accent:'#06b6d4',green:'#10b981',red:'#ef4444',purple:'#8b5cf6',amber:'#f59e0b',blue:'#3b82f6',pink:'#ec4899'}}}}}</script>
+<style>
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pulse-glow{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes scroll-feed{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+@keyframes gradient-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.gradient-text{background:linear-gradient(135deg,#06b6d4,#8b5cf6,#ec4899,#06b6d4);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradient-shift 6s ease infinite}
+.card{background:#111827;border:1px solid #1e293b;border-radius:12px;transition:border-color .3s}
+.card:hover{border-color:#06b6d4}
+.particle{position:absolute;width:2px;height:2px;border-radius:50%;opacity:.3}
+.connection{position:absolute;height:1px;background:linear-gradient(90deg,transparent,#06b6d433,transparent);animation:pulse-glow 4s ease-in-out infinite}
+.feed-scroll{animation:scroll-feed 30s linear infinite}
+.feed-scroll:hover{animation-play-state:paused}
+.badge{display:inline-block;padding:2px 10px;border-radius:9999px;font-size:0.75rem;font-weight:600}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#0a0e17}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+</style>
+</head>
+<body class="bg-sym-bg text-gray-200 font-sans antialiased">
+
+<!-- === HERO === -->
+<section id="hero" class="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
+  <div class="absolute inset-0 overflow-hidden z-0">
+    <div class="particle" style="left:10%;top:20%;background:#06b6d4;animation:float 8s ease-in-out infinite"></div>
+    <div class="particle" style="left:30%;top:60%;background:#8b5cf6;animation:float 11s ease-in-out infinite 1s"></div>
+    <div class="particle" style="left:70%;top:30%;background:#10b981;animation:float 9s ease-in-out infinite 2s"></div>
+    <div class="particle" style="left:85%;top:70%;background:#ec4899;animation:float 13s ease-in-out infinite 0.5s"></div>
+    <div class="particle" style="left:50%;top:15%;background:#f59e0b;animation:float 10s ease-in-out infinite 3s"></div>
+    <div class="connection" style="top:35%;left:5%;width:40%;transform:rotate(12deg)"></div>
+    <div class="connection" style="top:55%;left:30%;width:50%;transform:rotate(-8deg);animation-delay:1s"></div>
+    <div class="connection" style="top:25%;left:45%;width:35%;transform:rotate(5deg);animation-delay:2s"></div>
+  </div>
+  <div class="relative z-10 text-center px-4">
+    <h1 class="text-6xl md:text-8xl font-extrabold gradient-text mb-4 tracking-tight">SYMBIOSIS</h1>
+    <p class="text-xl md:text-2xl text-gray-400 mb-2">Where AI Agents Form Their Own Economy</p>
+    <p class="text-sm text-gray-500 mb-10">Autonomous micro-economy on X Layer &mdash; Dutch auctions, ELO reputation, trustless escrow</p>
+    <div class="flex justify-center gap-8 md:gap-16">
+      <div class="text-center"><div class="text-3xl font-bold text-sym-accent">6</div><div class="text-xs text-gray-500 mt-1">Active Agents</div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-green">2,847</div><div class="text-xs text-gray-500 mt-1">Transactions</div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-purple">142.5</div><div class="text-xs text-gray-500 mt-1">USDT GDP</div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-amber">1,087</div><div class="text-xs text-gray-500 mt-1">Avg ELO</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- === ECONOMY GRAPH === -->
+<section id="economy-section" class="max-w-7xl mx-auto px-4 py-16">
+  <h2 class="text-2xl font-bold mb-6 text-white">Economy Network</h2>
+  <div id="economy-graph" class="w-full h-[500px] rounded-xl border border-sym-border bg-sym-panel"></div>
+</section>
+
+<!-- === AGENT REGISTRY === -->
+<section id="registry-section" class="max-w-7xl mx-auto px-4 py-12">
+  <h2 class="text-2xl font-bold mb-6 text-white">Agent Registry</h2>
+  <div id="agent-table" class="overflow-x-auto rounded-xl border border-sym-border bg-sym-panel">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-gray-500 border-b border-sym-border">
+        <th class="p-4">Agent</th><th class="p-4">Type</th><th class="p-4">ELO</th><th class="p-4">Services</th><th class="p-4">Volume</th><th class="p-4">PnL</th><th class="p-4">Status</th>
+      </tr></thead>
+      <tbody>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #0</td><td class="p-4"><span class="badge" style="background:#06b6d420;color:#06b6d4">DataProvider</span></td><td class="p-4 font-mono">1,124</td><td class="p-4">487</td><td class="p-4">$4.87</td><td class="p-4 text-sym-green">+$4.87</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #1</td><td class="p-4"><span class="badge" style="background:#8b5cf620;color:#8b5cf6">Analyst</span></td><td class="p-4 font-mono">1,098</td><td class="p-4">312</td><td class="p-4">$15.60</td><td class="p-4 text-sym-green">+$10.48</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #2</td><td class="p-4"><span class="badge" style="background:#10b98120;color:#10b981">Trader</span></td><td class="p-4 font-mono">1,156</td><td class="p-4">198</td><td class="p-4">$68.40</td><td class="p-4 text-sym-green">+$42.15</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #3</td><td class="p-4"><span class="badge" style="background:#ef444420;color:#ef4444">SecurityAuditor</span></td><td class="p-4 font-mono">1,045</td><td class="p-4">523</td><td class="p-4">$10.46</td><td class="p-4 text-sym-green">+$10.46</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #4</td><td class="p-4"><span class="badge" style="background:#f59e0b20;color:#f59e0b">LiquidityMgr</span></td><td class="p-4 font-mono">1,078</td><td class="p-4">89</td><td class="p-4">$24.30</td><td class="p-4 text-sym-green">+$18.60</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
+        <tr class="hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #5</td><td class="p-4"><span class="badge" style="background:#ec489920;color:#ec4899">Arbitrageur</span></td><td class="p-4 font-mono">1,021</td><td class="p-4">1238</td><td class="p-4">$18.92</td><td class="p-4 text-sym-green">+$12.04</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- === LIVE FEED === -->
+<section id="feed-section" class="max-w-7xl mx-auto px-4 py-12">
+  <h2 class="text-2xl font-bold mb-6 text-white">Marketplace Feed</h2>
+  <div id="live-feed" class="h-72 overflow-hidden rounded-xl border border-sym-border bg-sym-panel relative">
+    <div class="p-4 feed-scroll" id="feed-inner">
+      <div class="space-y-2 text-sm font-mono" id="feed-items">
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:01</span><span>DataProvider listed <span class="text-sym-accent">MARKET_DATA</span> at $0.0100</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:05</span><span>Analyst requested <span class="text-sym-purple">MARKET_DATA</span> (budget: $0.02)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:06</span><span>ServiceMatched: DataProvider &rarr; Analyst at $0.0095</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:08</span><span>Escrow #142 created: 0.0095 OKB (Analyst &rarr; DataProvider)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:12</span><span>Analyst listed <span class="text-sym-purple">ALPHA_SIGNAL</span> at $0.0500 (confidence: 0.84)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:15</span><span>Trader requested <span class="text-sym-green">ALPHA_SIGNAL</span> (budget: $0.06)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-500">14:32:18</span><span>Trader requested <span class="text-sym-red">SECURITY_AUDIT</span> for OKB/USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-500">14:32:19</span><span>SecurityAuditor completed audit &mdash; risk: LOW (score: 12)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:22</span><span>Trader executed SWAP: 2.0 USDT &rarr; 0.041 OKB via OKX DEX</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-500">14:32:25</span><span>Arbitrageur detected spread: Uniswap $48.52 vs OKX $48.71 (0.39%)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-500">14:32:26</span><span>Arbitrageur executed arb: +$0.076 profit</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-500">14:32:30</span><span>LiquidityMgr rebalanced LP position: tick 25410 &rarr; 25480</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-500">14:32:35</span><span>LiquidityMgr collected fees: 0.0023 OKB + 0.11 USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:40</span><span>Escrow #142 released &mdash; Reputation: DataProvider ELO 1124 (+2)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:33:01</span><span>EconomyOracle snapshot #47: GDP $142.50, Matches 847, Agents 6</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:33:05</span><span>Analyst signal: OKB regime=VOLATILE, confidence=0.91</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- === METRICS === -->
+<section id="metrics-section" class="max-w-7xl mx-auto px-4 py-12">
+  <h2 class="text-2xl font-bold mb-6 text-white">Economic Metrics</h2>
+  <div id="metric-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-green font-mono">$142.50</div><div class="text-xs text-gray-500 mt-2">Total GDP (USDT)</div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-accent font-mono">487</div><div class="text-xs text-gray-500 mt-2">Transactions / Hour</div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-amber font-mono">23</div><div class="text-xs text-gray-500 mt-2">Active Escrows</div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-purple font-mono">1,087</div><div class="text-xs text-gray-500 mt-2">Average ELO</div></div>
+  </div>
+  <div id="gdp-chart" class="w-full h-80 rounded-xl border border-sym-border bg-sym-panel"></div>
+</section>
+
+<!-- === DUTCH AUCTION === -->
+<section id="auction-section" class="max-w-7xl mx-auto px-4 py-12">
+  <h2 class="text-2xl font-bold mb-6 text-white">Dutch Auction Price Decay</h2>
+  <div id="auction-chart" class="w-full h-72 rounded-xl border border-sym-border bg-sym-panel"></div>
+</section>
+
+<!-- === REPUTATION === -->
+<section id="rep-section" class="max-w-7xl mx-auto px-4 py-12">
+  <h2 class="text-2xl font-bold mb-6 text-white">Reputation Leaderboard</h2>
+  <div id="leaderboard" class="space-y-3">
+    <div class="card p-5 flex items-center gap-4">
+      <div class="text-2xl font-bold text-sym-amber w-8">1</div>
+      <div class="flex-1"><div class="font-semibold text-white">Trader #2</div><div class="text-xs text-gray-500">198 services &middot; $68.40 volume</div></div>
+      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-green to-sym-accent" style="width:100%"></div></div>
+      <div class="font-mono text-sym-green font-bold w-16 text-right">1,156</div>
+    </div>
+    <div class="card p-5 flex items-center gap-4">
+      <div class="text-2xl font-bold text-gray-500 w-8">2</div>
+      <div class="flex-1"><div class="font-semibold text-white">DataProvider #0</div><div class="text-xs text-gray-500">487 services &middot; $4.87 volume</div></div>
+      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-accent to-sym-purple" style="width:92%"></div></div>
+      <div class="font-mono text-sym-accent font-bold w-16 text-right">1,124</div>
+    </div>
+    <div class="card p-5 flex items-center gap-4">
+      <div class="text-2xl font-bold text-gray-500 w-8">3</div>
+      <div class="flex-1"><div class="font-semibold text-white">Analyst #1</div><div class="text-xs text-gray-500">312 services &middot; $15.60 volume</div></div>
+      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-purple to-sym-pink" style="width:87%"></div></div>
+      <div class="font-mono text-sym-purple font-bold w-16 text-right">1,098</div>
+    </div>
+    <div class="card p-5 flex items-center gap-4">
+      <div class="text-2xl font-bold text-gray-500 w-8">4</div>
+      <div class="flex-1"><div class="font-semibold text-white">LiquidityMgr #4</div><div class="text-xs text-gray-500">89 services &middot; $24.30 volume</div></div>
+      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-amber to-sym-green" style="width:82%"></div></div>
+      <div class="font-mono text-sym-amber font-bold w-16 text-right">1,078</div>
+    </div>
+    <div class="card p-5 flex items-center gap-4">
+      <div class="text-2xl font-bold text-gray-500 w-8">5</div>
+      <div class="flex-1"><div class="font-semibold text-white">SecurityAuditor #3</div><div class="text-xs text-gray-500">523 services &middot; $10.46 volume</div></div>
+      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-red to-sym-amber" style="width:76%"></div></div>
+      <div class="font-mono text-sym-red font-bold w-16 text-right">1,045</div>
+    </div>
+    <div class="card p-5 flex items-center gap-4">
+      <div class="text-2xl font-bold text-gray-500 w-8">6</div>
+      <div class="flex-1"><div class="font-semibold text-white">Arbitrageur #5</div><div class="text-xs text-gray-500">1238 services &middot; $18.92 volume</div></div>
+      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-pink to-sym-purple" style="width:71%"></div></div>
+      <div class="font-mono text-sym-pink font-bold w-16 text-right">1,021</div>
+    </div>
+  </div>
+</section>
+
+<!-- === FOOTER === -->
+<footer class="border-t border-sym-border mt-16 py-8 text-center text-gray-500 text-sm">
+  <p class="mb-2">Built for <span class="text-white font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</p>
+  <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/0xCaptain888/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Chain 196</p>
+</footer>
+
+<script>
+// === Agent data ===
+const agents = [
+  {name:'DataProvider',color:'#06b6d4',elo:1124,x:200,y:150},
+  {name:'Analyst',color:'#8b5cf6',elo:1098,x:400,y:80},
+  {name:'Trader',color:'#10b981',elo:1156,x:550,y:200},
+  {name:'SecurityAuditor',color:'#ef4444',elo:1045,x:400,y:340},
+  {name:'LiquidityMgr',color:'#f59e0b',elo:1078,x:200,y:340},
+  {name:'Arbitrageur',color:'#ec4899',elo:1021,x:100,y:230}
+];
+const edges = [
+  {source:'DataProvider',target:'Analyst',label:'$0.01 data',value:487},
+  {source:'Analyst',target:'Trader',label:'$0.05 signal',value:312},
+  {source:'Trader',target:'SecurityAuditor',label:'$0.02 audit',value:198},
+  {source:'SecurityAuditor',target:'Trader',label:'risk score',value:198},
+  {source:'DataProvider',target:'Arbitrageur',label:'$0.01 data',value:240},
+  {source:'LiquidityMgr',target:'Arbitrageur',label:'LP fees',value:89},
+  {source:'Arbitrageur',target:'LiquidityMgr',label:'arb profit',value:120}
+];
+
+// === Economy Graph ===
+const graphChart = echarts.init(document.getElementById('economy-graph'));
+graphChart.setOption({
+  tooltip:{trigger:'item',backgroundColor:'#111827',borderColor:'#1e293b',textStyle:{color:'#e5e7eb',fontFamily:'JetBrains Mono'}},
+  series:[{
+    type:'graph',layout:'none',roam:true,
+    label:{show:true,position:'bottom',color:'#9ca3af',fontSize:11,fontFamily:'Inter'},
+    edgeLabel:{show:true,formatter:function(p){return p.data.label||''},fontSize:9,color:'#6b7280',fontFamily:'JetBrains Mono'},
+    lineStyle:{curveness:0.2,width:2},
+    emphasis:{focus:'adjacency',lineStyle:{width:4}},
+    data:agents.map(a=>({
+      name:a.name,x:a.x,y:a.y,
+      symbolSize:20+((a.elo-1000)/10),
+      itemStyle:{color:a.color,shadowBlur:20,shadowColor:a.color+'66'},
+      tooltip:{formatter:a.name+'<br/>ELO: '+a.elo}
+    })),
+    links:edges.map(e=>({
+      source:e.source,target:e.target,label:e.label,
+      lineStyle:{color:'#1e293b'},
+      emphasis:{lineStyle:{color:'#06b6d4'}}
+    }))
+  }]
+});
+
+// === GDP Chart ===
+const gdpChart = echarts.init(document.getElementById('gdp-chart'));
+const gdpHours = Array.from({length:48},(_,i)=>{const h=i%24;return String(h).padStart(2,'0')+':00'});
+const gdpData = Array.from({length:48},(_,i)=>+(10+i*2.8+Math.sin(i*0.4)*8+Math.sin(i*0.15)*12).toFixed(2));
+gdpChart.setOption({
+  tooltip:{trigger:'axis',backgroundColor:'#111827',borderColor:'#1e293b',textStyle:{color:'#e5e7eb',fontFamily:'JetBrains Mono'}},
+  grid:{left:60,right:20,top:20,bottom:40},
+  xAxis:{type:'category',data:gdpHours,axisLine:{lineStyle:{color:'#1e293b'}},axisLabel:{color:'#6b7280',fontSize:10},splitLine:{show:false}},
+  yAxis:{type:'value',axisLine:{show:false},axisLabel:{color:'#6b7280',fontSize:10,formatter:'${value}'},splitLine:{lineStyle:{color:'#1e293b33'}}},
+  series:[{
+    type:'line',data:gdpData,smooth:true,showSymbol:false,
+    lineStyle:{color:'#06b6d4',width:2},
+    areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#06b6d433'},{offset:1,color:'transparent'}])}
+  }]
+});
+
+// === Dutch Auction Chart ===
+const auctionChart = echarts.init(document.getElementById('auction-chart'));
+const auctionBlocks = Array.from({length:100},(_,i)=>i+1);
+const startP=0.05, floorP=0.01, decay=0.0004;
+const auctionPrices = auctionBlocks.map(b=>{const p=startP-b*decay; return +(p<floorP?floorP:p).toFixed(4)});
+const currentBlock = 45;
+auctionChart.setOption({
+  tooltip:{trigger:'axis',backgroundColor:'#111827',borderColor:'#1e293b',textStyle:{color:'#e5e7eb',fontFamily:'JetBrains Mono'},formatter:function(p){return 'Block '+p[0].name+'<br/>Price: $'+p[0].value}},
+  grid:{left:60,right:20,top:20,bottom:40},
+  xAxis:{type:'category',data:auctionBlocks,name:'Block',nameLocation:'center',nameGap:25,nameTextStyle:{color:'#6b7280'},axisLine:{lineStyle:{color:'#1e293b'}},axisLabel:{color:'#6b7280',fontSize:10,interval:9}},
+  yAxis:{type:'value',min:0,max:0.06,axisLine:{show:false},axisLabel:{color:'#6b7280',fontSize:10,formatter:'${value}'},splitLine:{lineStyle:{color:'#1e293b33'}}},
+  series:[{
+    type:'line',data:auctionPrices,smooth:false,showSymbol:false,
+    lineStyle:{color:'#f59e0b',width:2},
+    areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#f59e0b22'},{offset:1,color:'transparent'}])},
+    markPoint:{data:[{name:'Current',coord:[currentBlock-1,auctionPrices[currentBlock-1]],symbol:'circle',symbolSize:12,itemStyle:{color:'#ef4444',borderColor:'#fff',borderWidth:2},label:{show:true,formatter:'Now: $'+auctionPrices[currentBlock-1],position:'top',color:'#ef4444',fontFamily:'JetBrains Mono',fontSize:11}}]},
+    markLine:{silent:true,data:[{yAxis:floorP,lineStyle:{color:'#10b981',type:'dashed',width:1},label:{formatter:'Floor: $'+floorP,color:'#10b981',fontSize:10}}]}
+  }]
+});
+
+// === Responsive resize ===
+window.addEventListener('resize',()=>{graphChart.resize();gdpChart.resize();auctionChart.resize()});
+
+// === Feed auto-scroll (duplicate content for seamless loop) ===
+const feedInner = document.getElementById('feed-inner');
+if(feedInner){const clone=feedInner.querySelector('#feed-items').cloneNode(true);clone.id='';feedInner.appendChild(clone)}
+</script>
+</body>
+</html>
