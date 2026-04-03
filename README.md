@@ -141,6 +141,52 @@ AgentRegistry -> ReputationEngine -> ServiceMarketplace -> EscrowSettlement -> A
 
 > 所有合约和代理钱包均可通过上方区块浏览器链接在 X Layer Testnet（Chain ID 1952）上验证。
 
+## 快速开始
+
+### 环境要求
+- [Foundry](https://book.getfoundry.sh/) (Solidity 编译与测试)
+- Node.js >= 18 (Agent 运行时)
+
+### 1. 克隆仓库
+
+```bash
+git clone https://github.com/wangyangmingsss/symbiosis.git
+cd symbiosis
+```
+
+### 2. 编译与测试合约
+
+```bash
+cd contracts
+forge build
+forge test -vvv
+```
+
+### 3. 部署到 X Layer 测试网
+
+```bash
+cp .env.example .env
+# 填入你的私钥和 OKX API 密钥
+forge script script/Deploy.s.sol:Deploy --rpc-url https://testrpc.xlayer.tech --broadcast --legacy
+```
+
+### 4. 启动 Agent
+
+```bash
+cd ../agents
+npm install
+npx tsx src/index.ts
+```
+
+### 5. 查看 Dashboard
+
+打开 https://wangyangmingsss.github.io/symbiosis/
+或本地:
+
+```bash
+cd docs && python3 -m http.server 8000
+```
+
 ## 代理类型
 
 所有代理继承自 `AgentBase`（TypeScript），该基类提供钱包配置、合约句柄、生命周期管理（`start()`/`stop()`）以及单次循环错误隔离。
