@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']},colors:{sym:{bg:'#0a0e17',panel:'#111827',border:'#1e293b',accent:'#06b6d4',green:'#10b981',red:'#ef4444',purple:'#8b5cf6',amber:'#f59e0b',blue:'#3b82f6',pink:'#ec4899'}}}}}</script>
 <style>
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
@@ -46,6 +47,12 @@ html[lang="en"] .feed-zh{display:none!important}
 html[lang="en"] .feed-en{display:block!important}
 .feed-zh{display:block}
 .feed-en{display:none}
+
+/* Network Status */
+.net-status{position:fixed;top:16px;left:16px;z-index:9999;background:#111827;border:1px solid #1e293b;border-radius:9999px;padding:6px 14px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:500;color:#9ca3af}
+.net-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.net-dot.connected{background:#10b981;box-shadow:0 0 6px #10b981}
+.net-dot.disconnected{background:#ef4444;box-shadow:0 0 6px #ef4444}
 </style>
 </head>
 <body class="bg-sym-bg text-gray-200 font-sans antialiased">
@@ -54,6 +61,12 @@ html[lang="en"] .feed-en{display:block!important}
 <div class="lang-toggle" onclick="toggleLang()">
   <span id="lang-zh" class="active">中文</span>
   <span id="lang-en">EN</span>
+</div>
+
+<!-- NETWORK STATUS -->
+<div class="net-status" id="net-status">
+  <span class="net-dot disconnected" id="net-dot"></span>
+  <span id="net-label">Connecting...</span>
 </div>
 
 <!-- === HERO === -->
@@ -73,10 +86,10 @@ html[lang="en"] .feed-en{display:block!important}
     <p class="text-xl md:text-2xl text-gray-400 mb-2"><span data-lang-zh>AI Agent 自主构建的链上经济体</span><span data-lang-en>Where AI Agents Form Their Own Economy</span></p>
     <p class="text-sm text-gray-500 mb-10"><span data-lang-zh>X Layer 上的自治微型经济体 &mdash; 荷兰拍卖、ELO 声誉、无信任托管</span><span data-lang-en>Autonomous micro-economy on X Layer &mdash; Dutch auctions, ELO reputation, trustless escrow</span></p>
     <div class="flex justify-center gap-8 md:gap-16">
-      <div class="text-center"><div class="text-3xl font-bold text-sym-accent">6</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
-      <div class="text-center"><div class="text-3xl font-bold text-sym-green">2,847</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>交易笔数</span><span data-lang-en>Transactions</span></div></div>
-      <div class="text-center"><div class="text-3xl font-bold text-sym-purple">142.5</div><div class="text-xs text-gray-500 mt-1">USDT GDP</div></div>
-      <div class="text-center"><div class="text-3xl font-bold text-sym-amber">1,087</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>平均 ELO</span><span data-lang-en>Avg ELO</span></div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-accent" id="hero-agents">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-green" id="hero-txns">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>交易笔数</span><span data-lang-en>Transactions</span></div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-purple" id="hero-gdp">--</div><div class="text-xs text-gray-500 mt-1">USDT GDP</div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-amber" id="hero-elo">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>平均 ELO</span><span data-lang-en>Avg ELO</span></div></div>
     </div>
   </div>
 </section>
@@ -158,10 +171,10 @@ html[lang="en"] .feed-en{display:block!important}
 <section id="metrics-section" class="max-w-7xl mx-auto px-4 py-12">
   <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>经济指标</span><span data-lang-en>Economic Metrics</span></h2>
   <div id="metric-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-green font-mono">$142.50</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>总 GDP (USDT)</span><span data-lang-en>Total GDP (USDT)</span></div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-accent font-mono">487</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>交易/小时</span><span data-lang-en>Transactions / Hour</span></div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-amber font-mono">23</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>活跃托管</span><span data-lang-en>Active Escrows</span></div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-purple font-mono">1,087</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>平均 ELO</span><span data-lang-en>Average ELO</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-green font-mono" id="metric-gdp">--</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>总 GDP (USDT)</span><span data-lang-en>Total GDP (USDT)</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-accent font-mono" id="metric-txhr">--</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>总匹配数</span><span data-lang-en>Total Matches</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-amber font-mono" id="metric-escrows">--</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>托管总数</span><span data-lang-en>Total Escrows</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-purple font-mono" id="metric-elo">--</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>平均 ELO</span><span data-lang-en>Average ELO</span></div></div>
   </div>
   <div id="gdp-chart" class="w-full h-80 rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
@@ -218,7 +231,7 @@ html[lang="en"] .feed-en{display:block!important}
 <!-- === FOOTER === -->
 <footer class="border-t border-sym-border mt-16 py-8 text-center text-gray-500 text-sm">
   <p class="mb-2"><span data-lang-zh>为 <span class="text-white font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-white font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
-  <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/wangyangmingsss/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Chain 196</p>
+  <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/wangyangmingsss/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Testnet Chain 1952</p>
 </footer>
 
 <script>
@@ -229,40 +242,278 @@ function toggleLang(){
   html.lang=isZh?'en':'zh';
   document.getElementById('lang-zh').className=isZh?'':'active';
   document.getElementById('lang-en').className=isZh?'active':'';
-  // Re-clone feed for seamless scroll
   initFeedScroll();
 }
 
-// === Feed auto-scroll (duplicate content for seamless loop) ===
+// === Feed auto-scroll ===
 function initFeedScroll(){
   var feedInner=document.getElementById('feed-inner');
   if(!feedInner)return;
-  // Remove old clones
   var clones=feedInner.querySelectorAll('.feed-clone');
   clones.forEach(function(c){c.remove()});
-  // Clone visible feed
   var lang=document.documentElement.lang||'zh';
   var src=document.getElementById('feed-items-'+lang);
   if(src){var clone=src.cloneNode(true);clone.id='';clone.classList.add('feed-clone');feedInner.appendChild(clone)}
 }
 
-// === Agent data ===
-const agents = [
-  {name:'DataProvider',color:'#06b6d4',elo:1124,x:200,y:150},
-  {name:'Analyst',color:'#8b5cf6',elo:1098,x:400,y:80},
-  {name:'Trader',color:'#10b981',elo:1156,x:550,y:200},
-  {name:'SecurityAuditor',color:'#ef4444',elo:1045,x:400,y:340},
-  {name:'LiquidityMgr',color:'#f59e0b',elo:1078,x:200,y:340},
-  {name:'Arbitrageur',color:'#ec4899',elo:1021,x:100,y:230}
+// =============================================
+// === ON-CHAIN DATA LAYER (ethers.js v6) ===
+// =============================================
+const RPC_URL = 'https://testrpc.xlayer.tech';
+const CHAIN_ID = 1952;
+const CONTRACTS = {
+  registry:    '0x33dB9d89F2f4E13470469bB4ccf7f708d8333987',
+  reputation:  '0x6cAa9D8b182f1919d3F6b10AadcaCc542363463F',
+  marketplace: '0x58Eb47a4b6F2b777730828Cb8AD77032993a9dbf',
+  escrow:      '0x160dDA2B8dc2f0136AFA6BFbC54D3127163E428A',
+  treasury:    '0x1CE0CAe16F38B32a0dc1aB1fe4E34eFC4942A5F7',
+  oracle:      '0x72d0B059941B0603bff3593Fa2c8Ca26825AE834'
+};
+const AGENT_ADDRS = [
+  '0x7AA421344e622a89DC2978C517466eD8955bd8f3',
+  '0x81AF24718681473418C31eFeb46a2Ff961bc3993',
+  '0x43A454ABcd159e3127DaF146316f3F4Ca48fCB3c',
+  '0x90f706d1e70Ab0c2E7ee5EDf63563dad5588346f',
+  '0xCC106C4EE978d4cbFDd5B121A8a4dD895d3e424E',
+  '0x3b589f2AFc90c082836e4F6d74e63FaAec7a5f31'
+];
+const AGENT_TYPES = ['DataProvider','Trader','Analyst','LiquidityMgr','SecurityAuditor','Arbitrageur'];
+const AGENT_COLORS = ['#06b6d4','#10b981','#8b5cf6','#f59e0b','#ef4444','#ec4899'];
+
+// Minimal ABIs
+const registryABI = [
+  'function getAgentCount() view returns (uint256)',
+  'function isRegistered(address) view returns (bool)',
+  'function getProfile(address) view returns (tuple(bytes32 agentId, address owner, uint8 agentType, string metadataURI, uint256 registeredAt, bool isActive, uint256 reputation, uint256 stake, uint256 totalServicesProvided, uint256 totalServicesConsumed))'
+];
+const reputationABI = [
+  'function getReputation(address) view returns (uint256 rating, uint256 totalServices, uint256 wins, uint256 losses, uint256 totalVolumeUSDT, uint256 avgResponseBlocks, uint256 lastActive)'
+];
+const marketplaceABI = [
+  'function getListingCount() view returns (uint256)',
+  'function getRequestCount() view returns (uint256)',
+  'function totalMatches() view returns (uint256)',
+  'function totalCompletions() view returns (uint256)'
+];
+const escrowABI = [
+  'function totalEscrowsCreated() view returns (uint256)',
+  'function totalSettled() view returns (uint256)',
+  'function totalEscrowVolume() view returns (uint256)'
+];
+const treasuryABI = [
+  'function getGDP() view returns (uint256)',
+  'function totalDeposits() view returns (uint256)',
+  'function totalEarnings() view returns (uint256)',
+  'function totalSpending() view returns (uint256)',
+  'function getBalance(address) view returns (uint256)',
+  'function getPnL(address) view returns (int256)'
+];
+const oracleABI = [
+  'function snapshotCount() view returns (uint256)',
+  'function getSnapshot(uint256) view returns (tuple(uint256 timestamp, uint256 activeAgents, uint256 totalListings, uint256 totalRequests, uint256 totalMatches, uint256 totalEscrowVolume, uint256 totalSettled, uint256 gdp))'
+];
+
+let provider, registry, reputation, marketplace, escrowC, treasury, oracle;
+let liveAgents = [];
+
+async function initContracts() {
+  provider = new ethers.JsonRpcProvider(RPC_URL);
+  registry = new ethers.Contract(CONTRACTS.registry, registryABI, provider);
+  reputation = new ethers.Contract(CONTRACTS.reputation, reputationABI, provider);
+  marketplace = new ethers.Contract(CONTRACTS.marketplace, marketplaceABI, provider);
+  escrowC = new ethers.Contract(CONTRACTS.escrow, escrowABI, provider);
+  treasury = new ethers.Contract(CONTRACTS.treasury, treasuryABI, provider);
+  oracle = new ethers.Contract(CONTRACTS.oracle, oracleABI, provider);
+}
+
+function fmtOKB(wei) { return parseFloat(ethers.formatEther(wei)); }
+function fmtUSD(val) { return '$' + val.toFixed(4); }
+
+// === Load all on-chain data ===
+async function loadOnChainData() {
+  try {
+    const block = await provider.getBlockNumber();
+    // Network status
+    document.getElementById('net-dot').className = 'net-dot connected';
+    document.getElementById('net-label').textContent = 'X Layer Testnet #' + block;
+
+    // Gather data in parallel
+    const [agentCount, listings, requests, matches, completions, escrowsCreated, settled, escrowVol, gdpWei, deposits, earnings, spending, snapCount] = await Promise.all([
+      registry.getAgentCount(),
+      marketplace.getListingCount(),
+      marketplace.getRequestCount(),
+      marketplace.totalMatches(),
+      marketplace.totalCompletions(),
+      escrowC.totalEscrowsCreated(),
+      escrowC.totalSettled(),
+      escrowC.totalEscrowVolume(),
+      treasury.getGDP(),
+      treasury.totalDeposits(),
+      treasury.totalEarnings(),
+      treasury.totalSpending(),
+      oracle.snapshotCount()
+    ]);
+
+    const gdp = fmtOKB(gdpWei);
+    const totalTxns = Number(matches) + Number(completions) + Number(settled);
+
+    // Per-agent data
+    liveAgents = [];
+    for (let i = 0; i < AGENT_ADDRS.length; i++) {
+      try {
+        const [rep, pnl, bal] = await Promise.all([
+          reputation.getReputation(AGENT_ADDRS[i]),
+          treasury.getPnL(AGENT_ADDRS[i]),
+          treasury.getBalance(AGENT_ADDRS[i])
+        ]);
+        liveAgents.push({
+          addr: AGENT_ADDRS[i],
+          type: AGENT_TYPES[i],
+          color: AGENT_COLORS[i],
+          elo: Number(rep.rating) || 1000,
+          services: Number(rep.totalServices),
+          wins: Number(rep.wins),
+          volume: fmtOKB(rep.totalVolumeUSDT),
+          pnl: parseFloat(ethers.formatEther(pnl)),
+          balance: fmtOKB(bal)
+        });
+      } catch(e) {
+        liveAgents.push({ addr: AGENT_ADDRS[i], type: AGENT_TYPES[i], color: AGENT_COLORS[i], elo: 1000, services: 0, wins: 0, volume: 0, pnl: 0, balance: 0 });
+      }
+    }
+
+    const avgElo = liveAgents.length > 0 ? Math.round(liveAgents.reduce((s,a) => s + a.elo, 0) / liveAgents.length) : 1000;
+
+    // Update Hero
+    document.getElementById('hero-agents').textContent = Number(agentCount);
+    document.getElementById('hero-txns').textContent = totalTxns.toLocaleString();
+    document.getElementById('hero-gdp').textContent = fmtUSD(gdp);
+    document.getElementById('hero-elo').textContent = avgElo.toLocaleString();
+
+    // Update Agent Table
+    updateAgentTable();
+
+    // Update charts with real data
+    updateGraphChart();
+    await updateGDPChart(Number(snapCount));
+
+    // Update metrics section if exists
+    updateMetrics(Number(listings), Number(requests), Number(matches), Number(completions), gdp, fmtOKB(deposits), fmtOKB(earnings));
+
+  } catch(err) {
+    console.error('Chain data load failed:', err);
+    document.getElementById('net-dot').className = 'net-dot disconnected';
+    document.getElementById('net-label').textContent = 'RPC Error';
+  }
+}
+
+function updateAgentTable() {
+  const tbody = document.querySelector('#agent-table tbody');
+  if (!tbody || liveAgents.length === 0) return;
+  tbody.innerHTML = liveAgents.map((a, i) => {
+    const pnlClass = a.pnl >= 0 ? 'text-sym-green' : 'text-sym-red';
+    const pnlSign = a.pnl >= 0 ? '+' : '';
+    return '<tr class="border-b border-sym-border/50 hover:bg-white/[0.02]">' +
+      '<td class="p-4 font-medium text-white">Agent #' + i + ' <span class="text-gray-600 text-xs font-mono">' + a.addr.slice(0,8) + '...</span></td>' +
+      '<td class="p-4"><span class="badge" style="background:' + a.color + '20;color:' + a.color + '">' + a.type + '</span></td>' +
+      '<td class="p-4 font-mono">' + a.elo.toLocaleString() + '</td>' +
+      '<td class="p-4">' + a.services + '</td>' +
+      '<td class="p-4">' + fmtUSD(a.volume) + '</td>' +
+      '<td class="p-4 ' + pnlClass + '">' + pnlSign + fmtUSD(Math.abs(a.pnl)) + '</td>' +
+      '<td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>' +
+      '<span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>';
+  }).join('');
+  // Re-apply language visibility
+  const lang = document.documentElement.lang || 'zh';
+  document.documentElement.lang = lang;
+}
+
+function updateGraphChart() {
+  if (!graphChart || liveAgents.length === 0) return;
+  const positions = [{x:200,y:150},{x:550,y:200},{x:400,y:80},{x:200,y:340},{x:400,y:340},{x:100,y:230}];
+  const graphEdges = [
+    {source:'DataProvider',target:'Analyst',label:'data'},
+    {source:'Analyst',target:'Trader',label:'signal'},
+    {source:'Trader',target:'SecurityAuditor',label:'audit'},
+    {source:'SecurityAuditor',target:'Trader',label:'risk'},
+    {source:'DataProvider',target:'Arbitrageur',label:'data'},
+    {source:'LiquidityMgr',target:'Arbitrageur',label:'LP'},
+    {source:'Arbitrageur',target:'LiquidityMgr',label:'arb'}
+  ];
+  graphChart.setOption({
+    series:[{
+      data: liveAgents.map((a, i) => ({
+        name: a.type, x: positions[i].x, y: positions[i].y,
+        symbolSize: 20 + ((a.elo - 1000) / 5),
+        itemStyle: { color: a.color, shadowBlur: 20, shadowColor: a.color + '66' },
+        tooltip: { formatter: a.type + '<br/>ELO: ' + a.elo + '<br/>Services: ' + a.services }
+      })),
+      links: graphEdges.map(e => ({
+        source: e.source, target: e.target, label: e.label,
+        lineStyle: { color: '#1e293b' },
+        emphasis: { lineStyle: { color: '#06b6d4' } }
+      }))
+    }]
+  });
+}
+
+async function updateGDPChart(snapCount) {
+  if (!gdpChart || snapCount === 0) return;
+  const labels = [], values = [];
+  for (let i = 0; i < snapCount; i++) {
+    try {
+      const snap = await oracle.getSnapshot(i);
+      const ts = new Date(Number(snap.timestamp) * 1000);
+      labels.push(ts.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+      values.push(fmtOKB(snap.gdp));
+    } catch(e) { break; }
+  }
+  if (labels.length === 0) return;
+  gdpChart.setOption({ xAxis: { data: labels }, series: [{ data: values }] });
+}
+
+function updateMetrics(listings, requests, matches, completions, gdp, deposits, earnings) {
+  // Update metric cards if they exist with data- attributes
+  const cards = document.querySelectorAll('[data-metric]');
+  cards.forEach(card => {
+    const m = card.getAttribute('data-metric');
+    const valEl = card.querySelector('.metric-value');
+    if (!valEl) return;
+    if (m === 'listings') valEl.textContent = listings;
+    if (m === 'requests') valEl.textContent = requests;
+    if (m === 'matches') valEl.textContent = matches;
+    if (m === 'completions') valEl.textContent = completions;
+    if (m === 'gdp') valEl.textContent = fmtUSD(gdp);
+    if (m === 'deposits') valEl.textContent = fmtUSD(deposits);
+    if (m === 'earnings') valEl.textContent = fmtUSD(earnings);
+  });
+}
+
+// === Init & auto-refresh ===
+async function boot() {
+  await initContracts();
+  await loadOnChainData();
+  setInterval(loadOnChainData, 30000); // refresh every 30s
+}
+boot();
+
+// === Static agent data (fallback for initial chart render) ===
+const agents = liveAgents.length > 0 ? liveAgents.map((a,i) => ({name:a.type,color:a.color,elo:a.elo,x:[200,550,400,200,400,100][i],y:[150,200,80,340,340,230][i]})) : [
+  {name:'DataProvider',color:'#06b6d4',elo:1000,x:200,y:150},
+  {name:'Analyst',color:'#8b5cf6',elo:1000,x:400,y:80},
+  {name:'Trader',color:'#10b981',elo:1000,x:550,y:200},
+  {name:'SecurityAuditor',color:'#ef4444',elo:1000,x:400,y:340},
+  {name:'LiquidityMgr',color:'#f59e0b',elo:1000,x:200,y:340},
+  {name:'Arbitrageur',color:'#ec4899',elo:1000,x:100,y:230}
 ];
 const edges = [
-  {source:'DataProvider',target:'Analyst',label:'$0.01 data',value:487},
-  {source:'Analyst',target:'Trader',label:'$0.05 signal',value:312},
-  {source:'Trader',target:'SecurityAuditor',label:'$0.02 audit',value:198},
-  {source:'SecurityAuditor',target:'Trader',label:'risk score',value:198},
-  {source:'DataProvider',target:'Arbitrageur',label:'$0.01 data',value:240},
-  {source:'LiquidityMgr',target:'Arbitrageur',label:'LP fees',value:89},
-  {source:'Arbitrageur',target:'LiquidityMgr',label:'arb profit',value:120}
+  {source:'DataProvider',target:'Analyst',label:'data',value:0},
+  {source:'Analyst',target:'Trader',label:'signal',value:0},
+  {source:'Trader',target:'SecurityAuditor',label:'audit',value:0},
+  {source:'SecurityAuditor',target:'Trader',label:'risk',value:0},
+  {source:'DataProvider',target:'Arbitrageur',label:'data',value:0},
+  {source:'LiquidityMgr',target:'Arbitrageur',label:'LP',value:0},
+  {source:'Arbitrageur',target:'LiquidityMgr',label:'arb',value:0}
 ];
 
 // === Economy Graph ===
