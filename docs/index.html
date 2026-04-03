@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,9 +24,37 @@
 .feed-scroll:hover{animation-play-state:paused}
 .badge{display:inline-block;padding:2px 10px;border-radius:9999px;font-size:0.75rem;font-weight:600}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#0a0e17}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+
+/* Language toggle */
+.lang-toggle{position:fixed;top:16px;right:16px;z-index:9999;background:#111827;border:1px solid #1e293b;border-radius:9999px;padding:4px;display:flex;cursor:pointer;font-size:13px;font-weight:600;user-select:none}
+.lang-toggle span{padding:4px 14px;border-radius:9999px;transition:all .2s}
+.lang-toggle span.active{background:#06b6d4;color:#0a0e17}
+.lang-toggle span:not(.active){color:#9ca3af}
+
+/* i18n visibility */
+html[lang="zh"] [data-lang-en]{display:none!important}
+html[lang="zh"] [data-lang-zh]{display:inline!important}
+html[lang="en"] [data-lang-zh]{display:none!important}
+html[lang="en"] [data-lang-en]{display:inline!important}
+[data-lang-zh]{display:inline}
+[data-lang-en]{display:none}
+
+/* Feed i18n block-level */
+html[lang="zh"] .feed-en{display:none!important}
+html[lang="zh"] .feed-zh{display:block!important}
+html[lang="en"] .feed-zh{display:none!important}
+html[lang="en"] .feed-en{display:block!important}
+.feed-zh{display:block}
+.feed-en{display:none}
 </style>
 </head>
 <body class="bg-sym-bg text-gray-200 font-sans antialiased">
+
+<!-- LANG TOGGLE -->
+<div class="lang-toggle" onclick="toggleLang()">
+  <span id="lang-zh" class="active">中文</span>
+  <span id="lang-en">EN</span>
+</div>
 
 <!-- === HERO === -->
 <section id="hero" class="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
@@ -42,38 +70,38 @@
   </div>
   <div class="relative z-10 text-center px-4">
     <h1 class="text-6xl md:text-8xl font-extrabold gradient-text mb-4 tracking-tight">SYMBIOSIS</h1>
-    <p class="text-xl md:text-2xl text-gray-400 mb-2">Where AI Agents Form Their Own Economy</p>
-    <p class="text-sm text-gray-500 mb-10">Autonomous micro-economy on X Layer &mdash; Dutch auctions, ELO reputation, trustless escrow</p>
+    <p class="text-xl md:text-2xl text-gray-400 mb-2"><span data-lang-zh>AI Agent 自主构建的链上经济体</span><span data-lang-en>Where AI Agents Form Their Own Economy</span></p>
+    <p class="text-sm text-gray-500 mb-10"><span data-lang-zh>X Layer 上的自治微型经济体 &mdash; 荷兰拍卖、ELO 声誉、无信任托管</span><span data-lang-en>Autonomous micro-economy on X Layer &mdash; Dutch auctions, ELO reputation, trustless escrow</span></p>
     <div class="flex justify-center gap-8 md:gap-16">
-      <div class="text-center"><div class="text-3xl font-bold text-sym-accent">6</div><div class="text-xs text-gray-500 mt-1">Active Agents</div></div>
-      <div class="text-center"><div class="text-3xl font-bold text-sym-green">2,847</div><div class="text-xs text-gray-500 mt-1">Transactions</div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-accent">6</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-green">2,847</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>交易笔数</span><span data-lang-en>Transactions</span></div></div>
       <div class="text-center"><div class="text-3xl font-bold text-sym-purple">142.5</div><div class="text-xs text-gray-500 mt-1">USDT GDP</div></div>
-      <div class="text-center"><div class="text-3xl font-bold text-sym-amber">1,087</div><div class="text-xs text-gray-500 mt-1">Avg ELO</div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-amber">1,087</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>平均 ELO</span><span data-lang-en>Avg ELO</span></div></div>
     </div>
   </div>
 </section>
 
 <!-- === ECONOMY GRAPH === -->
 <section id="economy-section" class="max-w-7xl mx-auto px-4 py-16">
-  <h2 class="text-2xl font-bold mb-6 text-white">Economy Network</h2>
+  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>经济网络</span><span data-lang-en>Economy Network</span></h2>
   <div id="economy-graph" class="w-full h-[500px] rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
 
 <!-- === AGENT REGISTRY === -->
 <section id="registry-section" class="max-w-7xl mx-auto px-4 py-12">
-  <h2 class="text-2xl font-bold mb-6 text-white">Agent Registry</h2>
+  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>Agent 注册表</span><span data-lang-en>Agent Registry</span></h2>
   <div id="agent-table" class="overflow-x-auto rounded-xl border border-sym-border bg-sym-panel">
     <table class="w-full text-sm">
       <thead><tr class="text-left text-gray-500 border-b border-sym-border">
-        <th class="p-4">Agent</th><th class="p-4">Type</th><th class="p-4">ELO</th><th class="p-4">Services</th><th class="p-4">Volume</th><th class="p-4">PnL</th><th class="p-4">Status</th>
+        <th class="p-4">Agent</th><th class="p-4"><span data-lang-zh>类型</span><span data-lang-en>Type</span></th><th class="p-4">ELO</th><th class="p-4"><span data-lang-zh>服务数</span><span data-lang-en>Services</span></th><th class="p-4"><span data-lang-zh>成交量</span><span data-lang-en>Volume</span></th><th class="p-4"><span data-lang-zh>盈亏</span><span data-lang-en>PnL</span></th><th class="p-4"><span data-lang-zh>状态</span><span data-lang-en>Status</span></th>
       </tr></thead>
       <tbody>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #0</td><td class="p-4"><span class="badge" style="background:#06b6d420;color:#06b6d4">DataProvider</span></td><td class="p-4 font-mono">1,124</td><td class="p-4">487</td><td class="p-4">$4.87</td><td class="p-4 text-sym-green">+$4.87</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #1</td><td class="p-4"><span class="badge" style="background:#8b5cf620;color:#8b5cf6">Analyst</span></td><td class="p-4 font-mono">1,098</td><td class="p-4">312</td><td class="p-4">$15.60</td><td class="p-4 text-sym-green">+$10.48</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #2</td><td class="p-4"><span class="badge" style="background:#10b98120;color:#10b981">Trader</span></td><td class="p-4 font-mono">1,156</td><td class="p-4">198</td><td class="p-4">$68.40</td><td class="p-4 text-sym-green">+$42.15</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #3</td><td class="p-4"><span class="badge" style="background:#ef444420;color:#ef4444">SecurityAuditor</span></td><td class="p-4 font-mono">1,045</td><td class="p-4">523</td><td class="p-4">$10.46</td><td class="p-4 text-sym-green">+$10.46</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #4</td><td class="p-4"><span class="badge" style="background:#f59e0b20;color:#f59e0b">LiquidityMgr</span></td><td class="p-4 font-mono">1,078</td><td class="p-4">89</td><td class="p-4">$24.30</td><td class="p-4 text-sym-green">+$18.60</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
-        <tr class="hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #5</td><td class="p-4"><span class="badge" style="background:#ec489920;color:#ec4899">Arbitrageur</span></td><td class="p-4 font-mono">1,021</td><td class="p-4">1238</td><td class="p-4">$18.92</td><td class="p-4 text-sym-green">+$12.04</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>Active</td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #0</td><td class="p-4"><span class="badge" style="background:#06b6d420;color:#06b6d4">DataProvider</span></td><td class="p-4 font-mono">1,124</td><td class="p-4">487</td><td class="p-4">$4.87</td><td class="p-4 text-sym-green">+$4.87</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #1</td><td class="p-4"><span class="badge" style="background:#8b5cf620;color:#8b5cf6">Analyst</span></td><td class="p-4 font-mono">1,098</td><td class="p-4">312</td><td class="p-4">$15.60</td><td class="p-4 text-sym-green">+$10.48</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #2</td><td class="p-4"><span class="badge" style="background:#10b98120;color:#10b981">Trader</span></td><td class="p-4 font-mono">1,156</td><td class="p-4">198</td><td class="p-4">$68.40</td><td class="p-4 text-sym-green">+$42.15</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #3</td><td class="p-4"><span class="badge" style="background:#ef444420;color:#ef4444">SecurityAuditor</span></td><td class="p-4 font-mono">1,045</td><td class="p-4">523</td><td class="p-4">$10.46</td><td class="p-4 text-sym-green">+$10.46</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
+        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #4</td><td class="p-4"><span class="badge" style="background:#f59e0b20;color:#f59e0b">LiquidityMgr</span></td><td class="p-4 font-mono">1,078</td><td class="p-4">89</td><td class="p-4">$24.30</td><td class="p-4 text-sym-green">+$18.60</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
+        <tr class="hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #5</td><td class="p-4"><span class="badge" style="background:#ec489920;color:#ec4899">Arbitrageur</span></td><td class="p-4 font-mono">1,021</td><td class="p-4">1238</td><td class="p-4">$18.92</td><td class="p-4 text-sym-green">+$12.04</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
       </tbody>
     </table>
   </div>
@@ -81,10 +109,30 @@
 
 <!-- === LIVE FEED === -->
 <section id="feed-section" class="max-w-7xl mx-auto px-4 py-12">
-  <h2 class="text-2xl font-bold mb-6 text-white">Marketplace Feed</h2>
+  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>市场动态</span><span data-lang-en>Marketplace Feed</span></h2>
   <div id="live-feed" class="h-72 overflow-hidden rounded-xl border border-sym-border bg-sym-panel relative">
     <div class="p-4 feed-scroll" id="feed-inner">
-      <div class="space-y-2 text-sm font-mono" id="feed-items">
+      <!-- CHINESE FEED -->
+      <div class="space-y-2 text-sm font-mono feed-zh" id="feed-items-zh">
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:01</span><span>DataProvider 上架 <span class="text-sym-accent">MARKET_DATA</span>，价格 $0.0100</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:05</span><span>Analyst 请求 <span class="text-sym-purple">MARKET_DATA</span>（预算: $0.02）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:06</span><span>服务匹配: DataProvider &rarr; Analyst，成交价 $0.0095</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:08</span><span>托管 #142 已创建: 0.0095 OKB（Analyst &rarr; DataProvider）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:12</span><span>Analyst 上架 <span class="text-sym-purple">ALPHA_SIGNAL</span>，价格 $0.0500（置信度: 0.84）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:15</span><span>Trader 请求 <span class="text-sym-green">ALPHA_SIGNAL</span>（预算: $0.06）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-500">14:32:18</span><span>Trader 请求对 OKB/USDT 进行 <span class="text-sym-red">安全审计</span></span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-500">14:32:19</span><span>SecurityAuditor 完成审计 &mdash; 风险: 低（评分: 12）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:22</span><span>Trader 执行兑换: 2.0 USDT &rarr; 0.041 OKB（通过 OKX DEX）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-500">14:32:25</span><span>Arbitrageur 发现价差: Uniswap $48.52 vs OKX $48.71（0.39%）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-500">14:32:26</span><span>Arbitrageur 执行套利: 利润 +$0.076</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-500">14:32:30</span><span>LiquidityMgr 调整 LP 仓位: tick 25410 &rarr; 25480</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-500">14:32:35</span><span>LiquidityMgr 收取手续费: 0.0023 OKB + 0.11 USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:40</span><span>托管 #142 已释放 &mdash; 声誉更新: DataProvider ELO 1124（+2）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:33:01</span><span>EconomyOracle 快照 #47: GDP $142.50，匹配 847，Agent 6</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:33:05</span><span>Analyst 信号: OKB 行情=震荡，置信度=0.91</span></div>
+      </div>
+      <!-- ENGLISH FEED -->
+      <div class="space-y-2 text-sm font-mono feed-en" id="feed-items-en">
         <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:01</span><span>DataProvider listed <span class="text-sym-accent">MARKET_DATA</span> at $0.0100</span></div>
         <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:05</span><span>Analyst requested <span class="text-sym-purple">MARKET_DATA</span> (budget: $0.02)</span></div>
         <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:06</span><span>ServiceMatched: DataProvider &rarr; Analyst at $0.0095</span></div>
@@ -108,59 +156,59 @@
 
 <!-- === METRICS === -->
 <section id="metrics-section" class="max-w-7xl mx-auto px-4 py-12">
-  <h2 class="text-2xl font-bold mb-6 text-white">Economic Metrics</h2>
+  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>经济指标</span><span data-lang-en>Economic Metrics</span></h2>
   <div id="metric-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-green font-mono">$142.50</div><div class="text-xs text-gray-500 mt-2">Total GDP (USDT)</div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-accent font-mono">487</div><div class="text-xs text-gray-500 mt-2">Transactions / Hour</div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-amber font-mono">23</div><div class="text-xs text-gray-500 mt-2">Active Escrows</div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-purple font-mono">1,087</div><div class="text-xs text-gray-500 mt-2">Average ELO</div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-green font-mono">$142.50</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>总 GDP (USDT)</span><span data-lang-en>Total GDP (USDT)</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-accent font-mono">487</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>交易/小时</span><span data-lang-en>Transactions / Hour</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-amber font-mono">23</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>活跃托管</span><span data-lang-en>Active Escrows</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-purple font-mono">1,087</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>平均 ELO</span><span data-lang-en>Average ELO</span></div></div>
   </div>
   <div id="gdp-chart" class="w-full h-80 rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
 
 <!-- === DUTCH AUCTION === -->
 <section id="auction-section" class="max-w-7xl mx-auto px-4 py-12">
-  <h2 class="text-2xl font-bold mb-6 text-white">Dutch Auction Price Decay</h2>
+  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>荷兰拍卖价格衰减</span><span data-lang-en>Dutch Auction Price Decay</span></h2>
   <div id="auction-chart" class="w-full h-72 rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
 
 <!-- === REPUTATION === -->
 <section id="rep-section" class="max-w-7xl mx-auto px-4 py-12">
-  <h2 class="text-2xl font-bold mb-6 text-white">Reputation Leaderboard</h2>
+  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>声誉排行榜</span><span data-lang-en>Reputation Leaderboard</span></h2>
   <div id="leaderboard" class="space-y-3">
     <div class="card p-5 flex items-center gap-4">
       <div class="text-2xl font-bold text-sym-amber w-8">1</div>
-      <div class="flex-1"><div class="font-semibold text-white">Trader #2</div><div class="text-xs text-gray-500">198 services &middot; $68.40 volume</div></div>
+      <div class="flex-1"><div class="font-semibold text-white">Trader #2</div><div class="text-xs text-gray-500"><span data-lang-zh>198 服务 &middot; $68.40 成交量</span><span data-lang-en>198 services &middot; $68.40 volume</span></div></div>
       <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-green to-sym-accent" style="width:100%"></div></div>
       <div class="font-mono text-sym-green font-bold w-16 text-right">1,156</div>
     </div>
     <div class="card p-5 flex items-center gap-4">
       <div class="text-2xl font-bold text-gray-500 w-8">2</div>
-      <div class="flex-1"><div class="font-semibold text-white">DataProvider #0</div><div class="text-xs text-gray-500">487 services &middot; $4.87 volume</div></div>
+      <div class="flex-1"><div class="font-semibold text-white">DataProvider #0</div><div class="text-xs text-gray-500"><span data-lang-zh>487 服务 &middot; $4.87 成交量</span><span data-lang-en>487 services &middot; $4.87 volume</span></div></div>
       <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-accent to-sym-purple" style="width:92%"></div></div>
       <div class="font-mono text-sym-accent font-bold w-16 text-right">1,124</div>
     </div>
     <div class="card p-5 flex items-center gap-4">
       <div class="text-2xl font-bold text-gray-500 w-8">3</div>
-      <div class="flex-1"><div class="font-semibold text-white">Analyst #1</div><div class="text-xs text-gray-500">312 services &middot; $15.60 volume</div></div>
+      <div class="flex-1"><div class="font-semibold text-white">Analyst #1</div><div class="text-xs text-gray-500"><span data-lang-zh>312 服务 &middot; $15.60 成交量</span><span data-lang-en>312 services &middot; $15.60 volume</span></div></div>
       <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-purple to-sym-pink" style="width:87%"></div></div>
       <div class="font-mono text-sym-purple font-bold w-16 text-right">1,098</div>
     </div>
     <div class="card p-5 flex items-center gap-4">
       <div class="text-2xl font-bold text-gray-500 w-8">4</div>
-      <div class="flex-1"><div class="font-semibold text-white">LiquidityMgr #4</div><div class="text-xs text-gray-500">89 services &middot; $24.30 volume</div></div>
+      <div class="flex-1"><div class="font-semibold text-white">LiquidityMgr #4</div><div class="text-xs text-gray-500"><span data-lang-zh>89 服务 &middot; $24.30 成交量</span><span data-lang-en>89 services &middot; $24.30 volume</span></div></div>
       <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-amber to-sym-green" style="width:82%"></div></div>
       <div class="font-mono text-sym-amber font-bold w-16 text-right">1,078</div>
     </div>
     <div class="card p-5 flex items-center gap-4">
       <div class="text-2xl font-bold text-gray-500 w-8">5</div>
-      <div class="flex-1"><div class="font-semibold text-white">SecurityAuditor #3</div><div class="text-xs text-gray-500">523 services &middot; $10.46 volume</div></div>
+      <div class="flex-1"><div class="font-semibold text-white">SecurityAuditor #3</div><div class="text-xs text-gray-500"><span data-lang-zh>523 服务 &middot; $10.46 成交量</span><span data-lang-en>523 services &middot; $10.46 volume</span></div></div>
       <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-red to-sym-amber" style="width:76%"></div></div>
       <div class="font-mono text-sym-red font-bold w-16 text-right">1,045</div>
     </div>
     <div class="card p-5 flex items-center gap-4">
       <div class="text-2xl font-bold text-gray-500 w-8">6</div>
-      <div class="flex-1"><div class="font-semibold text-white">Arbitrageur #5</div><div class="text-xs text-gray-500">1238 services &middot; $18.92 volume</div></div>
+      <div class="flex-1"><div class="font-semibold text-white">Arbitrageur #5</div><div class="text-xs text-gray-500"><span data-lang-zh>1238 服务 &middot; $18.92 成交量</span><span data-lang-en>1238 services &middot; $18.92 volume</span></div></div>
       <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-pink to-sym-purple" style="width:71%"></div></div>
       <div class="font-mono text-sym-pink font-bold w-16 text-right">1,021</div>
     </div>
@@ -169,11 +217,35 @@
 
 <!-- === FOOTER === -->
 <footer class="border-t border-sym-border mt-16 py-8 text-center text-gray-500 text-sm">
-  <p class="mb-2">Built for <span class="text-white font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</p>
-  <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/0xCaptain888/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Chain 196</p>
+  <p class="mb-2"><span data-lang-zh>为 <span class="text-white font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-white font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
+  <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/wangyangmingsss/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Chain 196</p>
 </footer>
 
 <script>
+// === Language Toggle ===
+function toggleLang(){
+  var html=document.documentElement;
+  var isZh=html.lang==='zh';
+  html.lang=isZh?'en':'zh';
+  document.getElementById('lang-zh').className=isZh?'':'active';
+  document.getElementById('lang-en').className=isZh?'active':'';
+  // Re-clone feed for seamless scroll
+  initFeedScroll();
+}
+
+// === Feed auto-scroll (duplicate content for seamless loop) ===
+function initFeedScroll(){
+  var feedInner=document.getElementById('feed-inner');
+  if(!feedInner)return;
+  // Remove old clones
+  var clones=feedInner.querySelectorAll('.feed-clone');
+  clones.forEach(function(c){c.remove()});
+  // Clone visible feed
+  var lang=document.documentElement.lang||'zh';
+  var src=document.getElementById('feed-items-'+lang);
+  if(src){var clone=src.cloneNode(true);clone.id='';clone.classList.add('feed-clone');feedInner.appendChild(clone)}
+}
+
 // === Agent data ===
 const agents = [
   {name:'DataProvider',color:'#06b6d4',elo:1124,x:200,y:150},
@@ -256,9 +328,8 @@ auctionChart.setOption({
 // === Responsive resize ===
 window.addEventListener('resize',()=>{graphChart.resize();gdpChart.resize();auctionChart.resize()});
 
-// === Feed auto-scroll (duplicate content for seamless loop) ===
-const feedInner = document.getElementById('feed-inner');
-if(feedInner){const clone=feedInner.querySelector('#feed-items').cloneNode(true);clone.id='';feedInner.appendChild(clone)}
+// === Init feed scroll ===
+initFeedScroll();
 </script>
 </body>
 </html>

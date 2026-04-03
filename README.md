@@ -6,26 +6,29 @@
 
 # SYMBIOSIS
 
-**Six autonomous AI agents forming a self-sustaining on-chain economy on X Layer.**
+**六个自主 AI 代理在 X Layer 上构建的自维持链上经济体。**
+
+> GitHub: https://github.com/wangyangmingsss/symbiosis
+> 演示站点: https://wangyangmingsss.github.io/symbiosis/
 
 ---
 
-## 项目概述 / Project Overview
+## 项目概述
 
-SYMBIOSIS is not a single AI agent -- it is an **economy of six specialized agents** that trade services with each other on X Layer (OKX's L2, Chain ID 196). Each agent registers on-chain, stakes OKB as skin-in-the-game, lists services on a Dutch auction marketplace, earns reputation through an ELO scoring system, and settles payments through trustless escrow.
+SYMBIOSIS 不是一个单独的 AI 代理 -- 它是一个由**六个专业化代理组成的经济体**，在 X Layer（OKX 的 L2，Chain ID 196）上相互交易服务。每个代理在链上注册身份、质押 OKB 作为保证金、通过荷兰拍卖市场挂牌服务、借助 ELO 评分系统积累信誉，并通过无需信任的托管合约完成支付结算。
 
-**Why it matters:** Most "AI agent" projects are one agent doing one thing. SYMBIOSIS demonstrates **emergent economic behavior** -- agents specialize, discover each other, negotiate prices, and build reputation over time. The DataProvider feeds the Analyst, the Analyst feeds the Trader, the SecurityAuditor protects everyone, the LiquidityManager maintains market depth, and the Arbitrageur keeps prices efficient. Remove one agent and the economy degrades. Add more agents and it gets stronger.
+**为什么这很重要：** 大多数"AI 代理"项目只是一个代理做一件事。SYMBIOSIS 展示了**涌现的经济行为** -- 代理各自专精、相互发现、协商价格、随时间建立信誉。DataProvider 为 Analyst 提供数据，Analyst 为 Trader 提供信号，SecurityAuditor 守护所有人的安全，LiquidityManager 维持市场深度，Arbitrageur 保持价格效率。移除一个代理，经济体会退化；增加更多代理，经济体会变得更强。
 
-**What makes it different:**
+**核心差异化：**
 
-- **Multi-agent economy**, not a single-agent tool
-- **Dutch auction pricing** -- service prices decay over time, naturally finding equilibrium
-- **ELO reputation** -- borrowed from chess, adapted for on-chain service markets
-- **x402 micro-payment tabs** -- batch tiny payments into single settlements
-- **Full Onchain OS integration** -- 13 OKX API skills power agent decision-making
-- **Uniswap V3 LP management** -- automated concentrated liquidity rebalancing
+- **多代理经济体**，而非单代理工具
+- **荷兰拍卖定价** -- 服务价格随时间衰减，自然达到均衡
+- **ELO 信誉系统** -- 借鉴国际象棋等级分，适配链上服务市场
+- **x402 微支付标签** -- 将大量小额支付批量合并为单次结算
+- **完整 Onchain OS 集成** -- 13 个 OKX API skill 驱动代理决策
+- **Uniswap V3 LP 管理** -- 自动化集中流动性再平衡
 
-## 系统架构 / Architecture Diagram
+## 系统架构
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -68,7 +71,7 @@ SYMBIOSIS is not a single AI agent -- it is an **economy of six specialized agen
 │  └────────────────┘  └───────────────────┘  └──────────────────┘           │
 │                                                                             │
 ├──────────────────────────┬──────────────────────────────────────────────────┤
-│  Libraries               │  External Integrations                           │
+│  库                       │  外部集成                                        │
 │  ┌─────────────────┐     │  ┌──────────────┐  ┌───────────────┐            │
 │  │ DutchAuctionLib  │     │  │ OKX Onchain  │  │ Uniswap V3    │            │
 │  │ (price decay)    │     │  │ OS (13 APIs) │  │ (LP + pricing)│            │
@@ -78,50 +81,51 @@ SYMBIOSIS is not a single AI agent -- it is an **economy of six specialized agen
 │  └─────────────────┘     │                                                 │
 └──────────────────────────┴──────────────────────────────────────────────────┘
 ```
-## 智能合约架构 / Smart Contract Architecture
 
-All contracts are written in Solidity ^0.8.26 and deployed to X Layer via Foundry.
+## 智能合约架构
 
-| Contract | Source | Description | Key Functions |
+所有合约使用 Solidity ^0.8.26 编写，通过 Foundry 部署到 X Layer。
+
+| 合约 | 源文件 | 说明 | 关键函数 |
 |---|---|---|---|
-| **AgentRegistry** | `src/AgentRegistry.sol` | On-chain identity and staking. Agents register with a type, metadata URI, and 0.01 OKB minimum stake. | `registerAgent()`, `deregisterAgent()`, `slashStake()`, `discoverAgents()` |
-| **ServiceMarketplace** | `src/ServiceMarketplace.sol` | Dutch auction service market. Agents list services with decaying prices; buyers request and providers accept. Uses `DutchAuctionLib` for price computation. | `listService()`, `requestService()`, `acceptRequest()`, `completeService()`, `findBestListing()` |
-| **ReputationEngine** | `src/ReputationEngine.sol` | ELO-based on-chain reputation. Tracks per-agent and per-category scores. Uses `ELOLib` with K-factor of 64 for new agents and 32 for veterans. | `recordCompletion()`, `recordFailure()`, `slashReputation()`, `getTopAgents()` |
-| **EscrowSettlement** | `src/EscrowSettlement.sol` | Trustless payment escrow with x402 integration. Supports individual escrows, batch settlement, and a micro-payment tab system. | `createEscrow()`, `releaseEscrow()`, `batchSettle()`, `addToTab()`, `settleTab()` |
-| **AgentTreasury** | `src/AgentTreasury.sol` | Per-agent fund management with PnL accounting. Tracks deposits, withdrawals, earnings, and spending. Exposes economy-wide GDP. | `deposit()`, `withdraw()`, `creditEarnings()`, `getPnL()`, `getGDP()` |
-| **EconomyOracle** | `src/EconomyOracle.sol` | Aggregated economy metrics. Any agent can call `takeSnapshot()` to record active agents, matches, volume, and GDP on-chain. | `takeSnapshot()`, `getLatestSnapshot()`, `getGrowthRate()` |
+| **AgentRegistry** | `src/AgentRegistry.sol` | 链上身份与质押。代理通过类型、metadata URI 及最低 0.01 OKB 质押完成注册。支持发现同类代理、注销退款、罚没质押等操作。 | `registerAgent()`, `deregisterAgent()`, `slashStake()`, `discoverAgents()` |
+| **ServiceMarketplace** | `src/ServiceMarketplace.sol` | 荷兰拍卖服务市场。代理以衰减价格挂牌服务；买方发起请求，卖方接受匹配。使用 `DutchAuctionLib` 计算实时价格。支持 6 种预定义服务类型：`MARKET_DATA`、`ALPHA_SIGNAL`、`TRADE_EXECUTION`、`SECURITY_AUDIT`、`LP_MANAGEMENT`、`ARBITRAGE_SIGNAL`。 | `listService()`, `requestService()`, `acceptRequest()`, `completeService()`, `findBestListing()` |
+| **ReputationEngine** | `src/ReputationEngine.sol` | 基于 ELO 的链上信誉系统。追踪每个代理的总分和分类别评分。使用 `ELOLib`，新代理（服务次数 < 30）K 值为 64，资深代理 K 值为 32。支持基于 basis points 的直接罚没。 | `recordCompletion()`, `recordFailure()`, `slashReputation()`, `getTopAgents()` |
+| **EscrowSettlement** | `src/EscrowSettlement.sol` | 无需信任的支付托管，集成 x402 协议。支持标准托管、批量结算和微支付标签系统。`Escrow` 结构体包含 `x402PaymentHash` 字段用于关联链下支付证明。 | `createEscrow()`, `releaseEscrow()`, `batchSettle()`, `addToTab()`, `settleTab()` |
+| **AgentTreasury** | `src/AgentTreasury.sol` | 按代理隔离的资金管理与 PnL 核算。追踪存款、取款、收入、支出。提供经济体层面的 GDP 查询。 | `deposit()`, `withdraw()`, `creditEarnings()`, `getPnL()`, `getGDP()` |
+| **EconomyOracle** | `src/EconomyOracle.sol` | 聚合经济指标。任何代理均可调用 `takeSnapshot()` 在链上记录活跃代理数、匹配数、交易量和 GDP。支持里程碑事件（100/1000 次匹配、GDP 达到 1 USDT）。 | `takeSnapshot()`, `getLatestSnapshot()`, `getGrowthRate()` |
 
-**Libraries:**
+**库：**
 
-| Library | Purpose |
+| 库名 | 用途 |
 |---|---|
-| `DutchAuctionLib` | Linear price decay: `currentPrice = startPrice - (elapsed * decayRate)`, clamped at `floorPrice`. Also provides `blocksUntilPrice()` for bidding strategy. |
-| `ELOLib` | Chess-style ELO adapted for agents. Base rating 1000, K-factor 64 for agents with < 30 completions, K-factor 32 after. Piecewise linear approximation of logistic expected score. Floor at 100. |
+| `DutchAuctionLib` | 线性价格衰减：`currentPrice = startPrice - (elapsed * decayRate)`，下限钳制在 `floorPrice`。另提供 `blocksUntilPrice()` 供买方计算最佳购买时机。 |
+| `ELOLib` | 国际象棋风格 ELO 评分适配版。基础评分 1000，服务次数 < 30 时 K 值为 64，之后降为 32。使用分段线性近似计算期望得分。评分下限 100，永不归零。 |
 
-**Deployment order** (see `script/Deploy.s.sol`):
+**部署顺序**（参见 `script/Deploy.s.sol`）：
 
 ```
 AgentRegistry -> ReputationEngine -> ServiceMarketplace -> EscrowSettlement -> AgentTreasury -> EconomyOracle
 ```
 
-Wiring: `registry.setMarketplace()`, `marketplace.setEscrow()`, `marketplace.setReputation()`, `escrow.setMarketplace()`, `treasury.setEscrow()`, `reputation.setAuthorized(marketplace)`, `reputation.setAuthorized(escrow)`.
+合约关联配置：`registry.setMarketplace()`、`marketplace.setEscrow()`、`marketplace.setReputation()`、`escrow.setMarketplace()`、`treasury.setEscrow()`、`reputation.setAuthorized(marketplace)`、`reputation.setAuthorized(escrow)`。
 
-## 代理类型 / Agent Types
+## 代理类型
 
-All agents extend `AgentBase` (TypeScript), which provides wallet setup, contract handles, lifecycle management (`start()`/`stop()`), and per-cycle error isolation.
+所有代理继承自 `AgentBase`（TypeScript），该基类提供钱包配置、合约句柄、生命周期管理（`start()`/`stop()`）以及单次循环错误隔离。
 
-| Agent | Type Enum | Role | Onchain OS Skills Used | Cycle | Revenue Model |
+| 代理 | 类型枚举 | 角色 | 使用的 Onchain OS Skill | 周期 | 收入模式 |
 |---|---|---|---|---|---|
-| **DataProviderAgent** | `DataProvider` | Fetches OKB/ETH/BTC/USDT prices from OKX, hashes data on-chain, lists `MARKET_DATA` service | `getMarketPrice()` | 30s | Sells market data snapshots via Dutch auction |
-| **AnalystAgent** | `Analyst` | Consumes price history, computes volatility/trend/regime, generates alpha signals, lists `ALPHA_SIGNAL` service | (consumes DataProvider output) | 45s | Sells alpha signals; higher confidence = higher price |
-| **TraderAgent** | `Trader` | Acts on alpha signals with confidence > 0.7, requests security audit before trading, executes via OKX DEX aggregator | `getDexQuote()`, `executeDexSwap()`, `securityScan()` | 60s | Trading PnL tracked in AgentTreasury |
-| **SecurityAuditorAgent** | `SecurityAuditor` | On-demand token security scanning, caches results (5min TTL), processes up to 5 requests per cycle, lists `SECURITY_AUDIT` service | `securityScan()` | 20s | Sells security audit results; cheapest service in the economy |
-| **LiquidityManagerAgent** | `LiquidityManager` | Manages Uniswap V3 concentrated LP positions, detects out-of-range, rebalances ticks, collects fees, lists `LP_MANAGEMENT` service | `getMarketPrice()` | 120s | LP fees + LP management service fees |
-| **ArbitrageurAgent** | `Arbitrageur` | Compares OKX aggregator vs Uniswap V3 prices, executes when spread > 0.5%, requests security audit first | `getMarketPrice()`, `getDexQuote()`, `executeDexSwap()`, `securityScan()` | 10s | Arbitrage profit; fastest agent in the economy |
+| **DataProviderAgent** | `DataProvider` | 从 OKX 获取 OKB/ETH/BTC/USDT 价格，将数据哈希上链，挂牌 `MARKET_DATA` 服务 | `getMarketPrice()` | 30s | 通过荷兰拍卖出售市场数据快照 |
+| **AnalystAgent** | `Analyst` | 消费价格历史，计算波动率/趋势/市场状态，生成 alpha 信号，挂牌 `ALPHA_SIGNAL` 服务 | （消费 DataProvider 输出） | 45s | 出售 alpha 信号；置信度越高价格越高 |
+| **TraderAgent** | `Trader` | 根据置信度 > 0.7 的 alpha 信号行动，交易前请求安全审计，通过 OKX DEX 聚合器执行 | `getDexQuote()`, `executeDexSwap()`, `securityScan()` | 60s | 交易盈亏记录在 AgentTreasury |
+| **SecurityAuditorAgent** | `SecurityAuditor` | 按需执行代币安全扫描，结果缓存（5 分钟 TTL），每周期处理最多 5 个请求，挂牌 `SECURITY_AUDIT` 服务 | `securityScan()` | 20s | 出售安全审计结果；经济体中最便宜的服务 |
+| **LiquidityManagerAgent** | `LiquidityManager` | 管理 Uniswap V3 集中 LP 仓位，检测超出范围，再平衡 tick，收取手续费，挂牌 `LP_MANAGEMENT` 服务 | `getMarketPrice()` | 120s | LP 手续费 + LP 管理服务费 |
+| **ArbitrageurAgent** | `Arbitrageur` | 比较 OKX 聚合器与 Uniswap V3 价格，价差 > 0.5% 时执行，交易前请求安全审计 | `getMarketPrice()`, `getDexQuote()`, `executeDexSwap()`, `securityScan()` | 10s | 套利利润；经济体中最快的代理 |
 
-## 经济循环 / Economic Loop
+## 经济循环
 
-One complete value cycle through the SYMBIOSIS economy:
+SYMBIOSIS 经济体中一个完整的价值循环：
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -159,205 +163,212 @@ One complete value cycle through the SYMBIOSIS economy:
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-**Revenue flows:**
-- DataProvider earns from Analyst + Trader (market data purchases)
-- Analyst earns from Trader (alpha signal purchases)
-- SecurityAuditor earns from Trader + Arbitrageur (security audit fees)
-- LiquidityManager earns from LP fees on Uniswap V3
-- Arbitrageur earns from cross-venue spread capture
-- Trader earns from directional positions based on alpha signals
-## 荷兰拍卖机制 / Dutch Auction Mechanism
+**收入流向：**
+- DataProvider 从 Analyst + Trader 处获得收入（市场数据购买）
+- Analyst 从 Trader 处获得收入（alpha 信号购买）
+- SecurityAuditor 从 Trader + Arbitrageur 处获得收入（安全审计费用）
+- LiquidityManager 从 Uniswap V3 LP 手续费中获得收入
+- Arbitrageur 通过跨平台价差捕获获得收入
+- Trader 基于 alpha 信号的方向性头寸获得收入
 
-The `ServiceMarketplace` uses `DutchAuctionLib` for all service pricing. When an agent lists a service, the price starts high and decays linearly per block until it hits the floor.
+## 荷兰拍卖机制
 
-**How it works in `DutchAuctionLib.currentPrice()`:**
+`ServiceMarketplace` 使用 `DutchAuctionLib` 为所有服务定价。当代理挂牌服务时，价格从高位起始并按区块线性衰减，直至触及底价。
+
+**`DutchAuctionLib.currentPrice()` 的计算方式：**
 
 ```
 price(block) = max(floorPrice, startPrice - (currentBlock - listedAtBlock) * decayRate)
 ```
 
-**Example: DataProviderAgent listing MARKET_DATA:**
+**示例：DataProviderAgent 挂牌 MARKET_DATA 服务：**
 
-| Parameter | Value | Notes |
+| 参数 | 值 | 说明 |
 |---|---|---|
-| `startPrice` | 0.001 OKB | Initial asking price |
-| `floorPrice` | 0.0001 OKB | Minimum price (10x discount at floor) |
-| `decayRate` | 0.00001 OKB/block | ~1 block/sec on X Layer |
-| `maxFulfillments` | 0 | Unlimited purchases |
+| `startPrice` | 0.001 OKB | 初始挂牌价 |
+| `floorPrice` | 0.0001 OKB | 最低价格（底价时折扣 10 倍） |
+| `decayRate` | 0.00001 OKB/block | X Layer 上约 1 block/sec |
+| `maxFulfillments` | 0 | 无限次购买 |
 
-After 90 blocks (~90 seconds), price reaches floor. The `blocksUntilPrice()` helper lets buyer agents calculate the optimal time to purchase.
+经过 90 个区块（约 90 秒）后，价格到达底价。`blocksUntilPrice()` 辅助函数让买方代理可以计算最优购买时机。
 
-**Auto-matching:** `findBestListing(serviceType)` iterates all active listings for a service type and returns the cheapest one at the current block, enabling agents to automatically find the best deal.
+**自动匹配：** `findBestListing(serviceType)` 遍历指定服务类型的所有活跃挂牌，返回当前区块最便宜的选项，使代理能自动找到最优交易。
 
-**Why Dutch auctions for AI services:**
-- **No negotiation needed** -- the price speaks for itself, ideal for autonomous agents
-- **Price discovery** -- equilibrium emerges as providers compete on startPrice/decayRate
-- **Urgency reward** -- early buyers pay more but get data first (critical for alpha signals)
-## ELO 信誉系统 / ELO Reputation System
+**为什么 AI 服务适合荷兰拍卖：**
+- **无需协商** -- 价格自身说明一切，非常适合自主代理
+- **价格发现** -- 提供者通过 startPrice/decayRate 竞争，均衡价格自然涌现
+- **紧迫性奖励** -- 先买者付更多但更早获得数据（对 alpha 信号至关重要）
 
-`ReputationEngine` uses `ELOLib` to maintain chess-style ratings for every agent. This is not a simple upvote/downvote system -- the magnitude of rating change depends on the **expected outcome** based on current ratings.
+## ELO 信誉系统
 
-**Core parameters in `ELOLib`:**
+`ReputationEngine` 使用 `ELOLib` 为每个代理维护国际象棋风格的等级分。这不是简单的点赞/踩系统 -- 评分变动的幅度取决于基于当前评分计算的**期望结果**。
 
-| Constant | Value | Purpose |
+**`ELOLib` 核心参数：**
+
+| 常量 | 值 | 用途 |
 |---|---|---|
-| `BASE_RATING` | 1000 | Starting rating for all agents |
-| `K_FACTOR` | 32 | Rating volatility for established agents (30+ services) |
-| `K_FACTOR_NEW` | 64 | 2x volatility for new agents (< 30 services) -- faster bootstrapping |
-| `NEW_AGENT_THRESHOLD` | 30 | Service count after which K-factor drops |
-| `PRECISION` | 10000 | Fixed-point precision (avoids floating point) |
+| `BASE_RATING` | 1000 | 所有代理的初始评分 |
+| `K_FACTOR` | 32 | 资深代理（30+ 次服务）的评分波动系数 |
+| `K_FACTOR_NEW` | 64 | 新代理（< 30 次服务）2 倍波动系数 -- 加速冷启动 |
+| `NEW_AGENT_THRESHOLD` | 30 | K 值下降的服务次数阈值 |
+| `PRECISION` | 10000 | 定点数精度（避免浮点运算） |
 
-**Rating update on completion (`ratingAfterWin`):**
+**完成服务后的评分更新（`ratingAfterWin`）：**
 
 ```
-expected = expectedScore(myRating, 1000)  // compare against base
+expected = expectedScore(myRating, 1000)  // 与基准分比较
 k = completedServices < 30 ? 64 : 32
 delta = k * (PRECISION - expected) / PRECISION
 newRating = rating + delta
 ```
 
-**Rating update on failure (`ratingAfterLoss`):**
+**服务失败后的评分更新（`ratingAfterLoss`）：**
 
 ```
 delta = k * expected / PRECISION
-newRating = max(100, rating - delta)       // floor at 100, never zero
+newRating = max(100, rating - delta)       // 下限 100，永不归零
 ```
 
-**Expected score** uses a piecewise linear approximation of the logistic curve `1/(1+10^((rB-rA)/400))`:
+**期望得分**使用分段线性近似逻辑曲线 `1/(1+10^((rB-rA)/400))`：
 
-| Rating Difference | Expected Score |
+| 评分差值 | 期望得分 |
 |---|---|
 | > +400 | 0.90 |
 | > +200 | 0.75 |
 | > +100 | 0.64 |
 | > +50 | 0.57 |
-| -50 to +50 | 0.50 |
+| -50 至 +50 | 0.50 |
 | > -100 | 0.43 |
 | > -200 | 0.36 |
 | > -400 | 0.25 |
 | < -400 | 0.10 |
 
-**Category scores:** `ReputationEngine` tracks per-`(agent, serviceType)` ratings via `_categoryScores`. An agent can have a high score in `MARKET_DATA` but a low score in `SECURITY_AUDIT`.
+**分类评分：** `ReputationEngine` 通过 `_categoryScores` 追踪每个 `(agent, serviceType)` 组合的评分。一个代理可以在 `MARKET_DATA` 类别拥有高分，同时在 `SECURITY_AUDIT` 类别评分较低。
 
-**Slash mechanism:** `slashReputation(agent, basisPoints)` applies a direct percentage cut (e.g., 500 bps = 5% penalty) for severe violations, separate from the ELO win/loss system.
-## Onchain OS 集成 / Onchain OS Integration
+**罚没机制：** `slashReputation(agent, basisPoints)` 对严重违规直接按百分比扣减（例如 500 bps = 5% 惩罚），独立于 ELO 胜/负系统。
 
-All Onchain OS API access flows through `OnchainOSClient` (`agents/src/core/OnchainOSClient.ts`), which authenticates via HMAC-SHA256 per OKX API v5 spec. The client targets X Layer (Chain ID 196) for all on-chain queries.
+## Onchain OS 集成
 
-| # | Onchain OS Skill | API Endpoint | Used By | Purpose in SYMBIOSIS |
+所有 Onchain OS API 访问均通过 `OnchainOSClient`（`agents/src/core/OnchainOSClient.ts`）进行，该客户端按 OKX API v5 规范使用 HMAC-SHA256 签名认证。客户端默认对 X Layer（Chain ID 196）发起所有链上查询。
+
+| # | Onchain OS Skill | API 端点 | 使用者 | 在 SYMBIOSIS 中的用途 |
 |---|---|---|---|---|
-| 1 | **Market Ticker** | `market/ticker` | DataProviderAgent | Fetch real-time OKB/ETH/BTC/USDT prices every 30s cycle |
-| 2 | **Token List** | `defi/token/token-list` | OnchainOSClient.getTokenInfo() | Resolve token metadata (decimals, contract address) on X Layer |
-| 3 | **DEX Quote** | `defi/aggregator/quote` | TraderAgent, ArbitrageurAgent | Get swap quotes with price impact and route details before execution |
-| 4 | **DEX Swap** | `defi/aggregator/swap` | TraderAgent, ArbitrageurAgent | Execute token swaps through OKX DEX aggregator on X Layer |
-| 5 | **Wallet Balance** | `defi/balance/token-balances` | OnchainOSClient.getWalletBalance() | Check agent wallet holdings on X Layer to size positions |
-| 6 | **Token Security** | `defi/security/token-security` | SecurityAuditorAgent, TraderAgent, ArbitrageurAgent | Detect honeypots, proxy contracts, mint authority, holder concentration |
-| 7 | **Price Feed (OKB)** | `market/ticker` (OKB-USDT) | LiquidityManagerAgent | Determine current tick for Uniswap V3 LP range management |
-| 8 | **Price Feed (ETH)** | `market/ticker` (ETH-USDT) | DataProviderAgent | Cross-asset correlation data for Analyst signal generation |
-| 9 | **Price Feed (BTC)** | `market/ticker` (BTC-USDT) | DataProviderAgent | Bitcoin dominance tracking for market regime detection |
-| 10 | **DEX Quote (arb buy)** | `defi/aggregator/quote` | ArbitrageurAgent | Quote the buy leg of arbitrage (USDT -> OKB) |
-| 11 | **DEX Quote (arb sell)** | `defi/aggregator/quote` | ArbitrageurAgent | Quote the sell leg of arbitrage (OKB -> USDT) |
-| 12 | **DEX Swap (arb buy)** | `defi/aggregator/swap` | ArbitrageurAgent | Execute buy leg with 0.3% slippage tolerance |
-| 13 | **DEX Swap (arb sell)** | `defi/aggregator/swap` | ArbitrageurAgent | Execute sell leg to complete round-trip arbitrage |
+| 1 | **Market Ticker** | `market/ticker` | DataProviderAgent | 每 30 秒周期获取 OKB/ETH/BTC/USDT 实时价格 |
+| 2 | **Token List** | `defi/token/token-list` | OnchainOSClient.getTokenInfo() | 解析 X Layer 上的代币元数据（精度、合约地址） |
+| 3 | **DEX Quote** | `defi/aggregator/quote` | TraderAgent, ArbitrageurAgent | 执行前获取包含价格影响和路由详情的报价 |
+| 4 | **DEX Swap** | `defi/aggregator/swap` | TraderAgent, ArbitrageurAgent | 通过 OKX DEX 聚合器在 X Layer 上执行代币兑换 |
+| 5 | **Wallet Balance** | `defi/balance/token-balances` | OnchainOSClient.getWalletBalance() | 查询代理钱包在 X Layer 上的持仓以确定头寸规模 |
+| 6 | **Token Security** | `defi/security/token-security` | SecurityAuditorAgent, TraderAgent, ArbitrageurAgent | 检测蜜罐、代理合约、铸币权限、持仓集中度 |
+| 7 | **Price Feed (OKB)** | `market/ticker` (OKB-USDT) | LiquidityManagerAgent | 确定当前 tick 以管理 Uniswap V3 LP 范围 |
+| 8 | **Price Feed (ETH)** | `market/ticker` (ETH-USDT) | DataProviderAgent | 跨资产关联数据，用于 Analyst 信号生成 |
+| 9 | **Price Feed (BTC)** | `market/ticker` (BTC-USDT) | DataProviderAgent | 比特币主导度追踪，用于市场状态检测 |
+| 10 | **DEX Quote (arb buy)** | `defi/aggregator/quote` | ArbitrageurAgent | 套利买入端报价（USDT -> OKB） |
+| 11 | **DEX Quote (arb sell)** | `defi/aggregator/quote` | ArbitrageurAgent | 套利卖出端报价（OKB -> USDT） |
+| 12 | **DEX Swap (arb buy)** | `defi/aggregator/swap` | ArbitrageurAgent | 以 0.3% 滑点容忍度执行买入端 |
+| 13 | **DEX Swap (arb sell)** | `defi/aggregator/swap` | ArbitrageurAgent | 执行卖出端以完成套利往返交易 |
 
-**Authentication:** All requests include `OK-ACCESS-KEY`, `OK-ACCESS-SIGN` (Base64 HMAC-SHA256), `OK-ACCESS-TIMESTAMP`, and `OK-ACCESS-PASSPHRASE` headers. When API keys are not set, the client falls back to mock data for offline development.
-## Uniswap V3 集成 / Uniswap Integration
+**认证方式：** 所有请求包含 `OK-ACCESS-KEY`、`OK-ACCESS-SIGN`（Base64 HMAC-SHA256）、`OK-ACCESS-TIMESTAMP` 和 `OK-ACCESS-PASSPHRASE` 请求头。当 API 密钥未设置时，客户端回退到模拟数据以支持离线开发。
 
-SYMBIOSIS integrates with Uniswap V3 on X Layer for concentrated liquidity management and price discovery.
+## Uniswap V3 集成
 
-| Integration Point | Agent | Description |
+SYMBIOSIS 集成 Uniswap V3 于 X Layer 上，用于集中流动性管理和价格发现。
+
+| 集成点 | 代理 | 说明 |
 |---|---|---|
-| **Concentrated LP positions** | LiquidityManagerAgent | Manages tick ranges `[tickLower, tickUpper]` for OKB/USDT pairs. Uses `tick = floor(ln(price) / ln(1.0001))` for price-to-tick conversion. |
-| **Out-of-range detection** | LiquidityManagerAgent | Checks if current tick is within position range. Triggers rebalance when tick exits range or approaches edge (within 5% / 500 bps buffer). |
-| **Tick rebalancing** | LiquidityManagerAgent | Centers range around current tick: `newLower = currentTick - halfRange`, `newUpper = currentTick + halfRange`. In production: calls `decreaseLiquidity()` -> `collect()` -> `mint()` on NonfungiblePositionManager. |
-| **Fee collection** | LiquidityManagerAgent | Collects accumulated trading fees proportional to position liquidity each cycle. |
-| **Cross-venue pricing** | ArbitrageurAgent | Compares Uniswap V3 on-chain price (via pool `slot0`) against OKX DEX aggregator price. Exploits spreads > 0.5%. |
-| **Arbitrage execution** | ArbitrageurAgent | Two-leg trade: buy on cheaper venue, sell on more expensive venue. Position size scales with spread magnitude (`sizeFactor = min(100, spread * 10000)`). |
-| **Service type: LP_MANAGEMENT** | ServiceMarketplace | Registered service type `keccak256("LP_MANAGEMENT")` -- LiquidityManager offers LP management to other agents via Dutch auction. |
-## x402 支付集成 / x402 Payment Integration
+| **集中 LP 仓位** | LiquidityManagerAgent | 管理 OKB/USDT 交易对的 tick 范围 `[tickLower, tickUpper]`。使用 `tick = floor(ln(price) / ln(1.0001))` 进行价格到 tick 的转换。 |
+| **超出范围检测** | LiquidityManagerAgent | 检查当前 tick 是否在仓位范围内。当 tick 离开范围或接近边缘（5% / 500 bps 缓冲区内）时触发再平衡。 |
+| **Tick 再平衡** | LiquidityManagerAgent | 以当前 tick 为中心调整范围：`newLower = currentTick - halfRange`，`newUpper = currentTick + halfRange`。生产环境调用 NonfungiblePositionManager 的 `decreaseLiquidity()` -> `collect()` -> `mint()`。 |
+| **手续费收取** | LiquidityManagerAgent | 每个周期按仓位流动性比例收取累积的交易手续费。 |
+| **跨平台定价** | ArbitrageurAgent | 比较 Uniswap V3 链上价格（通过 pool `slot0`）与 OKX DEX 聚合器价格。利用 > 0.5% 的价差。 |
+| **套利执行** | ArbitrageurAgent | 双腿交易：在便宜的平台买入，在贵的平台卖出。头寸规模随价差幅度缩放（`sizeFactor = min(100, spread * 10000)`）。 |
+| **服务类型：LP_MANAGEMENT** | ServiceMarketplace | 已注册服务类型 `keccak256("LP_MANAGEMENT")` -- LiquidityManager 通过荷兰拍卖向其他代理提供 LP 管理服务。 |
 
-`EscrowSettlement` implements two payment models for agent-to-agent transactions:
+## x402 支付集成
 
-### Standard Escrow
+`EscrowSettlement` 为代理间交易实现了两种支付模式：
 
-For high-value service transactions (e.g., LP management, trade execution):
+### 标准托管
 
-1. **Buyer calls `createEscrow()`** -- deposits OKB into the contract, specifying seller, amount, and duration
-2. **Seller delivers service** -- completes work and calls `completeService()` on the marketplace
-3. **Buyer calls `releaseEscrow()`** -- funds transfer to seller, `ReputationEngine.recordCompletion()` fires
-4. **Timeout protection** -- if `block.timestamp > expiresAt`, anyone can call `refundEscrow()` and `recordFailure()` fires
+用于高价值服务交易（如 LP 管理、交易执行）：
 
-The `Escrow` struct includes an `x402PaymentHash` field (bytes32) for linking off-chain x402 payment proofs to on-chain settlement.
+1. **买方调用 `createEscrow()`** -- 将 OKB 存入合约，指定卖方、金额和有效期
+2. **卖方交付服务** -- 完成工作并在 marketplace 上调用 `completeService()`
+3. **买方调用 `releaseEscrow()`** -- 资金转给卖方，`ReputationEngine.recordCompletion()` 触发
+4. **超时保护** -- 若 `block.timestamp > expiresAt`，任何人可调用 `refundEscrow()`，同时 `recordFailure()` 触发
 
-### Micro-Payment Tab System
+`Escrow` 结构体包含 `x402PaymentHash` 字段（bytes32），用于将链下 x402 支付证明关联到链上结算。
 
-For frequent, small transactions (e.g., per-query market data, per-scan security audits):
+### 微支付标签系统
 
-1. **`addToTab(seller, amount)`** -- accumulates payment records off-chain style (no token transfer yet)
-2. Multiple interactions happen, each calling `addToTab()` to increment the running total
-3. **`settleTab(seller)`** -- single on-chain payment for all accumulated micro-transactions
-4. `transactionCount` is tracked so `ReputationEngine` credits a batch completion
+用于频繁的小额交易（如按次查询市场数据、按次安全扫描）：
 
-This reduces gas costs by 10-50x compared to individual escrow per micro-service.
+1. **`addToTab(seller, amount)`** -- 以链下方式累积支付记录（尚无代币转账）
+2. 多次交互发生，每次调用 `addToTab()` 增加累计金额
+3. **`settleTab(seller)`** -- 对所有累积的微交易进行单次链上支付
+4. 追踪 `transactionCount` 以便 `ReputationEngine` 计入批量完成
 
-### Batch Settlement
+与为每笔微服务创建独立托管相比，该方案可降低 10-50 倍 gas 成本。
 
-`batchSettle(uint256[] escrowIds)` releases multiple escrows in a single transaction, calling `recordCompletion()` for each seller. Critical for end-of-epoch settlement when many services complete simultaneously.
-## 安全模型 / Security Model
+### 批量结算
 
-SYMBIOSIS implements defense-in-depth for an autonomous agent economy:
+`batchSettle(uint256[] escrowIds)` 在单笔交易中释放多个托管，为每个卖方调用 `recordCompletion()`。对于多个服务同时完成的周期末结算至关重要。
 
-### Stake Slashing
+## 安全模型
 
-- Every agent stakes a minimum of **0.01 OKB** via `AgentRegistry.registerAgent()`
-- `slashStake(agent, amount)` can be called by the marketplace or owner on dispute loss
-- Slashed funds go to protocol treasury (owner address)
-- An agent with zero stake remains registered but has no skin-in-the-game, visible to counterparties
+SYMBIOSIS 为自主代理经济体实施纵深防御策略：
 
-### Escrow Protection
+### 质押罚没
 
-- Funds are locked in `EscrowSettlement` until service completion or timeout
-- **Buyer protection:** `refundEscrow()` returns funds if service is not delivered before `expiresAt`
-- **Seller protection:** only buyer, marketplace, or owner can trigger release -- no unilateral withdrawal
-- **Dispute flow:** `disputeService()` sets status to `Disputed`, blocking both release and refund until resolution
+- 每个代理通过 `AgentRegistry.registerAgent()` 最低质押 **0.01 OKB**
+- `slashStake(agent, amount)` 可由 marketplace 或 owner 在争议败诉时调用
+- 罚没资金进入协议金库（owner 地址）
+- 质押归零的代理仍保持注册状态，但对手方可见其已无保证金
 
-### Simulation Before Execution
+### 托管保护
 
-- **ArbitrageurAgent** quotes both legs of an arbitrage before executing either, calculating expected profit
-- **TraderAgent** requests a `getDexQuote()` before calling `executeDexSwap()`, checking price impact
-- Abort conditions: profit <= 0 after slippage, risk score > threshold, honeypot detection
+- 资金在 `EscrowSettlement` 中锁定，直到服务完成或超时
+- **买方保护：** 若服务在 `expiresAt` 前未交付，`refundEscrow()` 退还资金
+- **卖方保护：** 仅买方、marketplace 或 owner 可触发释放 -- 不允许单方面提取
+- **争议流程：** `disputeService()` 将状态设为 `Disputed`，阻止释放和退款直至解决
 
-### Security Scanning
+### 执行前模拟
 
-- **SecurityAuditorAgent** checks every token before trades execute: `isHoneypot`, `hasProxyContract`, `ownerCanMint`, `riskScore`
-- **MAX_RISK_SCORE** thresholds: Trader = 30, Arbitrageur = 20 (stricter for fast-moving arb)
-- Scan cache with 5-minute TTL prevents redundant API calls
+- **ArbitrageurAgent** 在执行任一腿之前先对两腿报价，计算预期利润
+- **TraderAgent** 在调用 `executeDexSwap()` 之前先请求 `getDexQuote()`，检查价格影响
+- 中止条件：滑点后利润 <= 0、风险评分超过阈值、蜜罐检测
 
-### Agent Error Isolation
+### 安全扫描
 
-- `AgentBase._executeCycle()` wraps every cycle in try/catch -- one bad cycle never kills the agent
-- Each agent runs on independent interval timers, no shared failure mode
-- Graceful shutdown on SIGINT/SIGTERM stops all agents cleanly
-## 运行指南 / How to Run
+- **SecurityAuditorAgent** 在交易执行前检查每个代币：`isHoneypot`、`hasProxyContract`、`ownerCanMint`、`riskScore`
+- **MAX_RISK_SCORE** 阈值：Trader = 30，Arbitrageur = 20（套利需更严格）
+- 扫描缓存 5 分钟 TTL，避免冗余 API 调用
 
-### Prerequisites
+### 代理错误隔离
 
-- [Foundry](https://getfoundry.sh/) (forge, cast, anvil)
+- `AgentBase._executeCycle()` 将每个周期包裹在 try/catch 中 -- 一次异常周期永远不会终止代理
+- 每个代理在独立的定时器上运行，无共享故障模式
+- 收到 SIGINT/SIGTERM 时优雅关闭所有代理
+
+## 运行指南
+
+### 前置条件
+
+- [Foundry](https://getfoundry.sh/)（forge, cast, anvil）
 - Node.js >= 18
-- An OKX API key (optional -- mock mode works without it)
+- OKX API 密钥（可选 -- 无密钥时以模拟模式运行）
 
-### Smart Contracts
+### 智能合约
 
 ```bash
 cd contracts
 
-# Build
+# 编译
 forge build
 
-# Run tests
+# 运行测试
 forge test -vvv
 
-# Deploy to X Layer testnet
+# 部署到 X Layer 测试网
 export PRIVATE_KEY=0x...
 forge script script/Deploy.s.sol:Deploy \
   --rpc-url https://testrpc.xlayer.tech \
@@ -365,130 +376,132 @@ forge script script/Deploy.s.sol:Deploy \
   --verify
 ```
 
-### Agent Runtime
+### 代理运行时
 
 ```bash
 cd agents
 
-# Install dependencies
+# 安装依赖
 npm install
 
-# Configure environment
+# 配置环境变量
 cp ../.env.example .env
-# Edit .env with your private keys and OKX API credentials
+# 编辑 .env 填入私钥和 OKX API 凭证
 
-# Build TypeScript
+# 编译 TypeScript
 npm run build
 
-# Start all 6 agents
+# 启动全部 6 个代理
 npm start
 
-# Or run with testnet config (default)
+# 或以测试网配置运行（默认）
 NETWORK=testnet node dist/index.js
 ```
 
-**Required environment variables:**
+**必需的环境变量：**
 
-| Variable | Description |
+| 变量 | 说明 |
 |---|---|
-| `PK_DATA_PROVIDER` | Private key for DataProviderAgent |
-| `PK_ANALYST` | Private key for AnalystAgent |
-| `PK_TRADER` | Private key for TraderAgent |
-| `PK_SECURITY` | Private key for SecurityAuditorAgent |
-| `PK_LIQUIDITY` | Private key for LiquidityManagerAgent |
-| `PK_ARBITRAGEUR` | Private key for ArbitrageurAgent |
-| `OKX_API_KEY` | OKX Onchain OS API key |
-| `OKX_SECRET_KEY` | OKX HMAC secret |
-| `OKX_PASSPHRASE` | OKX API passphrase |
-| `NETWORK` | `mainnet` or `testnet` (default: testnet) |
+| `PK_DATA_PROVIDER` | DataProviderAgent 的私钥 |
+| `PK_ANALYST` | AnalystAgent 的私钥 |
+| `PK_TRADER` | TraderAgent 的私钥 |
+| `PK_SECURITY` | SecurityAuditorAgent 的私钥 |
+| `PK_LIQUIDITY` | LiquidityManagerAgent 的私钥 |
+| `PK_ARBITRAGEUR` | ArbitrageurAgent 的私钥 |
+| `OKX_API_KEY` | OKX Onchain OS API 密钥 |
+| `OKX_SECRET_KEY` | OKX HMAC 签名密钥 |
+| `OKX_PASSPHRASE` | OKX API 口令 |
+| `NETWORK` | `mainnet` 或 `testnet`（默认：testnet） |
 
-> Without `PK_*` variables, the runtime generates deterministic dev keys via `SHA256("symbiosis-dev-{role}")`. These are for local testing only.
-## 项目结构 / Project Structure
+> 未设置 `PK_*` 变量时，运行时通过 `SHA256("symbiosis-dev-{role}")` 生成确定性开发密钥。仅用于本地测试。
+
+## 项目结构
 
 ```
 symbiosis/
-├── .env.example                          # Environment variable template
+├── .env.example                          # 环境变量模板
 ├── .gitignore
-├── README.md                             # This file
+├── README.md                             # 本文件
 │
-├── contracts/                            # Solidity smart contracts (Foundry)
-│   ├── foundry.toml                      # Foundry configuration
-│   ├── remappings.txt                    # Solidity import remappings
+├── contracts/                            # Solidity 智能合约（Foundry）
+│   ├── foundry.toml                      # Foundry 配置
+│   ├── remappings.txt                    # Solidity 导入重映射
 │   ├── lib/
-│   │   └── forge-std/                    # Foundry standard library
+│   │   └── forge-std/                    # Foundry 标准库
 │   ├── script/
-│   │   └── Deploy.s.sol                  # Full deployment script
+│   │   └── Deploy.s.sol                  # 完整部署脚本
 │   └── src/
-│       ├── AgentRegistry.sol             # Agent identity + staking
-│       ├── ServiceMarketplace.sol        # Dutch auction service market
-│       ├── ReputationEngine.sol          # ELO-based reputation
-│       ├── EscrowSettlement.sol          # Trustless escrow + micro-tabs
-│       ├── AgentTreasury.sol             # Per-agent PnL accounting
-│       ├── EconomyOracle.sol             # Economy metrics + snapshots
+│       ├── AgentRegistry.sol             # 代理身份 + 质押
+│       ├── ServiceMarketplace.sol        # 荷兰拍卖服务市场
+│       ├── ReputationEngine.sol          # 基于 ELO 的信誉系统
+│       ├── EscrowSettlement.sol          # 无信任托管 + 微支付标签
+│       ├── AgentTreasury.sol             # 按代理 PnL 核算
+│       ├── EconomyOracle.sol             # 经济指标 + 快照
 │       ├── interfaces/
 │       │   ├── IAgentRegistry.sol
 │       │   ├── IServiceMarketplace.sol
 │       │   ├── IReputationEngine.sol
 │       │   └── IEscrowSettlement.sol
 │       └── libraries/
-│           ├── DutchAuctionLib.sol        # Linear price decay math
-│           └── ELOLib.sol                 # ELO rating calculations
+│           ├── DutchAuctionLib.sol        # 线性价格衰减数学
+│           └── ELOLib.sol                 # ELO 评分计算
 │
-└── agents/                               # TypeScript agent runtime
+└── agents/                               # TypeScript 代理运行时
     ├── package.json
     ├── tsconfig.json
     └── src/
-        ├── index.ts                      # Orchestrator -- boots all 6 agents
+        ├── index.ts                      # 编排器 -- 启动全部 6 个代理
         ├── config/
-        │   ├── xlayer.ts                 # X Layer chain configuration
-        │   └── contracts.ts              # Contract addresses + ABIs
+        │   ├── xlayer.ts                 # X Layer 链配置
+        │   └── contracts.ts              # 合约地址 + ABI
         ├── core/
-        │   ├── AgentBase.ts              # Abstract base class for agents
-        │   ├── OnchainOSClient.ts        # OKX Onchain OS REST wrapper
-        │   └── EventBus.ts              # In-process event bus
+        │   ├── AgentBase.ts              # 代理抽象基类
+        │   ├── OnchainOSClient.ts        # OKX Onchain OS REST 封装
+        │   └── EventBus.ts              # 进程内事件总线
         └── agents/
-            ├── DataProviderAgent.ts      # Market data fetcher (30s)
-            ├── AnalystAgent.ts           # Alpha signal generator (45s)
-            ├── TraderAgent.ts            # Signal-based executor (60s)
-            ├── SecurityAuditorAgent.ts   # Token security scanner (20s)
-            ├── LiquidityManagerAgent.ts  # Uniswap V3 LP manager (120s)
-            └── ArbitrageurAgent.ts       # Cross-venue arbitrageur (10s)
+            ├── DataProviderAgent.ts      # 市场数据采集器 (30s)
+            ├── AnalystAgent.ts           # Alpha 信号生成器 (45s)
+            ├── TraderAgent.ts            # 基于信号的执行器 (60s)
+            ├── SecurityAuditorAgent.ts   # 代币安全扫描器 (20s)
+            ├── LiquidityManagerAgent.ts  # Uniswap V3 LP 管理器 (120s)
+            └── ArbitrageurAgent.ts       # 跨平台套利器 (10s)
 ```
-## 演示 / Demo
 
-### Running the Demo
+## 演示
 
-1. **Start a local X Layer fork** (optional, for full on-chain testing):
+### 运行演示
+
+1. **启动本地 X Layer 分叉**（可选，用于完整链上测试）：
 
 ```bash
 anvil --fork-url https://testrpc.xlayer.tech --chain-id 195
 ```
 
-2. **Deploy contracts:**
+2. **部署合约：**
 
 ```bash
 cd contracts
 forge script script/Deploy.s.sol:Deploy --rpc-url http://localhost:8545 --broadcast
 ```
 
-3. **Start all agents:**
+3. **启动全部代理：**
 
 ```bash
 cd agents
 NETWORK=testnet npm start
 ```
 
-### What the Demo Shows
+### 演示展示内容
 
-- **Agent registration:** All 6 agents register on-chain with 0.01 OKB stake each
-- **Service listing:** DataProvider, Analyst, SecurityAuditor, and LiquidityManager list services with Dutch auction pricing
-- **Data flow:** DataProvider fetches prices -> Analyst generates signals -> Trader executes
-- **Security loop:** Trader and Arbitrageur request security audits before trading
-- **Arbitrage detection:** Arbitrageur compares OKX vs Uniswap prices every 10 seconds
-- **LP management:** LiquidityManager monitors tick ranges and rebalances when out of range
-- **Economy metrics:** EconomyOracle tracks GDP, matches, and volume across the entire economy
+- **代理注册：** 全部 6 个代理在链上注册并各自质押 0.01 OKB
+- **服务挂牌：** DataProvider、Analyst、SecurityAuditor 和 LiquidityManager 以荷兰拍卖定价挂牌服务
+- **数据流：** DataProvider 获取价格 -> Analyst 生成信号 -> Trader 执行交易
+- **安全循环：** Trader 和 Arbitrageur 在交易前请求安全审计
+- **套利检测：** Arbitrageur 每 10 秒比较 OKX 与 Uniswap 价格
+- **LP 管理：** LiquidityManager 监控 tick 范围并在超出范围时再平衡
+- **经济指标：** EconomyOracle 追踪整个经济体的 GDP、匹配数和交易量
 
-Watch the console for timestamped logs from all 6 agents running concurrently:
+观察控制台中 6 个代理并发运行的带时间戳日志：
 
 ```
 [2026-04-03T10:00:00.000Z] [DataProvider] Published 4 prices. OKB=$48.5
@@ -498,16 +511,18 @@ Watch the console for timestamped logs from all 6 agents running concurrently:
 [2026-04-03T10:00:02.000Z] [Arbitrageur] OKB: OKX=$48.50 | Uni=$48.74 | spread=0.495%
 [2026-04-03T10:00:03.000Z] [LiquidityManager] Position sim-1 in range, 342 ticks from nearest edge
 ```
-## 团队 / Team
 
-| Role | Handle |
+## 团队
+
+| 角色 | 账号 |
 |---|---|
-| Solo Developer | **0xCaptain888** |
+| 独立开发者 | **0xCaptain888** |
 
-Built for the OKX hackathon. Six contracts. Six agents. One economy.
-## 许可证 / License
+为 OKX 黑客松打造。六个合约。六个代理。一个经济体。
 
-MIT License. See individual source files for SPDX headers.
+## 许可证
+
+MIT 许可证。各源文件中有 SPDX 声明。
 
 ```
 SPDX-License-Identifier: MIT
