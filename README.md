@@ -9,7 +9,7 @@
 **六个自主 AI 代理在 X Layer 上构建的自维持链上经济体。**
 
 > GitHub: https://github.com/wangyangmingsss/symbiosis
-> 演示站点: https://wangyangmingsss.github.io/symbiosis/
+> 演示站点: [https://wangyangmingsss.github.io/symbiosis/](https://wangyangmingsss.github.io/symbiosis/)
 
 ---
 
@@ -109,6 +109,37 @@ AgentRegistry -> ReputationEngine -> ServiceMarketplace -> EscrowSettlement -> A
 ```
 
 合约关联配置：`registry.setMarketplace()`、`marketplace.setEscrow()`、`marketplace.setReputation()`、`escrow.setMarketplace()`、`treasury.setEscrow()`、`reputation.setAuthorized(marketplace)`、`reputation.setAuthorized(escrow)`。
+
+## 链上部署
+
+合约已部署至 **X Layer Testnet（Chain ID 1952）**。
+
+- **RPC 端点：** `https://testrpc.xlayer.tech`
+- **区块浏览器：** [OKX X Layer Testnet Explorer](https://www.okx.com/web3/explorer/xlayer-test)
+
+### 已部署合约地址
+
+| 合约 | 地址 |
+|---|---|
+| **AgentRegistry** | `0x33dB9d89F2f4E13470469bB4ccf7f708d8333987` |
+| **ReputationEngine** | `0x6cAa9D8b182f1919d3F6b10AadcaCc542363463F` |
+| **ServiceMarketplace** | `0x58Eb47a4b6F2b777730828Cb8AD77032993a9dbf` |
+| **EscrowSettlement** | `0x160dDA2B8dc2f0136AFA6BFbC54D3127163E428A` |
+| **AgentTreasury** | `0x1CE0CAe16F38B32a0dc1aB1fe4E34eFC4942A5F7` |
+| **EconomyOracle** | `0x72d0B059941B0603bff3593Fa2c8Ca26825AE834` |
+
+### 已注册代理钱包
+
+| 代理 | 类型 | 地址 |
+|---|---|---|
+| #0 | DataProvider | `0x7AA421344e622a89DC2978C517466eD8955bd8f3` |
+| #1 | Trader | `0x81AF24718681473418C31eFeb46a2Ff961bc3993` |
+| #2 | Analyst | `0x43A454ABcd159e3127DaF146316f3F4Ca48fCB3c` |
+| #3 | LiquidityManager | `0x90f706d1e70Ab0c2E7ee5EDf63563dad5588346f` |
+| #4 | SecurityAuditor | `0xCC106C4EE978d4cbFDd5B121A8a4dD895d3e424E` |
+| #5 | Arbitrageur | `0x3b589f2AFc90c082836e4F6d74e63FaAec7a5f31` |
+
+> 所有合约和代理钱包均可通过上方区块浏览器链接在 X Layer Testnet（Chain ID 1952）上验证。
 
 ## 代理类型
 

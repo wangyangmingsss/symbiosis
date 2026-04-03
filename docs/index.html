@@ -397,8 +397,8 @@ async function loadOnChainData() {
     updateGraphChart();
     await updateGDPChart(Number(snapCount));
 
-    // Update metrics section if exists
-    updateMetrics(Number(listings), Number(requests), Number(matches), Number(completions), gdp, fmtOKB(deposits), fmtOKB(earnings));
+    // Update metrics section
+    updateMetrics(Number(matches), gdp, Number(escrowsCreated), avgElo);
 
   } catch(err) {
     console.error('Chain data load failed:', err);
@@ -472,33 +472,16 @@ async function updateGDPChart(snapCount) {
   gdpChart.setOption({ xAxis: { data: labels }, series: [{ data: values }] });
 }
 
-function updateMetrics(listings, requests, matches, completions, gdp, deposits, earnings) {
-  // Update metric cards if they exist with data- attributes
-  const cards = document.querySelectorAll('[data-metric]');
-  cards.forEach(card => {
-    const m = card.getAttribute('data-metric');
-    const valEl = card.querySelector('.metric-value');
-    if (!valEl) return;
-    if (m === 'listings') valEl.textContent = listings;
-    if (m === 'requests') valEl.textContent = requests;
-    if (m === 'matches') valEl.textContent = matches;
-    if (m === 'completions') valEl.textContent = completions;
-    if (m === 'gdp') valEl.textContent = fmtUSD(gdp);
-    if (m === 'deposits') valEl.textContent = fmtUSD(deposits);
-    if (m === 'earnings') valEl.textContent = fmtUSD(earnings);
-  });
+function updateMetrics(matches, gdp, escrowsCreated, avgElo) {
+  const el = id => document.getElementById(id);
+  if (el('metric-gdp'))     el('metric-gdp').textContent     = fmtUSD(gdp);
+  if (el('metric-txhr'))    el('metric-txhr').textContent    = matches.toLocaleString();
+  if (el('metric-escrows')) el('metric-escrows').textContent = escrowsCreated.toLocaleString();
+  if (el('metric-elo'))     el('metric-elo').textContent     = avgElo.toLocaleString();
 }
-
-// === Init & auto-refresh ===
-async function boot() {
-  await initContracts();
-  await loadOnChainData();
-  setInterval(loadOnChainData, 30000); // refresh every 30s
-}
-boot();
 
 // === Static agent data (fallback for initial chart render) ===
-const agents = liveAgents.length > 0 ? liveAgents.map((a,i) => ({name:a.type,color:a.color,elo:a.elo,x:[200,550,400,200,400,100][i],y:[150,200,80,340,340,230][i]})) : [
+const agents = [
   {name:'DataProvider',color:'#06b6d4',elo:1000,x:200,y:150},
   {name:'Analyst',color:'#8b5cf6',elo:1000,x:400,y:80},
   {name:'Trader',color:'#10b981',elo:1000,x:550,y:200},
@@ -516,7 +499,7 @@ const edges = [
   {source:'Arbitrageur',target:'LiquidityMgr',label:'arb',value:0}
 ];
 
-// === Economy Graph ===
+// === Economy Graph (must init BEFORE boot) ===
 const graphChart = echarts.init(document.getElementById('economy-graph'));
 graphChart.setOption({
   tooltip:{trigger:'item',backgroundColor:'#111827',borderColor:'#1e293b',textStyle:{color:'#e5e7eb',fontFamily:'JetBrains Mono'}},
@@ -581,6 +564,14 @@ window.addEventListener('resize',()=>{graphChart.resize();gdpChart.resize();auct
 
 // === Init feed scroll ===
 initFeedScroll();
+
+// === Init & auto-refresh (AFTER charts are created) ===
+async function boot() {
+  await initContracts();
+  await loadOnChainData();
+  setInterval(loadOnChainData, 30000); // refresh every 30s
+}
+boot();
 </script>
 </body>
 </html>
