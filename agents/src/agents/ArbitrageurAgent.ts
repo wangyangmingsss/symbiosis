@@ -84,6 +84,11 @@ export class ArbitrageurAgent extends AgentBase {
     this.attemptCount++;
     this.log(`--- Arb cycle #${this.attemptCount} start ---`);
 
+    if (!UNISWAP_POOL) {
+      this.log("No UNISWAP_OKB_USDT_POOL configured -- real pool required for arbitrage detection");
+      return;
+    }
+
     // 1. Get prices from two sources
     const [okxPrice, uniPrice] = await Promise.all([
       this._getOkxPrice(),
@@ -333,15 +338,9 @@ export class ArbitrageurAgent extends AgentBase {
       }
     }
 
-    // Fallback: OKX price + small random deviation (backward compatible)
-    try {
-      const data = await this.okx.getMarketPrice("OKB");
-      const deviation = 1 + (Math.random() - 0.5) * 0.02;
-      return data.price * deviation;
-    } catch (err) {
-      this.warn(`Uniswap fallback price fetch failed: ${err instanceof Error ? err.message : err}`);
-      return 0;
-    }
+    // No pool configured or pool read failed -- cannot determine Uniswap price
+    this.warn("No valid Uniswap V3 price available");
+    return 0;
   }
 
   // -----------------------------------------------------------------------

@@ -20,7 +20,14 @@
  *   OKX_PASSPHRASE    - OKX API passphrase
  */
 
-import "dotenv/config";
+import { config } from "dotenv";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import crypto from "node:crypto";
+
+// Load .env from project root (one level up from agents/)
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: resolve(__dirname, "../../.env") });
 import { JsonRpcProvider } from "ethers";
 
 import { getChainConfig } from "./config/xlayer.js";
@@ -124,8 +131,6 @@ async function main(): Promise<void> {
  * NOT for production -- use real keys via .env in deployment.
  */
 function generateDevKey(seed: string): string {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const crypto = require("node:crypto") as typeof import("node:crypto");
   return "0x" + crypto.createHash("sha256").update(`symbiosis-dev-${seed}`).digest("hex");
 }
 

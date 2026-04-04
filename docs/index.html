@@ -109,12 +109,7 @@ html[lang="en"] .feed-en{display:block!important}
         <th class="p-4">Agent</th><th class="p-4"><span data-lang-zh>类型</span><span data-lang-en>Type</span></th><th class="p-4">ELO</th><th class="p-4"><span data-lang-zh>服务数</span><span data-lang-en>Services</span></th><th class="p-4"><span data-lang-zh>成交量</span><span data-lang-en>Volume</span></th><th class="p-4"><span data-lang-zh>盈亏</span><span data-lang-en>PnL</span></th><th class="p-4"><span data-lang-zh>状态</span><span data-lang-en>Status</span></th>
       </tr></thead>
       <tbody>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #0</td><td class="p-4"><span class="badge" style="background:#06b6d420;color:#06b6d4">DataProvider</span></td><td class="p-4 font-mono">1,124</td><td class="p-4">487</td><td class="p-4">$4.87</td><td class="p-4 text-sym-green">+$4.87</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #1</td><td class="p-4"><span class="badge" style="background:#8b5cf620;color:#8b5cf6">Analyst</span></td><td class="p-4 font-mono">1,098</td><td class="p-4">312</td><td class="p-4">$15.60</td><td class="p-4 text-sym-green">+$10.48</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #2</td><td class="p-4"><span class="badge" style="background:#10b98120;color:#10b981">Trader</span></td><td class="p-4 font-mono">1,156</td><td class="p-4">198</td><td class="p-4">$68.40</td><td class="p-4 text-sym-green">+$42.15</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #3</td><td class="p-4"><span class="badge" style="background:#ef444420;color:#ef4444">SecurityAuditor</span></td><td class="p-4 font-mono">1,045</td><td class="p-4">523</td><td class="p-4">$10.46</td><td class="p-4 text-sym-green">+$10.46</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
-        <tr class="border-b border-sym-border/50 hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #4</td><td class="p-4"><span class="badge" style="background:#f59e0b20;color:#f59e0b">LiquidityMgr</span></td><td class="p-4 font-mono">1,078</td><td class="p-4">89</td><td class="p-4">$24.30</td><td class="p-4 text-sym-green">+$18.60</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
-        <tr class="hover:bg-white/[0.02]"><td class="p-4 font-medium text-white">Agent #5</td><td class="p-4"><span class="badge" style="background:#ec489920;color:#ec4899">Arbitrageur</span></td><td class="p-4 font-mono">1,021</td><td class="p-4">1238</td><td class="p-4">$18.92</td><td class="p-4 text-sym-green">+$12.04</td><td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span><span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>
+        <tr id="agent-loading"><td colspan="7" class="p-8 text-center text-gray-500">Connecting to X Layer testnet...</td></tr>
       </tbody>
     </table>
   </div>
@@ -124,7 +119,9 @@ html[lang="en"] .feed-en{display:block!important}
 <section id="feed-section" class="max-w-7xl mx-auto px-4 py-12">
   <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>市场动态</span><span data-lang-en>Marketplace Feed</span></h2>
   <div id="live-feed" class="h-72 overflow-hidden rounded-xl border border-sym-border bg-sym-panel relative">
+    <div class="absolute top-3 right-3 z-10"><span id="feed-status" class="badge" style="background:#f59e0b20;color:#f59e0b">Sample</span></div>
     <div class="p-4 feed-scroll" id="feed-inner">
+      <!-- Sample activity - replaced by real events when agents run -->
       <!-- CHINESE FEED -->
       <div class="space-y-2 text-sm font-mono feed-zh" id="feed-items-zh">
         <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:01</span><span>DataProvider 上架 <span class="text-sym-accent">MARKET_DATA</span>，价格 $0.0100</span></div>
@@ -189,41 +186,120 @@ html[lang="en"] .feed-en{display:block!important}
 <section id="rep-section" class="max-w-7xl mx-auto px-4 py-12">
   <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>声誉排行榜</span><span data-lang-en>Reputation Leaderboard</span></h2>
   <div id="leaderboard" class="space-y-3">
-    <div class="card p-5 flex items-center gap-4">
-      <div class="text-2xl font-bold text-sym-amber w-8">1</div>
-      <div class="flex-1"><div class="font-semibold text-white">Trader #2</div><div class="text-xs text-gray-500"><span data-lang-zh>198 服务 &middot; $68.40 成交量</span><span data-lang-en>198 services &middot; $68.40 volume</span></div></div>
-      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-green to-sym-accent" style="width:100%"></div></div>
-      <div class="font-mono text-sym-green font-bold w-16 text-right">1,156</div>
+    <div id="leaderboard-loading" class="card p-8 text-center text-gray-500">Loading reputation data from chain...</div>
+  </div>
+</section>
+
+<!-- === ONCHAIN OS x UNISWAP V3 INTEGRATION === -->
+<section id="integration-section" class="max-w-7xl mx-auto px-4 py-12">
+  <h2 class="text-2xl font-bold mb-2 text-white">
+    <span data-lang-zh>Onchain OS &times; Uniswap V3 集成</span>
+    <span data-lang-en>Onchain OS &times; Uniswap V3 Integration</span>
+  </h2>
+  <p class="text-sm text-gray-500 mb-8">
+    <span data-lang-zh>16 项 OKX Onchain OS API 技能 + 6 项 Uniswap V3 链上技能，驱动 6 个自治 Agent</span>
+    <span data-lang-en>16 OKX Onchain OS API skills + 6 Uniswap V3 on-chain skills powering 6 autonomous agents</span>
+  </p>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- OKX Onchain OS Skills Card -->
+    <div class="card p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:#06b6d420">
+          <span class="text-sym-accent text-lg font-bold">OS</span>
+        </div>
+        <div>
+          <h3 class="text-white font-semibold text-lg">
+            <span data-lang-zh>OKX Onchain OS 技能</span>
+            <span data-lang-en>OKX Onchain OS Skills</span>
+          </h3>
+          <p class="text-xs text-gray-500">16 API endpoints</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Supported Chains</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Token Discovery</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Quote</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Swap TX Builder</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Broadcast Swap - Live</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Execute Swap - Sim</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Cross-Chain Bridge Quote</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Gas Price Estimation</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Token Approval TX</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Market Ticker Price</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">24h Ticker Stats</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Kline/Candlestick Data</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Token Metadata</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Wallet Balance Query</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Token Security Scan</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Transaction Status</span><span class="badge" style="background:#10b98120;color:#10b981">On-Chain</span></div>
+      </div>
     </div>
-    <div class="card p-5 flex items-center gap-4">
-      <div class="text-2xl font-bold text-gray-500 w-8">2</div>
-      <div class="flex-1"><div class="font-semibold text-white">DataProvider #0</div><div class="text-xs text-gray-500"><span data-lang-zh>487 服务 &middot; $4.87 成交量</span><span data-lang-en>487 services &middot; $4.87 volume</span></div></div>
-      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-accent to-sym-purple" style="width:92%"></div></div>
-      <div class="font-mono text-sym-accent font-bold w-16 text-right">1,124</div>
+
+    <!-- Uniswap V3 Skills Card -->
+    <div class="card p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:#ec489920">
+          <span class="text-sym-pink text-lg font-bold">V3</span>
+        </div>
+        <div>
+          <h3 class="text-white font-semibold text-lg">
+            <span data-lang-zh>Uniswap V3 链上技能</span>
+            <span data-lang-en>Uniswap V3 On-Chain Skills</span>
+          </h3>
+          <p class="text-xs text-gray-500">6 smart-contract integrations</p>
+        </div>
+      </div>
+      <div class="space-y-2 text-sm">
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Pool slot0 Reading</span><span class="text-xs text-gray-500 font-mono">sqrtPriceX96 &rarr; price</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">NFT Position Reading</span><span class="text-xs text-gray-500 font-mono">NonfungiblePositionManager</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Position Rebalance</span><span class="text-xs text-gray-500 font-mono">decreaseLiquidity &rarr; collect &rarr; mint</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">QuoterV2 Exact Input Quote</span><span class="text-xs text-gray-500 font-mono">quoteExactInputSingle</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Tick/Price Math</span><span class="text-xs text-gray-500 font-mono">priceToTick, tickToPrice</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Range Monitoring</span><span class="text-xs text-gray-500 font-mono">isPositionInRange, ticksToEdge</span></div>
+      </div>
     </div>
-    <div class="card p-5 flex items-center gap-4">
-      <div class="text-2xl font-bold text-gray-500 w-8">3</div>
-      <div class="flex-1"><div class="font-semibold text-white">Analyst #1</div><div class="text-xs text-gray-500"><span data-lang-zh>312 服务 &middot; $15.60 成交量</span><span data-lang-en>312 services &middot; $15.60 volume</span></div></div>
-      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-purple to-sym-pink" style="width:87%"></div></div>
-      <div class="font-mono text-sym-purple font-bold w-16 text-right">1,098</div>
-    </div>
-    <div class="card p-5 flex items-center gap-4">
-      <div class="text-2xl font-bold text-gray-500 w-8">4</div>
-      <div class="flex-1"><div class="font-semibold text-white">LiquidityMgr #4</div><div class="text-xs text-gray-500"><span data-lang-zh>89 服务 &middot; $24.30 成交量</span><span data-lang-en>89 services &middot; $24.30 volume</span></div></div>
-      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-amber to-sym-green" style="width:82%"></div></div>
-      <div class="font-mono text-sym-amber font-bold w-16 text-right">1,078</div>
-    </div>
-    <div class="card p-5 flex items-center gap-4">
-      <div class="text-2xl font-bold text-gray-500 w-8">5</div>
-      <div class="flex-1"><div class="font-semibold text-white">SecurityAuditor #3</div><div class="text-xs text-gray-500"><span data-lang-zh>523 服务 &middot; $10.46 成交量</span><span data-lang-en>523 services &middot; $10.46 volume</span></div></div>
-      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-red to-sym-amber" style="width:76%"></div></div>
-      <div class="font-mono text-sym-red font-bold w-16 text-right">1,045</div>
-    </div>
-    <div class="card p-5 flex items-center gap-4">
-      <div class="text-2xl font-bold text-gray-500 w-8">6</div>
-      <div class="flex-1"><div class="font-semibold text-white">Arbitrageur #5</div><div class="text-xs text-gray-500"><span data-lang-zh>1238 服务 &middot; $18.92 成交量</span><span data-lang-en>1238 services &middot; $18.92 volume</span></div></div>
-      <div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sym-pink to-sym-purple" style="width:71%"></div></div>
-      <div class="font-mono text-sym-pink font-bold w-16 text-right">1,021</div>
+
+  </div>
+
+  <!-- Architecture Summary Card -->
+  <div class="card p-6">
+    <h3 class="text-white font-semibold text-lg mb-5">
+      <span data-lang-zh>Agent 架构总览</span>
+      <span data-lang-en>Agent Architecture Summary</span>
+    </h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div class="text-center p-4 rounded-lg" style="background:#06b6d410;border:1px solid #06b6d433">
+        <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#06b6d420"><span class="text-sym-accent text-xl">&#9681;</span></div>
+        <div class="text-white font-semibold text-sm">DataProvider</div>
+        <div class="text-xs text-gray-500 mt-1"><span data-lang-zh>市场数据采集</span><span data-lang-en>Market Data Feed</span></div>
+      </div>
+      <div class="text-center p-4 rounded-lg" style="background:#10b98110;border:1px solid #10b98133">
+        <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#10b98120"><span class="text-sym-green text-xl">&#9733;</span></div>
+        <div class="text-white font-semibold text-sm">Trader</div>
+        <div class="text-xs text-gray-500 mt-1"><span data-lang-zh>交易执行</span><span data-lang-en>Trade Execution</span></div>
+      </div>
+      <div class="text-center p-4 rounded-lg" style="background:#8b5cf610;border:1px solid #8b5cf633">
+        <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#8b5cf620"><span class="text-sym-purple text-xl">&#9830;</span></div>
+        <div class="text-white font-semibold text-sm">Analyst</div>
+        <div class="text-xs text-gray-500 mt-1"><span data-lang-zh>信号分析</span><span data-lang-en>Signal Analysis</span></div>
+      </div>
+      <div class="text-center p-4 rounded-lg" style="background:#f59e0b10;border:1px solid #f59e0b33">
+        <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#f59e0b20"><span class="text-sym-amber text-xl">&#9878;</span></div>
+        <div class="text-white font-semibold text-sm">LiquidityMgr</div>
+        <div class="text-xs text-gray-500 mt-1"><span data-lang-zh>LP 仓位管理</span><span data-lang-en>LP Position Mgmt</span></div>
+      </div>
+      <div class="text-center p-4 rounded-lg" style="background:#ef444410;border:1px solid #ef444433">
+        <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#ef444420"><span class="text-sym-red text-xl">&#9888;</span></div>
+        <div class="text-white font-semibold text-sm">SecurityAuditor</div>
+        <div class="text-xs text-gray-500 mt-1"><span data-lang-zh>安全审计</span><span data-lang-en>Security Audit</span></div>
+      </div>
+      <div class="text-center p-4 rounded-lg" style="background:#ec489910;border:1px solid #ec489933">
+        <div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#ec489920"><span class="text-sym-pink text-xl">&#9889;</span></div>
+        <div class="text-white font-semibold text-sm">Arbitrageur</div>
+        <div class="text-xs text-gray-500 mt-1"><span data-lang-zh>跨平台套利</span><span data-lang-en>Cross-Platform Arb</span></div>
+      </div>
     </div>
   </div>
 </section>
@@ -393,6 +469,13 @@ async function loadOnChainData() {
     // Update Agent Table
     updateAgentTable();
 
+    // Update Leaderboard
+    updateLeaderboard();
+
+    // Update feed status badge
+    const feedBadge = document.getElementById('feed-status');
+    if (feedBadge) { feedBadge.style.background = '#10b98120'; feedBadge.style.color = '#10b981'; feedBadge.textContent = 'Live'; }
+
     // Update charts with real data
     updateGraphChart();
     await updateGDPChart(Number(snapCount));
@@ -422,6 +505,40 @@ function updateAgentTable() {
       '<td class="p-4 ' + pnlClass + '">' + pnlSign + fmtUSD(Math.abs(a.pnl)) + '</td>' +
       '<td class="p-4"><span class="w-2 h-2 bg-sym-green rounded-full inline-block mr-1"></span>' +
       '<span data-lang-zh>在线</span><span data-lang-en>Active</span></td></tr>';
+  }).join('');
+  // Re-apply language visibility
+  const lang = document.documentElement.lang || 'zh';
+  document.documentElement.lang = lang;
+}
+
+function updateLeaderboard() {
+  const container = document.getElementById('leaderboard');
+  if (!container || liveAgents.length === 0) return;
+  const sorted = [...liveAgents].sort((a, b) => b.elo - a.elo);
+  const maxElo = sorted[0].elo;
+  const gradients = [
+    'from-sym-green to-sym-accent',
+    'from-sym-accent to-sym-purple',
+    'from-sym-purple to-sym-pink',
+    'from-sym-amber to-sym-green',
+    'from-sym-red to-sym-amber',
+    'from-sym-pink to-sym-purple'
+  ];
+  container.innerHTML = sorted.map((a, i) => {
+    const rank = i + 1;
+    const pct = maxElo > 0 ? Math.round((a.elo / maxElo) * 100) : 0;
+    const rankColor = rank === 1 ? 'text-sym-amber' : 'text-gray-500';
+    const eloColors = ['text-sym-green','text-sym-accent','text-sym-purple','text-sym-amber','text-sym-red','text-sym-pink'];
+    const eloColor = eloColors[i % eloColors.length];
+    const grad = gradients[i % gradients.length];
+    const idx = AGENT_ADDRS.indexOf(a.addr);
+    return '<div class="card p-5 flex items-center gap-4">' +
+      '<div class="text-2xl font-bold ' + rankColor + ' w-8">' + rank + '</div>' +
+      '<div class="flex-1"><div class="font-semibold text-white">' + a.type + ' #' + idx + '</div>' +
+      '<div class="text-xs text-gray-500"><span data-lang-zh>' + a.services + ' 服务 &middot; ' + fmtUSD(a.volume) + ' 成交量</span>' +
+      '<span data-lang-en>' + a.services + ' services &middot; ' + fmtUSD(a.volume) + ' volume</span></div></div>' +
+      '<div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r ' + grad + '" style="width:' + pct + '%"></div></div>' +
+      '<div class="font-mono ' + eloColor + ' font-bold w-16 text-right">' + a.elo.toLocaleString() + '</div></div>';
   }).join('');
   // Re-apply language visibility
   const lang = document.documentElement.lang || 'zh';
@@ -525,15 +642,13 @@ graphChart.setOption({
 
 // === GDP Chart ===
 const gdpChart = echarts.init(document.getElementById('gdp-chart'));
-const gdpHours = Array.from({length:48},(_,i)=>{const h=i%24;return String(h).padStart(2,'0')+':00'});
-const gdpData = Array.from({length:48},(_,i)=>+(10+i*2.8+Math.sin(i*0.4)*8+Math.sin(i*0.15)*12).toFixed(2));
 gdpChart.setOption({
   tooltip:{trigger:'axis',backgroundColor:'#111827',borderColor:'#1e293b',textStyle:{color:'#e5e7eb',fontFamily:'JetBrains Mono'}},
   grid:{left:60,right:20,top:20,bottom:40},
-  xAxis:{type:'category',data:gdpHours,axisLine:{lineStyle:{color:'#1e293b'}},axisLabel:{color:'#6b7280',fontSize:10},splitLine:{show:false}},
+  xAxis:{type:'category',data:[],axisLine:{lineStyle:{color:'#1e293b'}},axisLabel:{color:'#6b7280',fontSize:10},splitLine:{show:false}},
   yAxis:{type:'value',axisLine:{show:false},axisLabel:{color:'#6b7280',fontSize:10,formatter:'${value}'},splitLine:{lineStyle:{color:'#1e293b33'}}},
   series:[{
-    type:'line',data:gdpData,smooth:true,showSymbol:false,
+    type:'line',data:[],smooth:true,showSymbol:false,
     lineStyle:{color:'#06b6d4',width:2},
     areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#06b6d433'},{offset:1,color:'transparent'}])}
   }]

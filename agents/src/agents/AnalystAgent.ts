@@ -102,7 +102,6 @@ export class AnalystAgent extends AgentBase {
     });
   }
 
-  // placeholder: runCycle
   async runCycle(): Promise<void> {
     this.cycleIndex++;
 
@@ -244,7 +243,6 @@ export class AnalystAgent extends AgentBase {
   // Technical indicator calculations
   // -----------------------------------------------------------------------
 
-  // placeholder: _computeTechnicalIndicators
   private _computeTechnicalIndicators(closes: number[]): TechnicalIndicators {
     return {
       rsi: this._computeRSI(closes, 14),
@@ -253,7 +251,6 @@ export class AnalystAgent extends AgentBase {
     };
   }
 
-  // placeholder: _computeRSI
   /**
    * RSI (Relative Strength Index) over the given period.
    * Uses exponential moving average of gains/losses.
@@ -288,7 +285,6 @@ export class AnalystAgent extends AgentBase {
     return 100 - 100 / (1 + rs);
   }
 
-  // placeholder: _computeMACD
   /**
    * MACD (Moving Average Convergence Divergence).
    * Returns MACD line, signal line, and histogram.
@@ -354,7 +350,6 @@ export class AnalystAgent extends AgentBase {
     return result;
   }
 
-  // placeholder: _computeBollingerBands
   /**
    * Bollinger Bands: middle = SMA, upper/lower = middle +/- (multiplier * stddev).
    * Returns current band values and the position of the last close within the bands (0..1).

@@ -172,6 +172,46 @@ export class OnchainOSClient {
   get apiCallCount(): number { return this._apiCallCount; }
   get skillsUsed(): string[] { return [...this._skillsUsed]; }
 
+  /**
+   * Generate a comprehensive skills usage report for hackathon evaluation.
+   * Shows all 15 Onchain OS skills, which are active, and call counts.
+   */
+  getSkillsReport(): {
+    totalSkills: number;
+    activeSkills: number;
+    totalApiCalls: number;
+    skills: Array<{ id: string; name: string; category: string; active: boolean }>;
+  } {
+    const ALL_SKILLS = [
+      { id: "dex-supported-chains", name: "DEX Supported Chains", category: "DEX Aggregator (V6)" },
+      { id: "dex-all-tokens", name: "DEX Token Discovery", category: "DEX Aggregator (V6)" },
+      { id: "dex-quote", name: "DEX Quote", category: "DEX Aggregator (V6)" },
+      { id: "dex-swap", name: "DEX Swap TX Builder", category: "DEX Aggregator (V6)" },
+      { id: "dex-broadcast-swap", name: "DEX Broadcast Swap (Live)", category: "DEX Aggregator (V6)" },
+      { id: "dex-execute-swap", name: "DEX Execute Swap (Sim)", category: "DEX Aggregator (V6)" },
+      { id: "cross-chain-quote", name: "Cross-Chain Bridge Quote", category: "Cross-Chain (V6)" },
+      { id: "gas-price", name: "Gas Price Estimation", category: "DEX Aggregator (V6)" },
+      { id: "token-approval", name: "Token Approval TX", category: "DEX Aggregator (V6)" },
+      { id: "market-ticker", name: "Market Ticker Price", category: "CEX Market (V5)" },
+      { id: "market-ticker-24h", name: "24h Ticker Stats", category: "CEX Market (V5)" },
+      { id: "market-klines", name: "Kline/Candlestick Data", category: "CEX Market (V5)" },
+      { id: "token-info", name: "Token Metadata", category: "DEX Aggregator (V6)" },
+      { id: "wallet-balance", name: "Wallet Balance Query", category: "DeFi (V5)" },
+      { id: "security-scan", name: "Token Security Scan", category: "DeFi (V5)" },
+      { id: "tx-status", name: "Transaction Status", category: "On-Chain" },
+    ];
+
+    return {
+      totalSkills: ALL_SKILLS.length,
+      activeSkills: this._skillsUsed.size,
+      totalApiCalls: this._apiCallCount,
+      skills: ALL_SKILLS.map((s) => ({
+        ...s,
+        active: this._skillsUsed.has(s.id),
+      })),
+    };
+  }
+
   // -----------------------------------------------------------------------
   // V6 DEX Aggregator methods
   // -----------------------------------------------------------------------

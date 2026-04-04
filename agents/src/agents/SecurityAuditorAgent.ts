@@ -104,14 +104,23 @@ export class SecurityAuditorAgent extends AgentBase {
           const proofHash = ethers.keccak256(
             ethers.toUtf8Bytes(JSON.stringify(result)),
           );
-          const tx = await this.contracts.marketplace.completeService(
-            req.requestId,
-            proofHash,
-          );
-          await tx.wait();
-          this.log(`Completed marketplace request ${req.requestId}`);
+
+          // If high risk, dispute the service instead of completing
+          if (result.riskScore > 50 || result.isHoneypot) {
+            this.log(`High risk detected (score=${result.riskScore}, honeypot=${result.isHoneypot}), disputing request ${req.requestId}`);
+            const tx = await this.contracts.marketplace.disputeService(req.requestId);
+            await tx.wait();
+            this.log(`Disputed marketplace request ${req.requestId} | tx=${tx.hash}`);
+          } else {
+            const tx = await this.contracts.marketplace.completeService(
+              req.requestId,
+              proofHash,
+            );
+            await tx.wait();
+            this.log(`Completed marketplace request ${req.requestId} | tx=${tx.hash}`);
+          }
         } catch (err) {
-          this.warn(`Failed to complete request: ${err instanceof Error ? err.message : err}`);
+          this.warn(`Failed to complete/dispute request: ${err instanceof Error ? err.message : err}`);
         }
       }
     }

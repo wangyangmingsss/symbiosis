@@ -251,6 +251,9 @@ export class TraderAgent extends AgentBase {
           // Treasury tracking is best-effort
         }
 
+        // x402 escrow settlement: create and release escrow for the trade
+        await this._settleViaEscrow(signal, result);
+
         // Take economy snapshot on-chain after successful trade
         await this.takeEconomySnapshot(signal, result);
 
@@ -455,6 +458,63 @@ export class TraderAgent extends AgentBase {
 
     await globalBus.emit("trade:executed", event);
     await globalBus.emit("trade:stats", { ...this.stats });
+  }
+
+  // -------------------------------------------------------------------------
+  // x402 Escrow Settlement
+  // -------------------------------------------------------------------------
+
+  /**
+   * Create and immediately release an escrow for a successful trade.
+   * This demonstrates the full x402 payment flow: create escrow -> release -> reputation update.
+   */
+  private async _settleViaEscrow(signal: AlphaSignal, result: DexSwapResult): Promise<void> {
+    try {
+      // Find the analyst's listing to use as the request context
+      const requestCount = await this.contracts.marketplace.getRequestCount().catch(() => 0n);
+      if (requestCount === 0n) {
+        this.log("No marketplace requests yet, skipping escrow settlement");
+        return;
+      }
+
+      // Create a micro-escrow for the trade execution fee
+      const escrowAmount = ethers.parseEther("0.0001"); // micro-payment for service
+      const duration = 3600; // 1 hour escrow window
+
+      // Use the latest request ID as context
+      const requestId = requestCount;
+
+      this.log(`Creating x402 escrow: requestId=${requestId}, amount=${ethers.formatEther(escrowAmount)} OKB`);
+      const createTx = await this.contracts.escrow.createEscrow(
+        requestId,
+        this.wallet.address, // seller = self for self-trade recording
+        escrowAmount,
+        duration,
+        { value: escrowAmount },
+      );
+      const createReceipt = await createTx.wait();
+
+      // Parse escrow ID from event
+      let escrowId: bigint | null = null;
+      const iface = this.contracts.escrow.interface;
+      for (const log of createReceipt.logs) {
+        try {
+          const parsed = iface.parseLog({ topics: [...log.topics], data: log.data });
+          if (parsed?.name === "EscrowCreated") {
+            escrowId = parsed.args[0];
+          }
+        } catch { /* skip non-matching logs */ }
+      }
+
+      if (escrowId !== null) {
+        // Immediately release the escrow (trade was successful)
+        const releaseTx = await this.contracts.escrow.releaseEscrow(escrowId);
+        await releaseTx.wait();
+        this.log(`x402 escrow #${escrowId} created and released | tx=${releaseTx.hash}`);
+      }
+    } catch (err) {
+      this.warn(`x402 escrow settlement failed (non-fatal): ${err instanceof Error ? err.message : err}`);
+    }
   }
 
   // -------------------------------------------------------------------------
