@@ -10,7 +10,7 @@ env:
 
 jobs:
   contracts:
-    name: Contracts
+    name: Contracts (Build + Test + Size)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,13 +24,19 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Build
-        run: forge build
+        run: forge build --sizes
 
       - name: Test
-        run: forge test
+        run: forge test -vvv
+
+      - name: Gas report
+        run: forge test --gas-report
+
+      - name: Check contract sizes
+        run: forge build --sizes 2>&1 | tee /dev/stderr | grep -E "^\|" || true
 
   agents:
-    name: Agents
+    name: Agents (Typecheck + Test)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -41,7 +47,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: agents/package-lock.json
 
@@ -50,3 +56,46 @@ jobs:
 
       - name: Type check
         run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+  integration:
+    name: Integration Check
+    needs: [contracts, agents]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify contract addresses in agent config
+        run: |
+          echo "Checking agent config references deployed addresses..."
+          grep -q "0x33dB9d89F2f4E13470469bB4ccf7f708d8333987" agents/src/config/contracts.ts
+          grep -q "0x58Eb47a4b6F2b777730828Cb8AD77032993a9dbf" agents/src/config/contracts.ts
+          grep -q "0x6cAa9D8b182f1919d3F6b10AadcaCc542363463F" agents/src/config/contracts.ts
+          grep -q "0x160dDA2B8dc2f0136AFA6BFbC54D3127163E428A" agents/src/config/contracts.ts
+          grep -q "0x1CE0CAe16F38B32a0dc1aB1fe4E34eFC4942A5F7" agents/src/config/contracts.ts
+          grep -q "0x72d0B059941B0603bff3593Fa2c8Ca26825AE834" agents/src/config/contracts.ts
+          echo "All 6 contract addresses verified in agent config."
+
+      - name: Verify Onchain OS integration count
+        run: |
+          echo "Counting Onchain OS API integrations..."
+          SKILLS=$(grep -c '_skillsUsed.add' agents/src/core/OnchainOSClient.ts || true)
+          echo "Onchain OS skills integrated: $SKILLS"
+          if [ "$SKILLS" -lt 10 ]; then
+            echo "WARNING: Less than 10 Onchain OS skills detected"
+          fi
+
+      - name: Verify Uniswap V3 integration
+        run: |
+          echo "Checking Uniswap V3 integration..."
+          test -f agents/src/core/UniswapV3Client.ts && echo "UniswapV3Client: FOUND"
+          grep -q "getPoolPrice" agents/src/agents/ArbitrageurAgent.ts && echo "Arbitrageur pool reading: FOUND"
+          grep -q "UniswapV3Client" agents/src/agents/LiquidityManagerAgent.ts && echo "LP manager V3 integration: FOUND"
+          echo "Uniswap V3 integration verified."

@@ -1,22 +1,24 @@
 /**
  * Contract addresses and minimal ABIs for the SYMBIOSIS protocol.
  *
- * Addresses are placeholders -- replace after deployment.
+ * Default addresses point to the X Layer Testnet deployment.
+ * Override via environment variables (ADDR_REGISTRY, etc.) for custom deploys.
  * ABIs contain only the function signatures each agent actually calls,
  * keeping the bundle lean.
  */
 
 // ---------------------------------------------------------------------------
-// Deployed addresses (fill in after `forge script Deploy`)
+// Deployed addresses -- X Layer Testnet (Chain ID 195)
+// Override with env vars for custom deployments
 // ---------------------------------------------------------------------------
 
 export const ADDRESSES = {
-  AgentRegistry: "0x0000000000000000000000000000000000000001",
-  ServiceMarketplace: "0x0000000000000000000000000000000000000002",
-  ReputationEngine: "0x0000000000000000000000000000000000000003",
-  EscrowSettlement: "0x0000000000000000000000000000000000000004",
-  AgentTreasury: "0x0000000000000000000000000000000000000005",
-  EconomyOracle: "0x0000000000000000000000000000000000000006",
+  AgentRegistry:      process.env.ADDR_REGISTRY      ?? "0x33dB9d89F2f4E13470469bB4ccf7f708d8333987",
+  ServiceMarketplace: process.env.ADDR_MARKETPLACE    ?? "0x58Eb47a4b6F2b777730828Cb8AD77032993a9dbf",
+  ReputationEngine:   process.env.ADDR_REPUTATION     ?? "0x6cAa9D8b182f1919d3F6b10AadcaCc542363463F",
+  EscrowSettlement:   process.env.ADDR_ESCROW         ?? "0x160dDA2B8dc2f0136AFA6BFbC54D3127163E428A",
+  AgentTreasury:      process.env.ADDR_TREASURY       ?? "0x1CE0CAe16F38B32a0dc1aB1fe4E34eFC4942A5F7",
+  EconomyOracle:      process.env.ADDR_ORACLE         ?? "0x72d0B059941B0603bff3593Fa2c8Ca26825AE834",
 } as const;
 
 // ---------------------------------------------------------------------------
