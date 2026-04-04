@@ -15,7 +15,7 @@ import { ethers } from "ethers";
 // ---------------------------------------------------------------------------
 
 const RPC_URL = "https://testrpc.xlayer.tech";
-const CHAIN_ID = 195;
+const CHAIN_ID = 1952;
 
 const ADDRESSES = {
   AgentRegistry: "0x33dB9d89F2f4E13470469bB4ccf7f708d8333987",

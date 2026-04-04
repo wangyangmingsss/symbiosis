@@ -22,14 +22,14 @@ export const XLAYER_MAINNET: ChainConfig = {
   explorerUrl: "https://www.oklink.com/xlayer",
 };
 
-/** X Layer Testnet (Chain ID 195) */
+/** X Layer Testnet (Chain ID 1952) */
 export const XLAYER_TESTNET: ChainConfig = {
   name: "X Layer Testnet",
-  chainId: 195,
+  chainId: 1952,
   rpcUrl: "https://testrpc.xlayer.tech",
   blockTimeMs: 1000,
   nativeToken: "OKB",
-  explorerUrl: "https://www.oklink.com/xlayer-test",
+  explorerUrl: "https://www.okx.com/web3/explorer/xlayer-test",
 };
 
 /**
