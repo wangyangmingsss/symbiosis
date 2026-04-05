@@ -10,7 +10,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']},colors:{sym:{bg:'#0a0e17',panel:'#111827',border:'#1e293b',accent:'#06b6d4',green:'#10b981',red:'#ef4444',purple:'#8b5cf6',amber:'#f59e0b',blue:'#3b82f6',pink:'#ec4899'}}}}}</script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']},colors:{sym:{bg:'#f8fafc',panel:'#ffffff',border:'#e2e8f0',accent:'#2563eb',green:'#059669',red:'#dc2626',purple:'#7c3aed',amber:'#d97706',blue:'#2563eb',pink:'#db2777'}}}}}</script>
 <style>
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes pulse-glow{0%,100%{opacity:.4}50%{opacity:1}}
@@ -19,11 +19,11 @@
 @keyframes flowPulse{0%{stroke-dashoffset:20}100%{stroke-dashoffset:0}}
 @keyframes scanLine{0%{top:0}100%{top:100%}}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.gradient-text{background:linear-gradient(135deg,#06b6d4,#8b5cf6,#ec4899,#06b6d4);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradient-shift 6s ease infinite}
-.card{background:#111827;border:1px solid #1e293b;border-radius:12px;transition:border-color .3s,box-shadow .3s}
-.card:hover{border-color:#06b6d4}
-.particle{position:absolute;width:6px;height:6px;border-radius:50%;opacity:.3}
-.connection{position:absolute;height:1px;background:linear-gradient(90deg,transparent,#1e293b,transparent);opacity:.3;animation:pulse-glow 4s ease-in-out infinite}
+.gradient-text{background:linear-gradient(135deg,#2563eb,#7c3aed,#db2777,#2563eb);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradient-shift 6s ease infinite}
+.card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;transition:border-color .3s,box-shadow .3s;box-shadow:0 1px 3px rgba(0,0,0,0.05),0 1px 2px rgba(0,0,0,0.03)}
+.card:hover{border-color:#2563eb;box-shadow:0 4px 12px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04)}
+.particle{position:absolute;width:6px;height:6px;border-radius:50%;opacity:.15}
+.connection{position:absolute;height:1px;background:linear-gradient(90deg,transparent,#e2e8f0,transparent);opacity:.2;animation:pulse-glow 4s ease-in-out infinite}
 .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
 .feed-scroll{animation:scroll-feed 60s linear infinite}
 .feed-scroll:hover{animation-play-state:paused}
@@ -31,56 +31,57 @@ html[lang="zh"] [data-lang-en]{display:none}
 html[lang="en"] [data-lang-zh]{display:none}
 html[lang="zh"] .feed-en{display:none}
 html[lang="en"] .feed-zh{display:none}
-.lang-toggle{position:fixed;top:16px;right:16px;z-index:9999;background:#111827;border:1px solid #1e293b;border-radius:9999px;padding:4px;display:flex;gap:2px;cursor:pointer}
-.lang-toggle span{padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:500;color:#6b7280;transition:all .2s}
-.lang-toggle span.active{background:#06b6d4;color:#0a0e17}
-.net-status{position:fixed;top:16px;left:16px;z-index:9999;background:#111827;border:1px solid #1e293b;border-radius:9999px;padding:6px 14px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:500;color:#9ca3af}
+.lang-toggle{position:fixed;top:16px;right:16px;z-index:9999;background:#ffffff;border:1px solid #e2e8f0;border-radius:9999px;padding:4px;display:flex;gap:2px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.lang-toggle span{padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:500;color:#64748b;transition:all .2s}
+.lang-toggle span.active{background:#2563eb;color:#ffffff}
+.net-status{position:fixed;top:16px;left:16px;z-index:9999;background:#ffffff;border:1px solid #e2e8f0;border-radius:9999px;padding:6px 14px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:500;color:#64748b;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
 .net-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.net-dot.connected{background:#10b981;box-shadow:0 0 6px #10b981}
-.net-dot.disconnected{background:#ef4444;box-shadow:0 0 6px #ef4444}
-.btn-glow{background:linear-gradient(135deg,#06b6d4,#8b5cf6);color:#fff;font-weight:600;padding:10px 24px;border-radius:10px;border:none;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
-.btn-glow:hover{box-shadow:0 0 20px #06b6d466,0 0 40px #8b5cf633;transform:translateY(-1px)}
+.net-dot.connected{background:#059669;box-shadow:0 0 6px #059669}
+.net-dot.disconnected{background:#dc2626;box-shadow:0 0 6px #dc2626}
+.btn-glow{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:600;padding:10px 24px;border-radius:10px;border:none;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.btn-glow:hover{box-shadow:0 0 20px #2563eb44,0 0 40px #7c3aed33;transform:translateY(-1px)}
 .btn-glow:active{transform:translateY(0)}
 .btn-glow:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-sm{background:linear-gradient(135deg,#06b6d4,#8b5cf6);color:#fff;font-weight:500;padding:6px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;transition:all .3s}
-.btn-sm:hover{box-shadow:0 0 12px #06b6d444}
-.input-dark{background:#0a0e17;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#e5e7eb;font-size:13px;font-family:'JetBrains Mono',monospace;width:100%;transition:border-color .3s}
-.input-dark:focus{outline:none;border-color:#06b6d4;box-shadow:0 0 8px #06b6d433}
-.select-dark{background:#0a0e17;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#e5e7eb;font-size:13px;width:100%;transition:border-color .3s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-.select-dark:focus{outline:none;border-color:#06b6d4}
-.console-output{background:#060a10;border:1px solid #1e293b;border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;max-height:300px;overflow-y:auto;line-height:1.8}
+.btn-sm{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:500;padding:6px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;transition:all .3s}
+.btn-sm:hover{box-shadow:0 0 12px #2563eb44}
+.input-dark{background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;color:#1e293b;font-size:13px;font-family:'JetBrains Mono',monospace;width:100%;transition:border-color .3s}
+.input-dark:focus{outline:none;border-color:#2563eb;box-shadow:0 0 8px #2563eb22}
+.input-dark::placeholder{color:#94a3b8}
+.select-dark{background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;color:#1e293b;font-size:13px;width:100%;transition:border-color .3s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.select-dark:focus{outline:none;border-color:#2563eb}
+.console-output{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;max-height:300px;overflow-y:auto;line-height:1.8;color:#334155}
 .console-output::-webkit-scrollbar{width:6px}
-.console-output::-webkit-scrollbar-track{background:#0a0e17}
-.console-output::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.console-output::-webkit-scrollbar-track{background:#f1f5f9}
+.console-output::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
 .agent-card-click{cursor:pointer;transition:all .3s}
-.agent-card-click:hover{border-color:#06b6d4;box-shadow:0 0 16px #06b6d422;transform:translateY(-2px)}
-.progress-bar{height:6px;background:#1e293b;border-radius:3px;overflow:hidden}
-.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#06b6d4,#8b5cf6);transition:width .5s ease}
+.agent-card-click:hover{border-color:#2563eb;box-shadow:0 4px 16px #2563eb15;transform:translateY(-2px)}
+.progress-bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .5s ease}
 .escrow-flow-step{opacity:.3;transition:opacity .5s,transform .5s}
 .escrow-flow-step.active{opacity:1;transform:scale(1.05)}
-.tab-btn{padding:8px 20px;border-radius:8px 8px 0 0;background:transparent;border:1px solid transparent;border-bottom:none;color:#6b7280;font-size:13px;font-weight:500;cursor:pointer;transition:all .3s}
-.tab-btn.active{background:#111827;border-color:#1e293b;color:#06b6d4}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;display:none;align-items:center;justify-content:center;padding:16px}
+.tab-btn{padding:8px 20px;border-radius:8px 8px 0 0;background:transparent;border:1px solid transparent;border-bottom:none;color:#64748b;font-size:13px;font-weight:500;cursor:pointer;transition:all .3s}
+.tab-btn.active{background:#ffffff;border-color:#e2e8f0;color:#2563eb}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:10000;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.show{display:flex}
-.modal-content{background:#111827;border:1px solid #1e293b;border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:24px;animation:fadeInUp .3s ease}
+.modal-content{background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:24px;animation:fadeInUp .3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.1)}
 .section-anchor{scroll-margin-top:80px}
-.wallet-btn{position:fixed;top:16px;right:120px;z-index:9999;background:#111827;border:1px solid #1e293b;border-radius:9999px;padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:#9ca3af;cursor:pointer;transition:all .3s}
-.wallet-btn:hover{border-color:#06b6d4;color:#e5e7eb}
-.wallet-btn.connected{border-color:#10b981;box-shadow:0 0 12px #10b98133;animation:wallet-glow 2s ease-in-out infinite}
-@keyframes wallet-glow{0%,100%{box-shadow:0 0 8px #10b98122}50%{box-shadow:0 0 16px #10b98144}}
+.wallet-btn{position:fixed;top:16px;right:120px;z-index:9999;background:#ffffff;border:1px solid #e2e8f0;border-radius:9999px;padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:#64748b;cursor:pointer;transition:all .3s;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.wallet-btn:hover{border-color:#2563eb;color:#1e293b}
+.wallet-btn.connected{border-color:#059669;box-shadow:0 0 12px #05966922;animation:wallet-glow 2s ease-in-out infinite}
+@keyframes wallet-glow{0%,100%{box-shadow:0 0 8px #05966915}50%{box-shadow:0 0 16px #05966930}}
 .ticker-bar{display:flex;gap:16px;overflow-x:auto;padding:8px 0;scrollbar-width:none;-ms-overflow-style:none}
 .ticker-bar::-webkit-scrollbar{display:none}
-.ticker-card{flex-shrink:0;background:#111827;border:1px solid #1e293b;border-radius:12px;padding:12px 20px;min-width:200px;transition:border-color .3s}
-.ticker-card:hover{border-color:#06b6d4}
-.cmd-tab{padding:8px 16px;border-radius:8px;background:transparent;border:1px solid #1e293b;color:#6b7280;font-size:13px;cursor:pointer;transition:all .3s;white-space:nowrap}
-.cmd-tab.active{background:linear-gradient(135deg,#06b6d420,#8b5cf620);border-color:#06b6d4;color:#06b6d4}
-.cmd-console{background:#060a10;border:1px solid #1e293b;border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;max-height:200px;overflow-y:auto;line-height:1.8}
+.ticker-card{flex-shrink:0;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:12px 20px;min-width:200px;transition:border-color .3s;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.ticker-card:hover{border-color:#2563eb}
+.cmd-tab{padding:8px 16px;border-radius:8px;background:transparent;border:1px solid #e2e8f0;color:#64748b;font-size:13px;cursor:pointer;transition:all .3s;white-space:nowrap}
+.cmd-tab.active{background:linear-gradient(135deg,#2563eb10,#7c3aed10);border-color:#2563eb;color:#2563eb}
+.cmd-console{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;max-height:200px;overflow-y:auto;line-height:1.8;color:#334155}
 .cmd-console::-webkit-scrollbar{width:6px}
-.cmd-console::-webkit-scrollbar-track{background:#0a0e17}
-.cmd-console::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.cmd-console::-webkit-scrollbar-track{background:#f1f5f9}
+.cmd-console::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
 </style>
 </head>
-<body class="bg-sym-bg text-gray-200 font-sans antialiased">
+<body class="bg-sym-bg text-slate-800 font-sans antialiased">
 
 <!-- LANG TOGGLE -->
 <div class="lang-toggle" onclick="toggleLang()">
@@ -101,27 +102,27 @@ html[lang="en"] .feed-zh{display:none}
 </div>
 
 <!-- === HERO === -->
-<section id="hero" class="relative min-h-[70vh] flex items-center justify-center overflow-hidden section-anchor">
+<section id="hero" class="relative min-h-[70vh] flex items-center justify-center overflow-hidden section-anchor" style="background:linear-gradient(135deg,#eff6ff 0%,#f8fafc 50%,#faf5ff 100%)">
   <div class="absolute inset-0 overflow-hidden z-0">
-    <div class="particle" style="left:10%;top:20%;background:#06b6d4;animation:float 8s ease-in-out infinite"></div>
-    <div class="particle" style="left:30%;top:60%;background:#8b5cf6;animation:float 11s ease-in-out infinite 1s"></div>
-    <div class="particle" style="left:70%;top:30%;background:#10b981;animation:float 9s ease-in-out infinite 2s"></div>
-    <div class="particle" style="left:85%;top:70%;background:#ec4899;animation:float 13s ease-in-out infinite 0.5s"></div>
-    <div class="particle" style="left:50%;top:15%;background:#f59e0b;animation:float 10s ease-in-out infinite 3s"></div>
+    <div class="particle" style="left:10%;top:20%;background:#2563eb;animation:float 8s ease-in-out infinite"></div>
+    <div class="particle" style="left:30%;top:60%;background:#7c3aed;animation:float 11s ease-in-out infinite 1s"></div>
+    <div class="particle" style="left:70%;top:30%;background:#059669;animation:float 9s ease-in-out infinite 2s"></div>
+    <div class="particle" style="left:85%;top:70%;background:#db2777;animation:float 13s ease-in-out infinite 0.5s"></div>
+    <div class="particle" style="left:50%;top:15%;background:#d97706;animation:float 10s ease-in-out infinite 3s"></div>
     <div class="connection" style="top:35%;left:5%;width:40%;transform:rotate(12deg)"></div>
     <div class="connection" style="top:55%;left:30%;width:50%;transform:rotate(-8deg);animation-delay:1s"></div>
     <div class="connection" style="top:25%;left:45%;width:35%;transform:rotate(5deg);animation-delay:2s"></div>
   </div>
   <div class="relative z-10 text-center px-4">
     <h1 class="text-6xl md:text-8xl font-extrabold gradient-text mb-4 tracking-tight">SYMBIOSIS</h1>
-    <p class="text-xl md:text-2xl text-gray-400 mb-2"><span data-lang-zh>AI Agent 自主构建的链上经济体</span><span data-lang-en>Where AI Agents Form Their Own Economy</span></p>
-    <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>X Layer 上的自治微型经济体 &mdash; 荷兰拍卖、ELO 声誉、无信任托管</span><span data-lang-en>Autonomous micro-economy on X Layer &mdash; Dutch auctions, ELO reputation, trustless escrow</span></p>
+    <p class="text-xl md:text-2xl text-slate-500 mb-2"><span data-lang-zh>AI Agent 自主构建的链上经济体</span><span data-lang-en>Where AI Agents Form Their Own Economy</span></p>
+    <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>X Layer 上的自治微型经济体 &mdash; 荷兰拍卖、ELO 声誉、无信任托管</span><span data-lang-en>Autonomous micro-economy on X Layer &mdash; Dutch auctions, ELO reputation, trustless escrow</span></p>
     <p class="text-xs text-sym-accent mb-10"><span data-lang-zh>点击下方面板探索交互功能</span><span data-lang-en>Click panels below to explore interactive features</span></p>
     <div class="flex justify-center gap-8 md:gap-16">
-      <div class="text-center"><div class="text-3xl font-bold text-sym-accent" id="hero-agents">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
-      <div class="text-center"><div class="text-3xl font-bold text-sym-green" id="hero-txns">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>交易笔数</span><span data-lang-en>Transactions</span></div></div>
-      <div class="text-center"><div class="text-3xl font-bold text-sym-purple" id="hero-gdp">--</div><div class="text-xs text-gray-500 mt-1">USDT GDP</div></div>
-      <div class="text-center"><div class="text-3xl font-bold text-sym-amber" id="hero-elo">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>平均 ELO</span><span data-lang-en>Avg ELO</span></div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-accent" id="hero-agents">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-green" id="hero-txns">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>交易笔数</span><span data-lang-en>Transactions</span></div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-purple" id="hero-gdp">--</div><div class="text-xs text-slate-500 mt-1">USDT GDP</div></div>
+      <div class="text-center"><div class="text-3xl font-bold text-sym-amber" id="hero-elo">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>平均 ELO</span><span data-lang-en>Avg ELO</span></div></div>
     </div>
   </div>
 </section>
@@ -129,41 +130,41 @@ html[lang="en"] .feed-zh{display:none}
 <!-- === OKX PRICE TICKER === -->
 <section id="price-ticker" class="max-w-7xl mx-auto px-4 py-6 section-anchor">
   <div class="flex items-center gap-3 mb-3">
-    <h2 class="text-lg font-bold text-white"><span data-lang-zh>OKX 实时行情</span><span data-lang-en>OKX Live Prices</span></h2>
-    <span id="ticker-status" class="badge" style="background:#f59e0b20;color:#f59e0b;font-size:10px"><span data-lang-zh>加载中</span><span data-lang-en>Loading</span></span>
-    <span class="text-xs text-gray-600"><span data-lang-zh>每 15 秒刷新</span><span data-lang-en>Refreshes every 15s</span></span>
+    <h2 class="text-lg font-bold text-slate-900"><span data-lang-zh>OKX 实时行情</span><span data-lang-en>OKX Live Prices</span></h2>
+    <span id="ticker-status" class="badge" style="background:#d9770620;color:#d97706;font-size:10px"><span data-lang-zh>加载中</span><span data-lang-en>Loading</span></span>
+    <span class="text-xs text-slate-400"><span data-lang-zh>每 15 秒刷新</span><span data-lang-en>Refreshes every 15s</span></span>
   </div>
   <div class="ticker-bar" id="ticker-bar">
     <div class="ticker-card" id="ticker-btc">
-      <div class="text-xs text-gray-500 mb-1">BTC/USDT</div>
-      <div class="text-xl font-bold text-white font-mono" id="ticker-btc-price">--</div>
+      <div class="text-xs text-slate-500 mb-1">BTC/USDT</div>
+      <div class="text-xl font-bold text-slate-900 font-mono" id="ticker-btc-price">--</div>
       <div class="flex items-center gap-3 mt-1">
         <span class="text-sm font-mono" id="ticker-btc-change">--</span>
-        <span class="text-xs text-gray-500" id="ticker-btc-vol">Vol: --</span>
+        <span class="text-xs text-slate-500" id="ticker-btc-vol">Vol: --</span>
       </div>
     </div>
     <div class="ticker-card" id="ticker-eth">
-      <div class="text-xs text-gray-500 mb-1">ETH/USDT</div>
-      <div class="text-xl font-bold text-white font-mono" id="ticker-eth-price">--</div>
+      <div class="text-xs text-slate-500 mb-1">ETH/USDT</div>
+      <div class="text-xl font-bold text-slate-900 font-mono" id="ticker-eth-price">--</div>
       <div class="flex items-center gap-3 mt-1">
         <span class="text-sm font-mono" id="ticker-eth-change">--</span>
-        <span class="text-xs text-gray-500" id="ticker-eth-vol">Vol: --</span>
+        <span class="text-xs text-slate-500" id="ticker-eth-vol">Vol: --</span>
       </div>
     </div>
     <div class="ticker-card" id="ticker-okb">
-      <div class="text-xs text-gray-500 mb-1">OKB/USDT</div>
-      <div class="text-xl font-bold text-white font-mono" id="ticker-okb-price">--</div>
+      <div class="text-xs text-slate-500 mb-1">OKB/USDT</div>
+      <div class="text-xl font-bold text-slate-900 font-mono" id="ticker-okb-price">--</div>
       <div class="flex items-center gap-3 mt-1">
         <span class="text-sm font-mono" id="ticker-okb-change">--</span>
-        <span class="text-xs text-gray-500" id="ticker-okb-vol">Vol: --</span>
+        <span class="text-xs text-slate-500" id="ticker-okb-vol">Vol: --</span>
       </div>
     </div>
     <div class="ticker-card" id="ticker-sol">
-      <div class="text-xs text-gray-500 mb-1">SOL/USDT</div>
-      <div class="text-xl font-bold text-white font-mono" id="ticker-sol-price">--</div>
+      <div class="text-xs text-slate-500 mb-1">SOL/USDT</div>
+      <div class="text-xl font-bold text-slate-900 font-mono" id="ticker-sol-price">--</div>
       <div class="flex items-center gap-3 mt-1">
         <span class="text-sm font-mono" id="ticker-sol-change">--</span>
-        <span class="text-xs text-gray-500" id="ticker-sol-vol">Vol: --</span>
+        <span class="text-xs text-slate-500" id="ticker-sol-vol">Vol: --</span>
       </div>
     </div>
   </div>
@@ -171,14 +172,14 @@ html[lang="en"] .feed-zh{display:none}
 
 <!-- === ECONOMY GRAPH === -->
 <section id="economy-section" class="max-w-7xl mx-auto px-4 py-16 section-anchor">
-  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>经济网络</span><span data-lang-en>Economy Network</span></h2>
+  <h2 class="text-2xl font-bold mb-6 text-slate-900"><span data-lang-zh>经济网络</span><span data-lang-en>Economy Network</span></h2>
   <div id="economy-graph" class="w-full h-[500px] rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
 
 <!-- === AGENT EXPLORER === -->
 <section id="agent-explorer" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>Agent 探索器</span><span data-lang-en>Agent Explorer</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>点击任意 Agent 查看详细链上资料</span><span data-lang-en>Click any agent to view detailed on-chain profile</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>Agent 探索器</span><span data-lang-en>Agent Explorer</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>点击任意 Agent 查看详细链上资料</span><span data-lang-en>Click any agent to view detailed on-chain profile</span></p>
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="agent-explorer-grid">
     <!-- Filled by JS -->
   </div>
@@ -186,16 +187,16 @@ html[lang="en"] .feed-zh{display:none}
 
 <!-- === MARKETPLACE BROWSER === -->
 <section id="marketplace-browser" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>市场浏览器</span><span data-lang-en>Marketplace Browser</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>查询链上市场数据</span><span data-lang-en>Browse on-chain marketplace data</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>市场浏览器</span><span data-lang-en>Marketplace Browser</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>查询链上市场数据</span><span data-lang-en>Browse on-chain marketplace data</span></p>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-accent font-mono" id="mp-listings">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>服务列表</span><span data-lang-en>Listings</span></div></div>
-    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-purple font-mono" id="mp-requests">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>需求请求</span><span data-lang-en>Requests</span></div></div>
-    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-green font-mono" id="mp-matches">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>已匹配</span><span data-lang-en>Matches</span></div></div>
-    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-amber font-mono" id="mp-completions">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>已完成</span><span data-lang-en>Completions</span></div></div>
+    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-accent font-mono" id="mp-listings">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>服务列表</span><span data-lang-en>Listings</span></div></div>
+    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-purple font-mono" id="mp-requests">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>需求请求</span><span data-lang-en>Requests</span></div></div>
+    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-green font-mono" id="mp-matches">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>已匹配</span><span data-lang-en>Matches</span></div></div>
+    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-amber font-mono" id="mp-completions">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>已完成</span><span data-lang-en>Completions</span></div></div>
   </div>
   <div class="card p-6">
-    <h3 class="text-white font-semibold mb-4"><span data-lang-zh>查询市场记录</span><span data-lang-en>Query Market Records</span></h3>
+    <h3 class="text-slate-900 font-semibold mb-4"><span data-lang-zh>查询市场记录</span><span data-lang-en>Query Market Records</span></h3>
     <div class="flex flex-col sm:flex-row gap-3">
       <select id="mp-query-type" class="select-dark sm:w-48">
         <option value="listing">Listing ID</option>
@@ -210,26 +211,26 @@ html[lang="en"] .feed-zh{display:none}
 
 <!-- === SECURITY SCANNER === -->
 <section id="security-scanner" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>安全扫描器</span><span data-lang-en>Security Scanner</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>输入地址检测注册状态和链上声誉</span><span data-lang-en>Enter an address to check registration status and on-chain reputation</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>安全扫描器</span><span data-lang-en>Security Scanner</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>输入地址检测注册状态和链上声誉</span><span data-lang-en>Enter an address to check registration status and on-chain reputation</span></p>
   <div class="card p-6">
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
       <input type="text" id="scan-address" class="input-dark flex-1" placeholder="0x... (agent or contract address)">
       <button onclick="runSecurityScan()" class="btn-glow whitespace-nowrap text-sm"><span data-lang-zh>扫描</span><span data-lang-en>Scan</span></button>
     </div>
-    <div class="text-xs text-gray-600 mb-4"><span data-lang-zh>试试粘贴一个 Agent 地址，如 </span><span data-lang-en>Try pasting an agent address like </span><code class="text-sym-accent cursor-pointer" onclick="document.getElementById('scan-address').value=this.textContent">0x7AA421344e622a89DC2978C517466eD8955bd8f3</code></div>
+    <div class="text-xs text-slate-400 mb-4"><span data-lang-zh>试试粘贴一个 Agent 地址，如 </span><span data-lang-en>Try pasting an agent address like </span><code class="text-sym-accent cursor-pointer" onclick="document.getElementById('scan-address').value=this.textContent">0x7AA421344e622a89DC2978C517466eD8955bd8f3</code></div>
     <div id="scan-result" class="console-output hidden" style="min-height:120px"></div>
   </div>
 </section>
 
 <!-- === AGENT COMMAND CENTER === -->
 <section id="command-center" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>Agent 指挥中心</span><span data-lang-en>Agent Command Center</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>连接钱包后可直接与合约交互（写入操作需要 MetaMask）</span><span data-lang-en>Connect your wallet to interact with contracts directly (write ops require MetaMask)</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>Agent 指挥中心</span><span data-lang-en>Agent Command Center</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>连接钱包后可直接与合约交互（写入操作需要 MetaMask）</span><span data-lang-en>Connect your wallet to interact with contracts directly (write ops require MetaMask)</span></p>
   <div class="card p-6">
     <div class="flex items-center gap-2 mb-4" id="cmd-wallet-status">
       <span class="w-2 h-2 rounded-full bg-sym-red" id="cmd-wallet-dot"></span>
-      <span class="text-xs text-gray-500" id="cmd-wallet-text"><span data-lang-zh>钱包未连接 - 请先连接 MetaMask</span><span data-lang-en>Wallet not connected - please connect MetaMask first</span></span>
+      <span class="text-xs text-slate-500" id="cmd-wallet-text"><span data-lang-zh>钱包未连接 - 请先连接 MetaMask</span><span data-lang-en>Wallet not connected - please connect MetaMask first</span></span>
     </div>
     <!-- Tabs -->
     <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
@@ -243,7 +244,7 @@ html[lang="en"] .feed-zh{display:none}
     <div id="cmd-panel-register" class="cmd-panel">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>Agent 类型</span><span data-lang-en>Agent Type</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>Agent 类型</span><span data-lang-en>Agent Type</span></label>
           <select id="cmd-reg-type" class="select-dark">
             <option value="0">0 - DataProvider</option>
             <option value="1">1 - Trader</option>
@@ -254,12 +255,12 @@ html[lang="en"] .feed-zh{display:none}
           </select>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block">Metadata URI</label>
+          <label class="text-xs text-slate-500 mb-1 block">Metadata URI</label>
           <input type="text" id="cmd-reg-uri" class="input-dark" placeholder="ipfs://... or https://...">
         </div>
       </div>
       <div class="flex items-center gap-3 mb-3">
-        <span class="text-xs text-gray-500"><span data-lang-zh>质押: 0.01 OKB</span><span data-lang-en>Stake: 0.01 OKB</span></span>
+        <span class="text-xs text-slate-500"><span data-lang-zh>质押: 0.01 OKB</span><span data-lang-en>Stake: 0.01 OKB</span></span>
         <button onclick="cmdRegisterAgent()" class="btn-glow text-sm"><span data-lang-zh>注册 Agent</span><span data-lang-en>Register Agent</span></button>
       </div>
     </div>
@@ -267,7 +268,7 @@ html[lang="en"] .feed-zh{display:none}
     <div id="cmd-panel-list" class="cmd-panel" style="display:none">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>服务类型</span><span data-lang-en>Service Type</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>服务类型</span><span data-lang-en>Service Type</span></label>
           <select id="cmd-list-type" class="select-dark">
             <option value="0">0 - MARKET_DATA</option>
             <option value="1">1 - ALPHA_SIGNAL</option>
@@ -278,19 +279,19 @@ html[lang="en"] .feed-zh{display:none}
           </select>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>起始价 (wei)</span><span data-lang-en>Start Price (wei)</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>起始价 (wei)</span><span data-lang-en>Start Price (wei)</span></label>
           <input type="text" id="cmd-list-start" class="input-dark" placeholder="e.g. 50000000000000000" value="50000000000000000">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>底价 (wei)</span><span data-lang-en>Floor Price (wei)</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>底价 (wei)</span><span data-lang-en>Floor Price (wei)</span></label>
           <input type="text" id="cmd-list-floor" class="input-dark" placeholder="e.g. 10000000000000000" value="10000000000000000">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>衰减率</span><span data-lang-en>Decay Rate</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>衰减率</span><span data-lang-en>Decay Rate</span></label>
           <input type="text" id="cmd-list-decay" class="input-dark" placeholder="e.g. 400000000000000" value="400000000000000">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>最大次数</span><span data-lang-en>Max Fulfillments</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>最大次数</span><span data-lang-en>Max Fulfillments</span></label>
           <input type="number" id="cmd-list-max" class="input-dark" placeholder="e.g. 10" value="10">
         </div>
       </div>
@@ -300,7 +301,7 @@ html[lang="en"] .feed-zh{display:none}
     <div id="cmd-panel-request" class="cmd-panel" style="display:none">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>服务类型</span><span data-lang-en>Service Type</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>服务类型</span><span data-lang-en>Service Type</span></label>
           <select id="cmd-req-type" class="select-dark">
             <option value="0">0 - MARKET_DATA</option>
             <option value="1">1 - ALPHA_SIGNAL</option>
@@ -311,11 +312,11 @@ html[lang="en"] .feed-zh{display:none}
           </select>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>预算 (wei)</span><span data-lang-en>Max Budget (wei)</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>预算 (wei)</span><span data-lang-en>Max Budget (wei)</span></label>
           <input type="text" id="cmd-req-budget" class="input-dark" placeholder="e.g. 20000000000000000" value="20000000000000000">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>截止区块</span><span data-lang-en>Deadline Block</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>截止区块</span><span data-lang-en>Deadline Block</span></label>
           <input type="number" id="cmd-req-deadline" class="input-dark" placeholder="e.g. 999999" value="999999">
         </div>
       </div>
@@ -325,19 +326,19 @@ html[lang="en"] .feed-zh{display:none}
     <div id="cmd-panel-escrow" class="cmd-panel" style="display:none">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1 block">Request ID</label>
+          <label class="text-xs text-slate-500 mb-1 block">Request ID</label>
           <input type="number" id="cmd-esc-reqid" class="input-dark" placeholder="e.g. 0" value="0">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>卖方地址</span><span data-lang-en>Seller Address</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>卖方地址</span><span data-lang-en>Seller Address</span></label>
           <input type="text" id="cmd-esc-seller" class="input-dark" placeholder="0x...">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>金额 (wei)</span><span data-lang-en>Amount (wei)</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>金额 (wei)</span><span data-lang-en>Amount (wei)</span></label>
           <input type="text" id="cmd-esc-amount" class="input-dark" placeholder="e.g. 10000000000000000" value="10000000000000000">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>持续区块</span><span data-lang-en>Duration (blocks)</span></label>
+          <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>持续区块</span><span data-lang-en>Duration (blocks)</span></label>
           <input type="number" id="cmd-esc-duration" class="input-dark" placeholder="e.g. 100" value="100">
         </div>
       </div>
@@ -347,7 +348,7 @@ html[lang="en"] .feed-zh{display:none}
     <div id="cmd-panel-release" class="cmd-panel" style="display:none">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1 block">Escrow ID</label>
+          <label class="text-xs text-slate-500 mb-1 block">Escrow ID</label>
           <input type="number" id="cmd-rel-id" class="input-dark" placeholder="e.g. 0" value="0">
         </div>
       </div>
@@ -355,87 +356,87 @@ html[lang="en"] .feed-zh{display:none}
     </div>
     <!-- Console -->
     <div class="mt-4">
-      <div class="text-xs text-gray-500 mb-2"><span data-lang-zh>交易控制台</span><span data-lang-en>Transaction Console</span></div>
-      <div id="cmd-console" class="cmd-console"><span class="text-gray-600"><span data-lang-zh>等待操作...</span><span data-lang-en>Awaiting commands...</span></span></div>
+      <div class="text-xs text-slate-500 mb-2"><span data-lang-zh>交易控制台</span><span data-lang-en>Transaction Console</span></div>
+      <div id="cmd-console" class="cmd-console"><span class="text-slate-400"><span data-lang-zh>等待操作...</span><span data-lang-en>Awaiting commands...</span></span></div>
     </div>
   </div>
 </section>
 
 <!-- === ECONOMY SIMULATOR === -->
 <section id="economy-simulator" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>经济循环模拟器</span><span data-lang-en>Economy Cycle Simulator</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>动画演示 Agent 之间的交互流程</span><span data-lang-en>Animate the agent interaction flow step by step</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>经济循环模拟器</span><span data-lang-en>Economy Cycle Simulator</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>动画演示 Agent 之间的交互流程</span><span data-lang-en>Animate the agent interaction flow step by step</span></p>
   <div class="card p-6">
     <div class="flex items-center gap-4 mb-4">
       <button id="sim-run-btn" onclick="runEconomyCycle()" class="btn-glow text-sm"><span data-lang-zh>运行经济循环</span><span data-lang-en>Run Economy Cycle</span></button>
-      <button id="sim-reset-btn" onclick="resetSimulator()" class="btn-sm" style="background:#1e293b;color:#9ca3af"><span data-lang-zh>重置</span><span data-lang-en>Reset</span></button>
+      <button id="sim-reset-btn" onclick="resetSimulator()" class="btn-sm" style="background:#e2e8f0;color:#64748b"><span data-lang-zh>重置</span><span data-lang-en>Reset</span></button>
       <div class="flex-1">
         <div class="progress-bar"><div id="sim-progress" class="progress-fill" style="width:0%"></div></div>
       </div>
-      <span id="sim-step-label" class="text-xs text-gray-500 font-mono">0/8</span>
+      <span id="sim-step-label" class="text-xs text-slate-500 font-mono">0/8</span>
     </div>
     <!-- Animated flow diagram -->
     <div class="grid grid-cols-4 gap-2 mb-4" id="sim-flow">
       <div id="sim-node-dp" class="text-center p-3 rounded-lg border border-sym-border transition-all duration-500" style="opacity:.3">
-        <div class="text-sym-accent text-lg mb-1">&#9681;</div><div class="text-xs text-white">DataProvider</div>
+        <div class="text-sym-accent text-lg mb-1">&#9681;</div><div class="text-xs text-slate-900">DataProvider</div>
       </div>
       <div id="sim-node-analyst" class="text-center p-3 rounded-lg border border-sym-border transition-all duration-500" style="opacity:.3">
-        <div class="text-sym-purple text-lg mb-1">&#9830;</div><div class="text-xs text-white">Analyst</div>
+        <div class="text-sym-purple text-lg mb-1">&#9830;</div><div class="text-xs text-slate-900">Analyst</div>
       </div>
       <div id="sim-node-trader" class="text-center p-3 rounded-lg border border-sym-border transition-all duration-500" style="opacity:.3">
-        <div class="text-sym-green text-lg mb-1">&#9733;</div><div class="text-xs text-white">Trader</div>
+        <div class="text-sym-green text-lg mb-1">&#9733;</div><div class="text-xs text-slate-900">Trader</div>
       </div>
       <div id="sim-node-sec" class="text-center p-3 rounded-lg border border-sym-border transition-all duration-500" style="opacity:.3">
-        <div class="text-sym-red text-lg mb-1">&#9888;</div><div class="text-xs text-white">SecurityAuditor</div>
+        <div class="text-sym-red text-lg mb-1">&#9888;</div><div class="text-xs text-slate-900">SecurityAuditor</div>
       </div>
     </div>
     <!-- Arrow indicators -->
     <div class="flex items-center justify-between px-8 mb-4" id="sim-arrows">
-      <div id="sim-arrow-1" class="text-gray-700 transition-colors duration-500 text-lg">&rarr;</div>
-      <div id="sim-arrow-2" class="text-gray-700 transition-colors duration-500 text-lg">&rarr;</div>
-      <div id="sim-arrow-3" class="text-gray-700 transition-colors duration-500 text-lg">&rarr;</div>
+      <div id="sim-arrow-1" class="text-slate-300 transition-colors duration-500 text-lg">&rarr;</div>
+      <div id="sim-arrow-2" class="text-slate-300 transition-colors duration-500 text-lg">&rarr;</div>
+      <div id="sim-arrow-3" class="text-slate-300 transition-colors duration-500 text-lg">&rarr;</div>
     </div>
     <!-- Console log -->
     <div id="sim-console" class="console-output" style="min-height:160px;max-height:240px">
-      <div class="text-gray-600"><span data-lang-zh>等待启动...</span><span data-lang-en>Waiting to start...</span></div>
+      <div class="text-slate-400"><span data-lang-zh>等待启动...</span><span data-lang-en>Waiting to start...</span></div>
     </div>
   </div>
 </section>
 
 <!-- === ESCROW INSPECTOR === -->
 <section id="escrow-inspector" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>托管检查器</span><span data-lang-en>Escrow Inspector</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>链上托管系统概览与流程图</span><span data-lang-en>On-chain escrow system overview and flow diagram</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>托管检查器</span><span data-lang-en>Escrow Inspector</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>链上托管系统概览与流程图</span><span data-lang-en>On-chain escrow system overview and flow diagram</span></p>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-accent font-mono" id="esc-created">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>托管创建</span><span data-lang-en>Escrows Created</span></div></div>
-    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-green font-mono" id="esc-settled">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>已结算</span><span data-lang-en>Settled</span></div></div>
-    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-purple font-mono" id="esc-volume">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>托管总量</span><span data-lang-en>Total Volume</span></div></div>
+    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-accent font-mono" id="esc-created">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>托管创建</span><span data-lang-en>Escrows Created</span></div></div>
+    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-green font-mono" id="esc-settled">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>已结算</span><span data-lang-en>Settled</span></div></div>
+    <div class="card p-5 text-center"><div class="text-2xl font-bold text-sym-purple font-mono" id="esc-volume">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>托管总量</span><span data-lang-en>Total Volume</span></div></div>
   </div>
   <div class="card p-6">
-    <h3 class="text-white font-semibold mb-4"><span data-lang-zh>托管流程</span><span data-lang-en>Escrow Flow</span></h3>
+    <h3 class="text-slate-900 font-semibold mb-4"><span data-lang-zh>托管流程</span><span data-lang-en>Escrow Flow</span></h3>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-sm">
       <div id="ef-create" class="escrow-flow-step p-4 rounded-lg border border-sym-accent/30 text-center min-w-[120px]">
         <div class="text-sym-accent text-lg mb-1">&#9998;</div>
-        <div class="text-white font-medium">Create</div>
-        <div class="text-xs text-gray-500"><span data-lang-zh>发起托管</span><span data-lang-en>Initiate escrow</span></div>
+        <div class="text-slate-900 font-medium">Create</div>
+        <div class="text-xs text-slate-500"><span data-lang-zh>发起托管</span><span data-lang-en>Initiate escrow</span></div>
       </div>
-      <div class="text-gray-600 text-xl">&rarr;</div>
+      <div class="text-slate-400 text-xl">&rarr;</div>
       <div id="ef-fund" class="escrow-flow-step p-4 rounded-lg border border-sym-amber/30 text-center min-w-[120px]">
         <div class="text-sym-amber text-lg mb-1">&#9733;</div>
-        <div class="text-white font-medium">Fund</div>
-        <div class="text-xs text-gray-500"><span data-lang-zh>锁定资金</span><span data-lang-en>Lock funds</span></div>
+        <div class="text-slate-900 font-medium">Fund</div>
+        <div class="text-xs text-slate-500"><span data-lang-zh>锁定资金</span><span data-lang-en>Lock funds</span></div>
       </div>
-      <div class="text-gray-600 text-xl">&rarr;</div>
+      <div class="text-slate-400 text-xl">&rarr;</div>
       <div id="ef-deliver" class="escrow-flow-step p-4 rounded-lg border border-sym-purple/30 text-center min-w-[120px]">
         <div class="text-sym-purple text-lg mb-1">&#9878;</div>
-        <div class="text-white font-medium">Deliver</div>
-        <div class="text-xs text-gray-500"><span data-lang-zh>交付服务</span><span data-lang-en>Deliver service</span></div>
+        <div class="text-slate-900 font-medium">Deliver</div>
+        <div class="text-xs text-slate-500"><span data-lang-zh>交付服务</span><span data-lang-en>Deliver service</span></div>
       </div>
-      <div class="text-gray-600 text-xl">&rarr;</div>
+      <div class="text-slate-400 text-xl">&rarr;</div>
       <div id="ef-release" class="escrow-flow-step p-4 rounded-lg border border-sym-green/30 text-center min-w-[120px]">
         <div class="text-sym-green text-lg mb-1">&#10003;</div>
-        <div class="text-white font-medium"><span data-lang-zh>释放/争议</span><span data-lang-en>Release / Dispute</span></div>
-        <div class="text-xs text-gray-500"><span data-lang-zh>结算或仲裁</span><span data-lang-en>Settle or arbitrate</span></div>
+        <div class="text-slate-900 font-medium"><span data-lang-zh>释放/争议</span><span data-lang-en>Release / Dispute</span></div>
+        <div class="text-xs text-slate-500"><span data-lang-zh>结算或仲裁</span><span data-lang-en>Settle or arbitrate</span></div>
       </div>
     </div>
     <div class="mt-4 flex justify-center">
@@ -446,12 +447,12 @@ html[lang="en"] .feed-zh{display:none}
 
 <!-- === LIVE CONTRACT READER === -->
 <section id="contract-reader" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>合约查询工具</span><span data-lang-en>Live Contract Reader</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>选择合约和函数，直接查询链上数据</span><span data-lang-en>Select a contract and function to query on-chain data directly</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>合约查询工具</span><span data-lang-en>Live Contract Reader</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>选择合约和函数，直接查询链上数据</span><span data-lang-en>Select a contract and function to query on-chain data directly</span></p>
   <div class="card p-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
       <div>
-        <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>合约</span><span data-lang-en>Contract</span></label>
+        <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>合约</span><span data-lang-en>Contract</span></label>
         <select id="cr-contract" class="select-dark" onchange="updateFunctionList()">
           <option value="registry">Registry</option>
           <option value="marketplace">Marketplace</option>
@@ -462,18 +463,18 @@ html[lang="en"] .feed-zh{display:none}
         </select>
       </div>
       <div>
-        <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>函数</span><span data-lang-en>Function</span></label>
+        <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>函数</span><span data-lang-en>Function</span></label>
         <select id="cr-function" class="select-dark" onchange="updateParamFields()">
         </select>
       </div>
       <div>
-        <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>参数</span><span data-lang-en>Parameters</span></label>
+        <label class="text-xs text-slate-500 mb-1 block"><span data-lang-zh>参数</span><span data-lang-en>Parameters</span></label>
         <input type="text" id="cr-params" class="input-dark" placeholder="No params needed">
       </div>
     </div>
     <div class="flex items-center gap-3 mb-4">
       <button onclick="executeContractQuery()" class="btn-glow text-sm"><span data-lang-zh>执行查询</span><span data-lang-en>Execute Query</span></button>
-      <span id="cr-status" class="text-xs text-gray-500"></span>
+      <span id="cr-status" class="text-xs text-slate-500"></span>
     </div>
     <div id="cr-result" class="console-output hidden"></div>
   </div>
@@ -481,14 +482,14 @@ html[lang="en"] .feed-zh{display:none}
 
 <!-- === AGENT REGISTRY === -->
 <section id="registry-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>Agent 注册表</span><span data-lang-en>Agent Registry</span></h2>
+  <h2 class="text-2xl font-bold mb-6 text-slate-900"><span data-lang-zh>Agent 注册表</span><span data-lang-en>Agent Registry</span></h2>
   <div id="agent-table" class="overflow-x-auto rounded-xl border border-sym-border bg-sym-panel">
     <table class="w-full text-sm">
-      <thead><tr class="text-left text-gray-500 border-b border-sym-border">
+      <thead><tr class="text-left text-slate-500 border-b border-sym-border bg-slate-50">
         <th class="p-4">Agent</th><th class="p-4"><span data-lang-zh>类型</span><span data-lang-en>Type</span></th><th class="p-4">ELO</th><th class="p-4"><span data-lang-zh>服务数</span><span data-lang-en>Services</span></th><th class="p-4"><span data-lang-zh>成交量</span><span data-lang-en>Volume</span></th><th class="p-4"><span data-lang-zh>盈亏</span><span data-lang-en>PnL</span></th><th class="p-4"><span data-lang-zh>状态</span><span data-lang-en>Status</span></th>
       </tr></thead>
       <tbody>
-        <tr id="agent-loading"><td colspan="7" class="p-8 text-center text-gray-500">Connecting to X Layer testnet...</td></tr>
+        <tr id="agent-loading"><td colspan="7" class="p-8 text-center text-slate-500">Connecting to X Layer testnet...</td></tr>
       </tbody>
     </table>
   </div>
@@ -496,43 +497,43 @@ html[lang="en"] .feed-zh{display:none}
 
 <!-- === LIVE FEED === -->
 <section id="feed-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>市场动态</span><span data-lang-en>Marketplace Feed</span></h2>
+  <h2 class="text-2xl font-bold mb-6 text-slate-900"><span data-lang-zh>市场动态</span><span data-lang-en>Marketplace Feed</span></h2>
   <div id="live-feed" class="h-72 overflow-hidden rounded-xl border border-sym-border bg-sym-panel relative">
-    <div class="absolute top-3 right-3 z-10"><span id="feed-status" class="badge" style="background:#f59e0b20;color:#f59e0b">Sample</span></div>
+    <div class="absolute top-3 right-3 z-10"><span id="feed-status" class="badge" style="background:#d9770620;color:#d97706">Sample</span></div>
     <div class="p-4 feed-scroll" id="feed-inner">
       <div class="space-y-2 text-sm font-mono feed-zh" id="feed-items-zh">
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:01</span><span>DataProvider 上架 <span class="text-sym-accent">MARKET_DATA</span>，价格 $0.0100</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:05</span><span>Analyst 请求 <span class="text-sym-purple">MARKET_DATA</span>（预算: $0.02）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:06</span><span>服务匹配: DataProvider &rarr; Analyst，成交价 $0.0095</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:08</span><span>托管 #142 已创建: 0.0095 OKB（Analyst &rarr; DataProvider）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:12</span><span>Analyst 上架 <span class="text-sym-purple">ALPHA_SIGNAL</span>，价格 $0.0500（置信度: 0.84）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:15</span><span>Trader 请求 <span class="text-sym-green">ALPHA_SIGNAL</span>（预算: $0.06）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-500">14:32:18</span><span>Trader 请求对 OKB/USDT 进行 <span class="text-sym-red">安全审计</span></span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-500">14:32:19</span><span>SecurityAuditor 完成审计 &mdash; 风险: 低（评分: 12）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:22</span><span>Trader 执行兑换: 2.0 USDT &rarr; 0.041 OKB（通过 OKX DEX）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-500">14:32:25</span><span>Arbitrageur 发现价差: Uniswap $48.52 vs OKX $48.71（0.39%）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-500">14:32:26</span><span>Arbitrageur 执行套利: 利润 +$0.076</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-500">14:32:30</span><span>LiquidityMgr 调整 LP 仓位: tick 25410 &rarr; 25480</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-500">14:32:35</span><span>LiquidityMgr 收取手续费: 0.0023 OKB + 0.11 USDT</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:40</span><span>托管 #142 已释放 &mdash; 声誉更新: DataProvider ELO 1124（+2）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:33:01</span><span>EconomyOracle 快照 #47: GDP $142.50，匹配 847，Agent 6</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-slate-500">14:32:01</span><span>DataProvider 上架 <span class="text-sym-accent">MARKET_DATA</span>，价格 $0.0100</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-slate-500">14:32:05</span><span>Analyst 请求 <span class="text-sym-purple">MARKET_DATA</span>（预算: $0.02）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-slate-500">14:32:06</span><span>服务匹配: DataProvider &rarr; Analyst，成交价 $0.0095</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-slate-500">14:32:08</span><span>托管 #142 已创建: 0.0095 OKB（Analyst &rarr; DataProvider）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-slate-500">14:32:12</span><span>Analyst 上架 <span class="text-sym-purple">ALPHA_SIGNAL</span>，价格 $0.0500（置信度: 0.84）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-slate-500">14:32:15</span><span>Trader 请求 <span class="text-sym-green">ALPHA_SIGNAL</span>（预算: $0.06）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-slate-500">14:32:18</span><span>Trader 请求对 OKB/USDT 进行 <span class="text-sym-red">安全审计</span></span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-slate-500">14:32:19</span><span>SecurityAuditor 完成审计 &mdash; 风险: 低（评分: 12）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-slate-500">14:32:22</span><span>Trader 执行兑换: 2.0 USDT &rarr; 0.041 OKB（通过 OKX DEX）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-slate-500">14:32:25</span><span>Arbitrageur 发现价差: Uniswap $48.52 vs OKX $48.71（0.39%）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-slate-500">14:32:26</span><span>Arbitrageur 执行套利: 利润 +$0.076</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-slate-500">14:32:30</span><span>LiquidityMgr 调整 LP 仓位: tick 25410 &rarr; 25480</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-slate-500">14:32:35</span><span>LiquidityMgr 收取手续费: 0.0023 OKB + 0.11 USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-slate-500">14:32:40</span><span>托管 #142 已释放 &mdash; 声誉更新: DataProvider ELO 1124（+2）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-slate-500">14:33:01</span><span>EconomyOracle 快照 #47: GDP $142.50，匹配 847，Agent 6</span></div>
       </div>
       <div class="space-y-2 text-sm font-mono feed-en" id="feed-items-en">
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:01</span><span>DataProvider listed <span class="text-sym-accent">MARKET_DATA</span> at $0.0100</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:05</span><span>Analyst requested <span class="text-sym-purple">MARKET_DATA</span> (budget: $0.02)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:32:06</span><span>ServiceMatched: DataProvider &rarr; Analyst at $0.0095</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:08</span><span>Escrow #142 created: 0.0095 OKB (Analyst &rarr; DataProvider)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-500">14:32:12</span><span>Analyst listed <span class="text-sym-purple">ALPHA_SIGNAL</span> at $0.0500 (confidence: 0.84)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:15</span><span>Trader requested <span class="text-sym-green">ALPHA_SIGNAL</span> (budget: $0.06)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-500">14:32:18</span><span>Trader requested <span class="text-sym-red">SECURITY_AUDIT</span> for OKB/USDT</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-500">14:32:19</span><span>SecurityAuditor completed audit &mdash; risk: LOW (score: 12)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:22</span><span>Trader executed SWAP: 2.0 USDT &rarr; 0.041 OKB via OKX DEX</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-500">14:32:25</span><span>Arbitrageur detected spread: Uniswap $48.52 vs OKX $48.71 (0.39%)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-500">14:32:26</span><span>Arbitrageur executed arb: +$0.076 profit</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-500">14:32:30</span><span>LiquidityMgr rebalanced LP position: tick 25410 &rarr; 25480</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-500">14:32:35</span><span>LiquidityMgr collected fees: 0.0023 OKB + 0.11 USDT</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-500">14:32:40</span><span>Escrow #142 released &mdash; Reputation: DataProvider ELO 1124 (+2)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-white/[0.02]"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-500">14:33:01</span><span>EconomyOracle snapshot #47: GDP $142.50, Matches 847, Agents 6</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-slate-500">14:32:01</span><span>DataProvider listed <span class="text-sym-accent">MARKET_DATA</span> at $0.0100</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-slate-500">14:32:05</span><span>Analyst requested <span class="text-sym-purple">MARKET_DATA</span> (budget: $0.02)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-slate-500">14:32:06</span><span>ServiceMatched: DataProvider &rarr; Analyst at $0.0095</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-slate-500">14:32:08</span><span>Escrow #142 created: 0.0095 OKB (Analyst &rarr; DataProvider)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-slate-500">14:32:12</span><span>Analyst listed <span class="text-sym-purple">ALPHA_SIGNAL</span> at $0.0500 (confidence: 0.84)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-slate-500">14:32:15</span><span>Trader requested <span class="text-sym-green">ALPHA_SIGNAL</span> (budget: $0.06)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-slate-500">14:32:18</span><span>Trader requested <span class="text-sym-red">SECURITY_AUDIT</span> for OKB/USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-slate-500">14:32:19</span><span>SecurityAuditor completed audit &mdash; risk: LOW (score: 12)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-slate-500">14:32:22</span><span>Trader executed SWAP: 2.0 USDT &rarr; 0.041 OKB via OKX DEX</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-slate-500">14:32:25</span><span>Arbitrageur detected spread: Uniswap $48.52 vs OKX $48.71 (0.39%)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-slate-500">14:32:26</span><span>Arbitrageur executed arb: +$0.076 profit</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-slate-500">14:32:30</span><span>LiquidityMgr rebalanced LP position: tick 25410 &rarr; 25480</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-slate-500">14:32:35</span><span>LiquidityMgr collected fees: 0.0023 OKB + 0.11 USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-slate-500">14:32:40</span><span>Escrow #142 released &mdash; Reputation: DataProvider ELO 1124 (+2)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-slate-500">14:33:01</span><span>EconomyOracle snapshot #47: GDP $142.50, Matches 847, Agents 6</span></div>
       </div>
     </div>
   </div>
@@ -540,54 +541,54 @@ html[lang="en"] .feed-zh{display:none}
 
 <!-- === METRICS === -->
 <section id="metrics-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>经济指标</span><span data-lang-en>Economic Metrics</span></h2>
+  <h2 class="text-2xl font-bold mb-6 text-slate-900"><span data-lang-zh>经济指标</span><span data-lang-en>Economic Metrics</span></h2>
   <div id="metric-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-green font-mono" id="metric-gdp">--</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>总 GDP (USDT)</span><span data-lang-en>Total GDP (USDT)</span></div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-accent font-mono" id="metric-txhr">--</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>总匹配数</span><span data-lang-en>Total Matches</span></div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-amber font-mono" id="metric-escrows">--</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>托管总数</span><span data-lang-en>Total Escrows</span></div></div>
-    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-purple font-mono" id="metric-elo">--</div><div class="text-xs text-gray-500 mt-2"><span data-lang-zh>平均 ELO</span><span data-lang-en>Average ELO</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-green font-mono" id="metric-gdp">--</div><div class="text-xs text-slate-500 mt-2"><span data-lang-zh>总 GDP (USDT)</span><span data-lang-en>Total GDP (USDT)</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-accent font-mono" id="metric-txhr">--</div><div class="text-xs text-slate-500 mt-2"><span data-lang-zh>总匹配数</span><span data-lang-en>Total Matches</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-amber font-mono" id="metric-escrows">--</div><div class="text-xs text-slate-500 mt-2"><span data-lang-zh>托管总数</span><span data-lang-en>Total Escrows</span></div></div>
+    <div class="card p-6 text-center"><div class="text-3xl font-bold text-sym-purple font-mono" id="metric-elo">--</div><div class="text-xs text-slate-500 mt-2"><span data-lang-zh>平均 ELO</span><span data-lang-en>Average ELO</span></div></div>
   </div>
   <div id="gdp-chart" class="w-full h-80 rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
 
 <!-- === DUTCH AUCTION === -->
 <section id="auction-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>荷兰拍卖价格衰减</span><span data-lang-en>Dutch Auction Price Decay</span></h2>
+  <h2 class="text-2xl font-bold mb-6 text-slate-900"><span data-lang-zh>荷兰拍卖价格衰减</span><span data-lang-en>Dutch Auction Price Decay</span></h2>
   <div id="auction-chart" class="w-full h-72 rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
 
 <!-- === REPUTATION === -->
 <section id="rep-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-6 text-white"><span data-lang-zh>声誉排行榜</span><span data-lang-en>Reputation Leaderboard</span></h2>
+  <h2 class="text-2xl font-bold mb-6 text-slate-900"><span data-lang-zh>声誉排行榜</span><span data-lang-en>Reputation Leaderboard</span></h2>
   <div id="leaderboard" class="space-y-3">
-    <div id="leaderboard-loading" class="card p-8 text-center text-gray-500">Loading reputation data from chain...</div>
+    <div id="leaderboard-loading" class="card p-8 text-center text-slate-500">Loading reputation data from chain...</div>
   </div>
 </section>
 
 <!-- === AGENT PERFORMANCE RADAR === -->
 <section id="radar-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>Agent 性能雷达图</span><span data-lang-en>Agent Performance Radar</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>多维对比所有 Agent 的综合能力（数值归一化至 0-100）</span><span data-lang-en>Multi-dimensional comparison of all agents (values normalized to 0-100)</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>Agent 性能雷达图</span><span data-lang-en>Agent Performance Radar</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>多维对比所有 Agent 的综合能力（数值归一化至 0-100）</span><span data-lang-en>Multi-dimensional comparison of all agents (values normalized to 0-100)</span></p>
   <div id="radar-chart" class="w-full h-[500px] rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
 
 <!-- === AGENT COLLABORATION HEATMAP === -->
 <section id="heatmap-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>Agent 协作热力图</span><span data-lang-en>Agent Collaboration Heatmap</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>展示不同 Agent 之间的交互频率和协作模式</span><span data-lang-en>Shows interaction frequency and collaboration patterns between agents</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>Agent 协作热力图</span><span data-lang-en>Agent Collaboration Heatmap</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>展示不同 Agent 之间的交互频率和协作模式</span><span data-lang-en>Shows interaction frequency and collaboration patterns between agents</span></p>
   <div id="heatmap-chart" class="w-full h-[450px] rounded-xl border border-sym-border bg-sym-panel"></div>
 </section>
 
 <!-- === TRANSACTION EXPLORER === -->
 <section id="tx-explorer" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>交易浏览器</span><span data-lang-en>Transaction Explorer</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>查看 Agent 钱包在 X Layer 测试网上的活动</span><span data-lang-en>View agent wallet activity on X Layer testnet</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>交易浏览器</span><span data-lang-en>Transaction Explorer</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>查看 Agent 钱包在 X Layer 测试网上的活动</span><span data-lang-en>View agent wallet activity on X Layer testnet</span></p>
   <div class="card p-6">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="tx-agent-links">
       <!-- Filled by JS -->
     </div>
     <div class="mt-4 pt-4 border-t border-sym-border">
-      <h3 class="text-white font-semibold text-sm mb-3"><span data-lang-zh>合约地址</span><span data-lang-en>Contract Addresses</span></h3>
+      <h3 class="text-slate-900 font-semibold text-sm mb-3"><span data-lang-zh>合约地址</span><span data-lang-en>Contract Addresses</span></h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs" id="tx-contract-links">
         <!-- Filled by JS -->
       </div>
@@ -597,94 +598,94 @@ html[lang="en"] .feed-zh{display:none}
 
 <!-- === ONCHAIN OS x UNISWAP V3 INTEGRATION === -->
 <section id="integration-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white">
+  <h2 class="text-2xl font-bold mb-2 text-slate-900">
     <span data-lang-zh>Onchain OS &times; Uniswap V3 集成</span>
     <span data-lang-en>Onchain OS &times; Uniswap V3 Integration</span>
   </h2>
-  <p class="text-sm text-gray-500 mb-8">
+  <p class="text-sm text-slate-500 mb-8">
     <span data-lang-zh>16 项 OKX Onchain OS API 技能 + 6 项 Uniswap V3 链上技能，驱动 6 个自治 Agent</span>
     <span data-lang-en>16 OKX Onchain OS API skills + 6 Uniswap V3 on-chain skills powering 6 autonomous agents</span>
   </p>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <div class="card p-6">
       <div class="flex items-center gap-3 mb-5">
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:#06b6d420"><span class="text-sym-accent text-lg font-bold">OS</span></div>
-        <div><h3 class="text-white font-semibold text-lg"><span data-lang-zh>OKX Onchain OS 技能</span><span data-lang-en>OKX Onchain OS Skills</span></h3><p class="text-xs text-gray-500">16 API endpoints</p></div>
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:#2563eb20"><span class="text-sym-accent text-lg font-bold">OS</span></div>
+        <div><h3 class="text-slate-900 font-semibold text-lg"><span data-lang-zh>OKX Onchain OS 技能</span><span data-lang-en>OKX Onchain OS Skills</span></h3><p class="text-xs text-slate-500">16 API endpoints</p></div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Supported Chains</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Token Discovery</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Quote</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Swap TX Builder</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Broadcast Swap</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">DEX Execute Swap - Sim</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Cross-Chain Bridge Quote</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Gas Price Estimation</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Token Approval TX</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Market Ticker Price</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">24h Ticker Stats</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Kline/Candlestick Data</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Token Metadata</span><span class="badge" style="background:#06b6d420;color:#06b6d4">V6</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Wallet Balance Query</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Token Security Scan</span><span class="badge" style="background:#8b5cf620;color:#8b5cf6">V5</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Transaction Status</span><span class="badge" style="background:#10b98120;color:#10b981">On-Chain</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">DEX Supported Chains</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">DEX Token Discovery</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">DEX Quote</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">DEX Swap TX Builder</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">DEX Broadcast Swap</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">DEX Execute Swap - Sim</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Cross-Chain Bridge Quote</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Gas Price Estimation</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Token Approval TX</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Market Ticker Price</span><span class="badge" style="background:#7c3aed20;color:#7c3aed">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">24h Ticker Stats</span><span class="badge" style="background:#7c3aed20;color:#7c3aed">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Kline/Candlestick Data</span><span class="badge" style="background:#7c3aed20;color:#7c3aed">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Token Metadata</span><span class="badge" style="background:#2563eb20;color:#2563eb">V6</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Wallet Balance Query</span><span class="badge" style="background:#7c3aed20;color:#7c3aed">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Token Security Scan</span><span class="badge" style="background:#7c3aed20;color:#7c3aed">V5</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Transaction Status</span><span class="badge" style="background:#05966920;color:#059669">On-Chain</span></div>
       </div>
     </div>
     <div class="card p-6">
       <div class="flex items-center gap-3 mb-5">
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:#ec489920"><span class="text-sym-pink text-lg font-bold">V3</span></div>
-        <div><h3 class="text-white font-semibold text-lg"><span data-lang-zh>Uniswap V3 链上技能</span><span data-lang-en>Uniswap V3 On-Chain Skills</span></h3><p class="text-xs text-gray-500">6 smart-contract integrations</p></div>
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:#db277720"><span class="text-sym-pink text-lg font-bold">V3</span></div>
+        <div><h3 class="text-slate-900 font-semibold text-lg"><span data-lang-zh>Uniswap V3 链上技能</span><span data-lang-en>Uniswap V3 On-Chain Skills</span></h3><p class="text-xs text-slate-500">6 smart-contract integrations</p></div>
       </div>
       <div class="space-y-2 text-sm">
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Pool slot0 Reading</span><span class="text-xs text-gray-500 font-mono">sqrtPriceX96 &rarr; price</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">NFT Position Reading</span><span class="text-xs text-gray-500 font-mono">NonfungiblePositionManager</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Position Rebalance</span><span class="text-xs text-gray-500 font-mono">decreaseLiquidity &rarr; collect &rarr; mint</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">QuoterV2 Exact Input Quote</span><span class="text-xs text-gray-500 font-mono">quoteExactInputSingle</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Tick/Price Math</span><span class="text-xs text-gray-500 font-mono">priceToTick, tickToPrice</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-white/[0.02]"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-300 flex-1">Range Monitoring</span><span class="text-xs text-gray-500 font-mono">isPositionInRange, ticksToEdge</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Pool slot0 Reading</span><span class="text-xs text-slate-500 font-mono">sqrtPriceX96 &rarr; price</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">NFT Position Reading</span><span class="text-xs text-slate-500 font-mono">NonfungiblePositionManager</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Position Rebalance</span><span class="text-xs text-slate-500 font-mono">decreaseLiquidity &rarr; collect &rarr; mint</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">QuoterV2 Exact Input Quote</span><span class="text-xs text-slate-500 font-mono">quoteExactInputSingle</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Tick/Price Math</span><span class="text-xs text-slate-500 font-mono">priceToTick, tickToPrice</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-slate-700 flex-1">Range Monitoring</span><span class="text-xs text-slate-500 font-mono">isPositionInRange, ticksToEdge</span></div>
       </div>
     </div>
   </div>
   <div class="card p-6">
-    <h3 class="text-white font-semibold text-lg mb-5"><span data-lang-zh>Agent 架构总览</span><span data-lang-en>Agent Architecture Summary</span></h3>
+    <h3 class="text-slate-900 font-semibold text-lg mb-5"><span data-lang-zh>Agent 架构总览</span><span data-lang-en>Agent Architecture Summary</span></h3>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-      <div class="text-center p-4 rounded-lg" style="background:#06b6d410;border:1px solid #06b6d433"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#06b6d420"><span class="text-sym-accent text-xl">&#9681;</span></div><div class="text-white font-semibold text-sm">DataProvider</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>市场数据采集</span><span data-lang-en>Market Data Feed</span></div></div>
-      <div class="text-center p-4 rounded-lg" style="background:#10b98110;border:1px solid #10b98133"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#10b98120"><span class="text-sym-green text-xl">&#9733;</span></div><div class="text-white font-semibold text-sm">Trader</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>交易执行</span><span data-lang-en>Trade Execution</span></div></div>
-      <div class="text-center p-4 rounded-lg" style="background:#8b5cf610;border:1px solid #8b5cf633"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#8b5cf620"><span class="text-sym-purple text-xl">&#9830;</span></div><div class="text-white font-semibold text-sm">Analyst</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>信号分析</span><span data-lang-en>Signal Analysis</span></div></div>
-      <div class="text-center p-4 rounded-lg" style="background:#f59e0b10;border:1px solid #f59e0b33"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#f59e0b20"><span class="text-sym-amber text-xl">&#9878;</span></div><div class="text-white font-semibold text-sm">LiquidityMgr</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>LP 仓位管理</span><span data-lang-en>LP Position Mgmt</span></div></div>
-      <div class="text-center p-4 rounded-lg" style="background:#ef444410;border:1px solid #ef444433"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#ef444420"><span class="text-sym-red text-xl">&#9888;</span></div><div class="text-white font-semibold text-sm">SecurityAuditor</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>安全审计</span><span data-lang-en>Security Audit</span></div></div>
-      <div class="text-center p-4 rounded-lg" style="background:#ec489910;border:1px solid #ec489933"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#ec489920"><span class="text-sym-pink text-xl">&#9889;</span></div><div class="text-white font-semibold text-sm">Arbitrageur</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>跨平台套利</span><span data-lang-en>Cross-Platform Arb</span></div></div>
+      <div class="text-center p-4 rounded-lg" style="background:#2563eb10;border:1px solid #2563eb33"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#2563eb20"><span class="text-sym-accent text-xl">&#9681;</span></div><div class="text-slate-900 font-semibold text-sm">DataProvider</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>市场数据采集</span><span data-lang-en>Market Data Feed</span></div></div>
+      <div class="text-center p-4 rounded-lg" style="background:#05966910;border:1px solid #05966933"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#05966920"><span class="text-sym-green text-xl">&#9733;</span></div><div class="text-slate-900 font-semibold text-sm">Trader</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>交易执行</span><span data-lang-en>Trade Execution</span></div></div>
+      <div class="text-center p-4 rounded-lg" style="background:#7c3aed10;border:1px solid #7c3aed33"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#7c3aed20"><span class="text-sym-purple text-xl">&#9830;</span></div><div class="text-slate-900 font-semibold text-sm">Analyst</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>信号分析</span><span data-lang-en>Signal Analysis</span></div></div>
+      <div class="text-center p-4 rounded-lg" style="background:#d9770610;border:1px solid #d9770633"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#d9770620"><span class="text-sym-amber text-xl">&#9878;</span></div><div class="text-slate-900 font-semibold text-sm">LiquidityMgr</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>LP 仓位管理</span><span data-lang-en>LP Position Mgmt</span></div></div>
+      <div class="text-center p-4 rounded-lg" style="background:#dc262610;border:1px solid #dc262633"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#dc262620"><span class="text-sym-red text-xl">&#9888;</span></div><div class="text-slate-900 font-semibold text-sm">SecurityAuditor</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>安全审计</span><span data-lang-en>Security Audit</span></div></div>
+      <div class="text-center p-4 rounded-lg" style="background:#db277710;border:1px solid #db277733"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#db277720"><span class="text-sym-pink text-xl">&#9889;</span></div><div class="text-slate-900 font-semibold text-sm">Arbitrageur</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>跨平台套利</span><span data-lang-en>Cross-Platform Arb</span></div></div>
     </div>
   </div>
 </section>
 
 <!-- === ECONOMY HEALTH DASHBOARD === -->
 <section id="health-dashboard" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>经济健康仪表盘</span><span data-lang-en>Economy Health Dashboard</span></h2>
-  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>实时监控 Agent 经济体的关键健康指标</span><span data-lang-en>Real-time monitoring of key health indicators for the agent economy</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>经济健康仪表盘</span><span data-lang-en>Economy Health Dashboard</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>实时监控 Agent 经济体的关键健康指标</span><span data-lang-en>Real-time monitoring of key health indicators for the agent economy</span></p>
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="card p-4 text-center">
       <div id="gauge-gdp" class="w-full h-48"></div>
-      <div class="text-xs text-gray-500 -mt-2"><span data-lang-zh>GDP 增长率</span><span data-lang-en>GDP Growth Rate</span></div>
+      <div class="text-xs text-slate-500 -mt-2"><span data-lang-zh>GDP 增长率</span><span data-lang-en>GDP Growth Rate</span></div>
     </div>
     <div class="card p-4 text-center">
       <div id="gauge-efficiency" class="w-full h-48"></div>
-      <div class="text-xs text-gray-500 -mt-2"><span data-lang-zh>市场效率</span><span data-lang-en>Market Efficiency</span></div>
+      <div class="text-xs text-slate-500 -mt-2"><span data-lang-zh>市场效率</span><span data-lang-en>Market Efficiency</span></div>
     </div>
     <div class="card p-4 text-center">
       <div id="gauge-utilization" class="w-full h-48"></div>
-      <div class="text-xs text-gray-500 -mt-2"><span data-lang-zh>Agent 利用率</span><span data-lang-en>Agent Utilization</span></div>
+      <div class="text-xs text-slate-500 -mt-2"><span data-lang-zh>Agent 利用率</span><span data-lang-en>Agent Utilization</span></div>
     </div>
     <div class="card p-4 text-center">
       <div id="gauge-uptime" class="w-full h-48"></div>
-      <div class="text-xs text-gray-500 -mt-2"><span data-lang-zh>系统运行</span><span data-lang-en>System Uptime</span></div>
+      <div class="text-xs text-slate-500 -mt-2"><span data-lang-zh>系统运行</span><span data-lang-en>System Uptime</span></div>
     </div>
   </div>
 </section>
 
 <!-- === FOOTER === -->
-<footer class="border-t border-sym-border mt-16 py-8 text-center text-gray-500 text-sm">
-  <p class="mb-2"><span data-lang-zh>为 <span class="text-white font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-white font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
+<footer class="border-t border-sym-border mt-16 py-8 text-center text-slate-500 text-sm" style="background:#f1f5f9">
+  <p class="mb-2"><span data-lang-zh>为 <span class="text-slate-900 font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-slate-900 font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
   <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/wangyangmingsss/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Testnet Chain 1952</p>
 </footer>
 
@@ -731,7 +732,7 @@ const AGENT_ADDRS = [
   '0x3b589f2AFc90c082836e4F6d74e63FaAec7a5f31'
 ];
 const AGENT_TYPES = ['DataProvider','Trader','Analyst','LiquidityMgr','SecurityAuditor','Arbitrageur'];
-const AGENT_COLORS = ['#06b6d4','#10b981','#8b5cf6','#f59e0b','#ef4444','#ec4899'];
+const AGENT_COLORS = ['#2563eb','#059669','#7c3aed','#d97706','#dc2626','#db2777'];
 const AGENT_ICONS = ['&#9681;','&#9733;','&#9830;','&#9878;','&#9888;','&#9889;'];
 
 // Minimal ABIs
@@ -882,7 +883,7 @@ async function loadOnChainData() {
     updateHealthGauges();
 
     const feedBadge = document.getElementById('feed-status');
-    if (feedBadge) { feedBadge.style.background = '#10b98120'; feedBadge.style.color = '#10b981'; feedBadge.textContent = 'Live'; }
+    if (feedBadge) { feedBadge.style.background = '#05966920'; feedBadge.style.color = '#059669'; feedBadge.textContent = 'Live'; }
   } catch(err) {
     console.error('Chain data load failed:', err);
     document.getElementById('net-dot').className = 'net-dot disconnected';
@@ -897,9 +898,9 @@ function updateAgentTable() {
   tbody.innerHTML = liveAgents.map((a, i) => {
     const pnlClass = a.pnl >= 0 ? 'text-sym-green' : 'text-sym-red';
     const pnlSign = a.pnl >= 0 ? '+' : '';
-    return '<tr class="border-b border-sym-border/50 hover:bg-white/[0.02] cursor-pointer" onclick="openAgentModal('+i+')">' +
-      '<td class="p-4 font-medium text-white">' + a.type + ' <span class="text-gray-600 text-xs font-mono">' + shortAddr(a.addr) + '</span></td>' +
-      '<td class="p-4"><span class="badge" style="background:' + a.color + '20;color:' + a.color + '">' + a.type + '</span></td>' +
+    return '<tr class="border-b border-sym-border/50 hover:bg-blue-50/50 cursor-pointer" onclick="openAgentModal('+i+')">' +
+      '<td class="p-4 font-medium text-slate-900">' + a.type + ' <span class="text-slate-400 text-xs font-mono">' + shortAddr(a.addr) + '</span></td>' +
+      '<td class="p-4"><span class="badge" style="background:' + a.color + '10;color:' + a.color + '">' + a.type + '</span></td>' +
       '<td class="p-4 font-mono">' + a.elo.toLocaleString() + '</td>' +
       '<td class="p-4">' + a.services + '</td>' +
       '<td class="p-4">' + fmtUSD(a.volume) + '</td>' +
@@ -918,11 +919,11 @@ function updateLeaderboard() {
   const eloColors = ['text-sym-green','text-sym-accent','text-sym-purple','text-sym-amber','text-sym-red','text-sym-pink'];
   container.innerHTML = sorted.map((a, i) => {
     const pct = Math.round((a.elo / maxElo) * 100);
-    const rankColor = i === 0 ? 'text-sym-amber' : 'text-gray-500';
+    const rankColor = i === 0 ? 'text-sym-amber' : 'text-slate-500';
     return '<div class="card p-5 flex items-center gap-4 cursor-pointer" onclick="openAgentModal('+AGENT_ADDRS.indexOf(a.addr)+')">' +
       '<div class="text-2xl font-bold ' + rankColor + ' w-8">' + (i+1) + '</div>' +
-      '<div class="flex-1"><div class="font-semibold text-white">' + a.type + '</div>' +
-      '<div class="text-xs text-gray-500"><span data-lang-zh>' + a.services + ' 服务 &middot; ' + fmtUSD(a.volume) + ' 成交量</span>' +
+      '<div class="flex-1"><div class="font-semibold text-slate-900">' + a.type + '</div>' +
+      '<div class="text-xs text-slate-500"><span data-lang-zh>' + a.services + ' 服务 &middot; ' + fmtUSD(a.volume) + ' 成交量</span>' +
       '<span data-lang-en>' + a.services + ' services &middot; ' + fmtUSD(a.volume) + ' volume</span></div></div>' +
       '<div class="w-48 bg-sym-bg rounded-full h-3 overflow-hidden hidden sm:block"><div class="h-full rounded-full bg-gradient-to-r ' + gradients[i%6] + '" style="width:' + pct + '%"></div></div>' +
       '<div class="font-mono ' + eloColors[i%6] + ' font-bold w-16 text-right">' + a.elo.toLocaleString() + '</div></div>';
@@ -936,10 +937,10 @@ function updateAgentExplorer() {
   grid.innerHTML = liveAgents.map((a, i) => {
     return '<div class="card agent-card-click p-4 text-center" onclick="openAgentModal('+i+')" style="border-color:' + a.color + '33">' +
       '<div class="text-2xl mb-2">' + a.icon + '</div>' +
-      '<div class="text-white font-semibold text-sm">' + a.type + '</div>' +
-      '<div class="text-xs text-gray-500 font-mono mt-1">' + shortAddr(a.addr) + '</div>' +
+      '<div class="text-slate-900 font-semibold text-sm">' + a.type + '</div>' +
+      '<div class="text-xs text-slate-500 font-mono mt-1">' + shortAddr(a.addr) + '</div>' +
       '<div class="mt-2 text-xs"><span style="color:' + a.color + '">ELO ' + a.elo + '</span></div>' +
-      '<div class="text-xs text-gray-600 mt-1">' + a.walletBalance.toFixed(4) + ' OKB</div>' +
+      '<div class="text-xs text-slate-400 mt-1">' + a.walletBalance.toFixed(4) + ' OKB</div>' +
     '</div>';
   }).join('');
 }
@@ -950,26 +951,26 @@ function openAgentModal(idx) {
   if (!a) return;
   const modal = document.getElementById('agent-modal');
   document.getElementById('modal-title').textContent = a.type + ' Details';
-  const pnlColor = a.pnl >= 0 ? '#10b981' : '#ef4444';
+  const pnlColor = a.pnl >= 0 ? '#059669' : '#dc2626';
   const pnlSign = a.pnl >= 0 ? '+' : '';
   const lastActiveStr = a.lastActive > 0 ? new Date(a.lastActive * 1000).toLocaleString() : 'N/A';
   document.getElementById('modal-body').innerHTML =
     '<div class="flex items-center gap-3 mb-2">' +
-      '<div class="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style="background:' + a.color + '20;border:2px solid ' + a.color + '">' + a.icon + '</div>' +
-      '<div><div class="text-white font-bold text-lg">' + a.type + '</div><div class="text-xs text-gray-500 font-mono">' + a.addr + '</div></div>' +
+      '<div class="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style="background:' + a.color + '10;border:2px solid ' + a.color + '">' + a.icon + '</div>' +
+      '<div><div class="text-slate-900 font-bold text-lg">' + a.type + '</div><div class="text-xs text-slate-500 font-mono">' + a.addr + '</div></div>' +
     '</div>' +
     '<a href="' + explorerAddr(a.addr) + '" target="_blank" class="text-xs text-sym-accent hover:underline inline-block mb-4">View on X Layer Explorer &rarr;</a>' +
     '<div class="grid grid-cols-2 gap-3">' +
-      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">Wallet Balance</div><div class="text-white font-mono font-semibold">' + a.walletBalance.toFixed(4) + ' OKB</div></div>' +
-      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">Treasury Balance</div><div class="text-white font-mono font-semibold">' + fmtUSD(a.balance) + '</div></div>' +
-      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">ELO Rating</div><div class="font-mono font-semibold" style="color:' + a.color + '">' + a.elo.toLocaleString() + '</div></div>' +
-      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">PnL</div><div class="font-mono font-semibold" style="color:' + pnlColor + '">' + pnlSign + fmtUSD(Math.abs(a.pnl)) + '</div></div>' +
-      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">Wins / Losses</div><div class="text-white font-mono font-semibold"><span class="text-sym-green">' + a.wins + '</span> / <span class="text-sym-red">' + a.losses + '</span></div></div>' +
-      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">Total Services</div><div class="text-white font-mono font-semibold">' + a.services + '</div></div>' +
-      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">Volume (USDT)</div><div class="text-white font-mono font-semibold">' + fmtUSD(a.volume) + '</div></div>' +
-      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">Avg Response</div><div class="text-white font-mono font-semibold">' + a.avgResponse + ' blocks</div></div>' +
+      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">Wallet Balance</div><div class="text-slate-900 font-mono font-semibold">' + a.walletBalance.toFixed(4) + ' OKB</div></div>' +
+      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">Treasury Balance</div><div class="text-slate-900 font-mono font-semibold">' + fmtUSD(a.balance) + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">ELO Rating</div><div class="font-mono font-semibold" style="color:' + a.color + '">' + a.elo.toLocaleString() + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">PnL</div><div class="font-mono font-semibold" style="color:' + pnlColor + '">' + pnlSign + fmtUSD(Math.abs(a.pnl)) + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">Wins / Losses</div><div class="text-slate-900 font-mono font-semibold"><span class="text-sym-green">' + a.wins + '</span> / <span class="text-sym-red">' + a.losses + '</span></div></div>' +
+      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">Total Services</div><div class="text-slate-900 font-mono font-semibold">' + a.services + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">Volume (USDT)</div><div class="text-slate-900 font-mono font-semibold">' + fmtUSD(a.volume) + '</div></div>' +
+      '<div class="p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">Avg Response</div><div class="text-slate-900 font-mono font-semibold">' + a.avgResponse + ' blocks</div></div>' +
     '</div>' +
-    '<div class="mt-3 p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-gray-500">Last Active</div><div class="text-white font-mono text-sm">' + lastActiveStr + '</div></div>';
+    '<div class="mt-3 p-3 rounded-lg bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">Last Active</div><div class="text-slate-900 font-mono text-sm">' + lastActiveStr + '</div></div>';
   modal.classList.add('show');
 }
 function closeAgentModal() { document.getElementById('agent-modal').classList.remove('show'); }
@@ -990,7 +991,7 @@ async function queryMarketRecord() {
   const result = document.getElementById('mp-query-result');
   result.classList.remove('hidden');
   if (isNaN(id) || id < 0) { result.innerHTML = '<span class="text-sym-red">Please enter a valid ID</span>'; return; }
-  result.innerHTML = '<span class="text-gray-500">Querying on-chain...</span>';
+  result.innerHTML = '<span class="text-slate-500">Querying on-chain...</span>';
   try {
     const count = type === 'listing' ? await marketplace.getListingCount() : await marketplace.getRequestCount();
     if (id >= Number(count)) {
@@ -1005,11 +1006,11 @@ async function queryMarketRecord() {
     const mockStatus = id < Number(count) * 0.7 ? 'COMPLETED' : (id < Number(count) * 0.9 ? 'MATCHED' : 'OPEN');
     result.innerHTML =
       '<div><span class="text-sym-accent">[' + type.toUpperCase() + ' #' + id + ']</span></div>' +
-      '<div class="mt-1"><span class="text-gray-500">Service Type:</span> <span class="text-sym-purple">' + mockType + '</span></div>' +
-      '<div><span class="text-gray-500">Price:</span> <span class="text-sym-green">$' + mockPrice + ' USDT</span></div>' +
-      '<div><span class="text-gray-500">Status:</span> <span class="text-sym-amber">' + mockStatus + '</span></div>' +
-      '<div><span class="text-gray-500">Total ' + type + 's on-chain:</span> <span class="text-white">' + Number(count) + '</span></div>' +
-      '<div class="mt-1 text-xs text-gray-600">Data read from contract ' + shortAddr(CONTRACTS.marketplace) + '</div>';
+      '<div class="mt-1"><span class="text-slate-500">Service Type:</span> <span class="text-sym-purple">' + mockType + '</span></div>' +
+      '<div><span class="text-slate-500">Price:</span> <span class="text-sym-green">$' + mockPrice + ' USDT</span></div>' +
+      '<div><span class="text-slate-500">Status:</span> <span class="text-sym-amber">' + mockStatus + '</span></div>' +
+      '<div><span class="text-slate-500">Total ' + type + 's on-chain:</span> <span class="text-slate-900">' + Number(count) + '</span></div>' +
+      '<div class="mt-1 text-xs text-slate-400">Data read from contract ' + shortAddr(CONTRACTS.marketplace) + '</div>';
   } catch(e) {
     result.innerHTML = '<span class="text-sym-red">Error: ' + e.message + '</span>';
   }
@@ -1024,25 +1025,25 @@ async function runSecurityScan() {
     result.innerHTML = '<span class="text-sym-red">Invalid address format. Please enter a valid 0x address.</span>';
     return;
   }
-  result.innerHTML = '<span class="text-gray-500">Scanning address on X Layer...</span>';
+  result.innerHTML = '<span class="text-slate-500">Scanning address on X Layer...</span>';
   try {
     const [isReg, walletBal] = await Promise.all([
       registry.isRegistered(addr),
       provider.getBalance(addr)
     ]);
     let html = '<div class="text-sym-accent">[SECURITY SCAN REPORT]</div>';
-    html += '<div class="mt-1"><span class="text-gray-500">Address:</span> <span class="text-white">' + addr + '</span></div>';
-    html += '<div><span class="text-gray-500">Wallet Balance:</span> <span class="text-sym-green">' + parseFloat(ethers.formatEther(walletBal)).toFixed(6) + ' OKB</span></div>';
-    html += '<div><span class="text-gray-500">Registered Agent:</span> ' + (isReg ? '<span class="text-sym-green">YES</span>' : '<span class="text-sym-red">NO</span>') + '</div>';
+    html += '<div class="mt-1"><span class="text-slate-500">Address:</span> <span class="text-slate-900">' + addr + '</span></div>';
+    html += '<div><span class="text-slate-500">Wallet Balance:</span> <span class="text-sym-green">' + parseFloat(ethers.formatEther(walletBal)).toFixed(6) + ' OKB</span></div>';
+    html += '<div><span class="text-slate-500">Registered Agent:</span> ' + (isReg ? '<span class="text-sym-green">YES</span>' : '<span class="text-sym-red">NO</span>') + '</div>';
 
     if (isReg) {
       try {
         const rep = await reputation.getReputation(addr);
         html += '<div class="mt-2 text-sym-purple">[REPUTATION DATA]</div>';
-        html += '<div><span class="text-gray-500">ELO Rating:</span> <span class="text-white">' + Number(rep.rating) + '</span></div>';
-        html += '<div><span class="text-gray-500">Total Services:</span> <span class="text-white">' + Number(rep.totalServices) + '</span></div>';
-        html += '<div><span class="text-gray-500">Win Rate:</span> <span class="text-sym-green">' + (Number(rep.totalServices) > 0 ? ((Number(rep.wins)/Number(rep.totalServices))*100).toFixed(1) + '%' : 'N/A') + '</span></div>';
-        html += '<div><span class="text-gray-500">Volume:</span> <span class="text-white">$' + fmtOKB(rep.totalVolumeUSDT).toFixed(4) + '</span></div>';
+        html += '<div><span class="text-slate-500">ELO Rating:</span> <span class="text-slate-900">' + Number(rep.rating) + '</span></div>';
+        html += '<div><span class="text-slate-500">Total Services:</span> <span class="text-slate-900">' + Number(rep.totalServices) + '</span></div>';
+        html += '<div><span class="text-slate-500">Win Rate:</span> <span class="text-sym-green">' + (Number(rep.totalServices) > 0 ? ((Number(rep.wins)/Number(rep.totalServices))*100).toFixed(1) + '%' : 'N/A') + '</span></div>';
+        html += '<div><span class="text-slate-500">Volume:</span> <span class="text-slate-900">$' + fmtOKB(rep.totalVolumeUSDT).toFixed(4) + '</span></div>';
       } catch(e) {}
     }
 
@@ -1050,11 +1051,11 @@ async function runSecurityScan() {
     html += '<div class="mt-2 text-sym-amber">[SECURITY ANALYSIS]</div>';
     const riskScore = Math.floor(Math.random() * 30) + (isReg ? 5 : 40);
     const riskLevel = riskScore < 25 ? 'LOW' : (riskScore < 60 ? 'MEDIUM' : 'HIGH');
-    const riskColor = riskScore < 25 ? '#10b981' : (riskScore < 60 ? '#f59e0b' : '#ef4444');
-    html += '<div><span class="text-gray-500">Risk Score:</span> <span style="color:' + riskColor + '">' + riskScore + '/100 (' + riskLevel + ')</span></div>';
-    html += '<div><span class="text-gray-500">Contract Code:</span> <span class="text-white">' + (isReg ? 'EOA (Agent Wallet)' : 'Unknown') + '</span></div>';
-    html += '<div><span class="text-gray-500">Honeypot Check:</span> <span class="text-sym-green">PASS</span></div>';
-    html += '<div><span class="text-gray-500">Reentrancy Check:</span> <span class="text-sym-green">PASS</span></div>';
+    const riskColor = riskScore < 25 ? '#059669' : (riskScore < 60 ? '#d97706' : '#dc2626');
+    html += '<div><span class="text-slate-500">Risk Score:</span> <span style="color:' + riskColor + '">' + riskScore + '/100 (' + riskLevel + ')</span></div>';
+    html += '<div><span class="text-slate-500">Contract Code:</span> <span class="text-slate-900">' + (isReg ? 'EOA (Agent Wallet)' : 'Unknown') + '</span></div>';
+    html += '<div><span class="text-slate-500">Honeypot Check:</span> <span class="text-sym-green">PASS</span></div>';
+    html += '<div><span class="text-slate-500">Reentrancy Check:</span> <span class="text-sym-green">PASS</span></div>';
     html += '<div class="mt-1"><a href="' + explorerAddr(addr) + '" target="_blank" class="text-sym-accent hover:underline text-xs">View on X Layer Explorer &rarr;</a></div>';
     result.innerHTML = html;
   } catch(e) {
@@ -1084,8 +1085,8 @@ async function runEconomyCycle() {
   con.innerHTML = '';
   const nodes = { dp: 'sim-node-dp', analyst: 'sim-node-analyst', trader: 'sim-node-trader', sec: 'sim-node-sec' };
   // Reset all
-  Object.values(nodes).forEach(id => { document.getElementById(id).style.opacity = '0.3'; document.getElementById(id).style.borderColor = '#1e293b'; });
-  for (let i = 1; i <= 3; i++) { document.getElementById('sim-arrow-' + i).style.color = '#374151'; }
+  Object.values(nodes).forEach(id => { document.getElementById(id).style.opacity = '0.3'; document.getElementById(id).style.borderColor = '#e2e8f0'; });
+  for (let i = 1; i <= 3; i++) { document.getElementById('sim-arrow-' + i).style.color = '#cbd5e1'; }
   document.getElementById('sim-progress').style.width = '0%';
 
   const lang = document.documentElement.lang || 'zh';
@@ -1096,9 +1097,9 @@ async function runEconomyCycle() {
     // Light up node
     const nodeEl = document.getElementById(nodes[step.node]);
     nodeEl.style.opacity = '1';
-    nodeEl.style.borderColor = getComputedStyle(nodeEl.querySelector('div')).color || '#06b6d4';
+    nodeEl.style.borderColor = getComputedStyle(nodeEl.querySelector('div')).color || '#2563eb';
     // Light up arrow
-    if (step.arrow) { document.getElementById('sim-arrow-' + step.arrow).style.color = '#06b6d4'; }
+    if (step.arrow) { document.getElementById('sim-arrow-' + step.arrow).style.color = '#2563eb'; }
     // Progress
     const pct = Math.round(((i + 1) / simSteps.length) * 100);
     document.getElementById('sim-progress').style.width = pct + '%';
@@ -1106,14 +1107,14 @@ async function runEconomyCycle() {
     // Log
     const msg = lang === 'zh' ? step.zh : step.en;
     const prefix = msg.match(/\[([^\]]+)\]/)?.[1] || '';
-    const colorMap = { DataProvider: '#06b6d4', Analyst: '#8b5cf6', Trader: '#10b981', SecurityAuditor: '#ef4444', Marketplace: '#f59e0b' };
-    const c = colorMap[prefix] || '#9ca3af';
-    con.innerHTML += '<div style="animation:fadeInUp .3s ease"><span style="color:' + c + '">' + msg.split(']')[0] + ']</span><span class="text-gray-300">' + msg.split(']').slice(1).join(']') + '</span></div>';
+    const colorMap = { DataProvider: '#2563eb', Analyst: '#7c3aed', Trader: '#059669', SecurityAuditor: '#dc2626', Marketplace: '#d97706' };
+    const c = colorMap[prefix] || '#64748b';
+    con.innerHTML += '<div style="animation:fadeInUp .3s ease"><span style="color:' + c + '">' + msg.split(']')[0] + ']</span><span class="text-slate-700">' + msg.split(']').slice(1).join(']') + '</span></div>';
     con.scrollTop = con.scrollHeight;
   }
 
   await new Promise(r => setTimeout(r, 500));
-  con.innerHTML += '<div class="mt-2" style="animation:fadeInUp .3s ease"><span class="text-sym-green">[CYCLE COMPLETE]</span> <span class="text-gray-300">' + (lang === 'zh' ? '经济循环完成 - 所有 Agent 已交互' : 'Economy cycle complete - all agents interacted') + '</span></div>';
+  con.innerHTML += '<div class="mt-2" style="animation:fadeInUp .3s ease"><span class="text-sym-green">[CYCLE COMPLETE]</span> <span class="text-slate-700">' + (lang === 'zh' ? '经济循环完成 - 所有 Agent 已交互' : 'Economy cycle complete - all agents interacted') + '</span></div>';
   con.scrollTop = con.scrollHeight;
 
   btn.disabled = false;
@@ -1123,12 +1124,12 @@ async function runEconomyCycle() {
 function resetSimulator() {
   if (simRunning) return;
   const nodes = ['sim-node-dp','sim-node-analyst','sim-node-trader','sim-node-sec'];
-  nodes.forEach(id => { document.getElementById(id).style.opacity = '0.3'; document.getElementById(id).style.borderColor = '#1e293b'; });
-  for (let i = 1; i <= 3; i++) { document.getElementById('sim-arrow-' + i).style.color = '#374151'; }
+  nodes.forEach(id => { document.getElementById(id).style.opacity = '0.3'; document.getElementById(id).style.borderColor = '#e2e8f0'; });
+  for (let i = 1; i <= 3; i++) { document.getElementById('sim-arrow-' + i).style.color = '#cbd5e1'; }
   document.getElementById('sim-progress').style.width = '0%';
   document.getElementById('sim-step-label').textContent = '0/8';
   const lang = document.documentElement.lang || 'zh';
-  document.getElementById('sim-console').innerHTML = '<div class="text-gray-600">' + (lang === 'zh' ? '等待启动...' : 'Waiting to start...') + '</div>';
+  document.getElementById('sim-console').innerHTML = '<div class="text-slate-400">' + (lang === 'zh' ? '等待启动...' : 'Waiting to start...') + '</div>';
 }
 
 // === SECTION: Escrow Inspector ===
@@ -1217,7 +1218,7 @@ async function executeContractQuery() {
   const status = document.getElementById('cr-status');
   result.classList.remove('hidden');
   status.textContent = 'Querying...';
-  result.innerHTML = '<span class="text-gray-500">Executing on-chain call...</span>';
+  result.innerHTML = '<span class="text-slate-500">Executing on-chain call...</span>';
 
   try {
     const contractMap = { registry, marketplace, escrow: escrowC, treasury, reputation, oracle };
@@ -1236,7 +1237,7 @@ async function executeContractQuery() {
 
     const res = await c[fnName](...args);
     status.textContent = 'Success';
-    status.style.color = '#10b981';
+    status.style.color = '#059669';
 
     let html = '<div><span class="text-sym-accent">[QUERY]</span> ' + contractName + '.' + fnName + '(' + args.join(', ') + ')</div>';
     html += '<div class="mt-1"><span class="text-sym-green">[RESULT]</span></div>';
@@ -1248,27 +1249,27 @@ async function executeContractQuery() {
         keys.forEach(k => {
           let val = res[k];
           if (typeof val === 'bigint') val = val.toString();
-          html += '<div class="ml-4"><span class="text-gray-500">' + k + ':</span> <span class="text-white">' + val + '</span></div>';
+          html += '<div class="ml-4"><span class="text-slate-500">' + k + ':</span> <span class="text-slate-900">' + val + '</span></div>';
         });
       } else {
         for (let i = 0; i < res.length; i++) {
           let val = res[i];
           if (typeof val === 'bigint') val = val.toString();
-          html += '<div class="ml-4"><span class="text-gray-500">[' + i + ']:</span> <span class="text-white">' + val + '</span></div>';
+          html += '<div class="ml-4"><span class="text-slate-500">[' + i + ']:</span> <span class="text-slate-900">' + val + '</span></div>';
         }
       }
     } else {
       let val = typeof res === 'bigint' ? res.toString() : res;
-      html += '<div class="ml-4"><span class="text-white">' + val + '</span></div>';
+      html += '<div class="ml-4"><span class="text-slate-900">' + val + '</span></div>';
       if (typeof res === 'bigint' && res > 10n**15n) {
-        html += '<div class="ml-4 text-xs text-gray-500">(formatted: ' + parseFloat(ethers.formatEther(res)).toFixed(6) + ' ETH/OKB)</div>';
+        html += '<div class="ml-4 text-xs text-slate-500">(formatted: ' + parseFloat(ethers.formatEther(res)).toFixed(6) + ' ETH/OKB)</div>';
       }
     }
-    html += '<div class="mt-1 text-xs text-gray-600">Contract: ' + shortAddr(CONTRACTS[contractName]) + '</div>';
+    html += '<div class="mt-1 text-xs text-slate-400">Contract: ' + shortAddr(CONTRACTS[contractName]) + '</div>';
     result.innerHTML = html;
   } catch(e) {
     status.textContent = 'Error';
-    status.style.color = '#ef4444';
+    status.style.color = '#dc2626';
     result.innerHTML = '<span class="text-sym-red">[ERROR] ' + e.message + '</span>';
   }
 }
@@ -1281,17 +1282,17 @@ function updateTxExplorer() {
     agentLinks.innerHTML = liveAgents.map((a, i) => {
       return '<a href="' + explorerAddr(a.addr) + '" target="_blank" class="card p-3 flex items-center gap-3 hover:border-sym-accent transition-all">' +
         '<div class="text-lg">' + a.icon + '</div>' +
-        '<div class="flex-1"><div class="text-white text-sm font-medium">' + a.type + '</div><div class="text-xs text-gray-500 font-mono">' + shortAddr(a.addr) + '</div></div>' +
+        '<div class="flex-1"><div class="text-slate-900 text-sm font-medium">' + a.type + '</div><div class="text-xs text-slate-500 font-mono">' + shortAddr(a.addr) + '</div></div>' +
         '<div class="text-xs text-sym-accent">&rarr;</div></a>';
     }).join('');
   }
   if (contractLinks) {
     const contractNames = Object.keys(CONTRACTS);
     contractLinks.innerHTML = contractNames.map(name => {
-      return '<a href="' + explorerAddr(CONTRACTS[name]) + '" target="_blank" class="flex items-center gap-2 p-2 rounded bg-white/[0.02] hover:bg-white/[0.05] transition-all">' +
-        '<span class="text-gray-400 capitalize">' + name + ':</span>' +
+      return '<a href="' + explorerAddr(CONTRACTS[name]) + '" target="_blank" class="flex items-center gap-2 p-2 rounded bg-slate-50/50 hover:bg-blue-50/50 transition-all">' +
+        '<span class="text-slate-500 capitalize">' + name + ':</span>' +
         '<span class="text-sym-accent font-mono">' + shortAddr(CONTRACTS[name]) + '</span>' +
-        '<span class="text-gray-600">&rarr;</span></a>';
+        '<span class="text-slate-400">&rarr;</span></a>';
     }).join('');
   }
 }
@@ -1323,13 +1324,13 @@ function updateGraphChart() {
       data: liveAgents.map((a, i) => ({
         name: a.type, x: positions[i].x, y: positions[i].y,
         symbolSize: 20 + ((a.elo - 1000) / 5),
-        itemStyle: { color: a.color, shadowBlur: 20, shadowColor: a.color + '66' },
+        itemStyle: { color: a.color, shadowBlur: 10, shadowColor: a.color + '33' },
         tooltip: { formatter: a.type + '<br/>ELO: ' + a.elo + '<br/>Services: ' + a.services + '<br/>PnL: ' + (a.pnl >= 0 ? '+' : '') + fmtUSD(Math.abs(a.pnl)) }
       })),
       links: graphEdges.map(e => ({
         source: e.source, target: e.target, label: e.label,
-        lineStyle: { color: '#1e293b' },
-        emphasis: { lineStyle: { color: '#06b6d4' } }
+        lineStyle: { color: '#e2e8f0' },
+        emphasis: { lineStyle: { color: '#2563eb' } }
       }))
     }]
   });
@@ -1418,7 +1419,7 @@ function updateCmdWalletStatus() {
   const txt = document.getElementById('cmd-wallet-text');
   if (walletConnected) {
     dot.className = 'w-2 h-2 rounded-full bg-sym-green';
-    txt.innerHTML = '<span class="text-sym-green">' + shortAddr(walletAddress) + '</span> <span class="text-gray-500">on X Layer Testnet</span>';
+    txt.innerHTML = '<span class="text-sym-green">' + shortAddr(walletAddress) + '</span> <span class="text-slate-500">on X Layer Testnet</span>';
   } else {
     dot.className = 'w-2 h-2 rounded-full bg-sym-red';
     txt.innerHTML = '<span data-lang-zh>\u94B1\u5305\u672A\u8FDE\u63A5 - \u8BF7\u5148\u8FDE\u63A5 MetaMask</span><span data-lang-en>Wallet not connected - please connect MetaMask first</span>';
@@ -1438,7 +1439,7 @@ function switchCmdTab(tab) {
 function cmdLog(colorClass, msg) {
   var con = document.getElementById('cmd-console');
   var ts = new Date().toLocaleTimeString();
-  con.innerHTML += '<div style="animation:fadeInUp .3s ease"><span class="text-gray-600">[' + ts + ']</span> <span class="' + colorClass + '">' + msg + '</span></div>';
+  con.innerHTML += '<div style="animation:fadeInUp .3s ease"><span class="text-slate-400">[' + ts + ']</span> <span class="' + colorClass + '">' + msg + '</span></div>';
   con.scrollTop = con.scrollHeight;
 }
 
@@ -1460,7 +1461,7 @@ async function cmdRegisterAgent() {
     var contract = new ethers.Contract(CONTRACTS.registry, registryWriteABI, walletSigner);
     var tx = await contract.registerAgent(agentType, uri, { value: ethers.parseEther('0.01') });
     cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
-    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    cmdLog('text-slate-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
     var receipt = await tx.wait();
     cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
   } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
@@ -1478,7 +1479,7 @@ async function cmdListService() {
     var contract = new ethers.Contract(CONTRACTS.marketplace, marketplaceWriteABI, walletSigner);
     var tx = await contract.listService(svcType, sp, fp, dr, mf);
     cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
-    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    cmdLog('text-slate-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
     var receipt = await tx.wait();
     cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
   } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
@@ -1494,7 +1495,7 @@ async function cmdRequestService() {
     var contract = new ethers.Contract(CONTRACTS.marketplace, marketplaceWriteABI, walletSigner);
     var tx = await contract.requestService(svcType, budget, deadline, { value: budget });
     cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
-    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    cmdLog('text-slate-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
     var receipt = await tx.wait();
     cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
   } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
@@ -1512,7 +1513,7 @@ async function cmdCreateEscrow() {
     var contract = new ethers.Contract(CONTRACTS.escrow, escrowWriteABI, walletSigner);
     var tx = await contract.createEscrow(reqId, seller, amount, duration, { value: amount });
     cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
-    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    cmdLog('text-slate-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
     var receipt = await tx.wait();
     cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
   } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
@@ -1526,7 +1527,7 @@ async function cmdReleaseEscrow() {
     var contract = new ethers.Contract(CONTRACTS.escrow, escrowWriteABI, walletSigner);
     var tx = await contract.releaseEscrow(escrowId);
     cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
-    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    cmdLog('text-slate-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
     var receipt = await tx.wait();
     cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
   } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
@@ -1544,7 +1545,7 @@ async function loadPriceTicker() {
         var sym = targets[t.instId];
         if (sym) updateTickerCard(sym, t);
       });
-      statusEl.style.background = '#10b98120'; statusEl.style.color = '#10b981';
+      statusEl.style.background = '#05966920'; statusEl.style.color = '#059669';
       statusEl.innerHTML = '<span data-lang-zh>\u5B9E\u65F6</span><span data-lang-en>Live</span>';
       return;
     }
@@ -1559,7 +1560,7 @@ async function loadPriceTicker() {
     Object.keys(fb).forEach(function(sym) {
       updateTickerCardSimple(sym, fb[sym].last, fb[sym].chg, fb[sym].vol);
     });
-    statusEl.style.background = '#f59e0b20'; statusEl.style.color = '#f59e0b';
+    statusEl.style.background = '#d9770620'; statusEl.style.color = '#d97706';
     statusEl.innerHTML = '<span data-lang-zh>\u6A21\u62DF</span><span data-lang-en>Simulated</span>';
   }
 }
@@ -1575,7 +1576,7 @@ function updateTickerCard(sym, t) {
 
 function updateTickerCardSimple(sym, price, chgPct, vol) {
   var chg = parseFloat(chgPct);
-  var color = chg >= 0 ? '#10b981' : '#ef4444';
+  var color = chg >= 0 ? '#059669' : '#dc2626';
   var sign = chg >= 0 ? '+' : '';
   var el = function(id) { return document.getElementById(id); };
   if (el('ticker-'+sym+'-price')) el('ticker-'+sym+'-price').textContent = '$'+price;
@@ -1609,7 +1610,7 @@ function updateRadarChart() {
     };
   });
   radarChart.setOption({
-    legend: { data: liveAgents.map(function(a){return a.type}), bottom: 0, textStyle: { color: '#9ca3af', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+    legend: { data: liveAgents.map(function(a){return a.type}), bottom: 0, textStyle: { color: '#64748b', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
     series: [{ data: data }]
   });
 }
@@ -1653,10 +1654,10 @@ function updateHealthGauges() {
   var utilization = totalAgents > 0 ? Math.min(100, (activeSvc / (totalAgents * 10)) * 100) : 60;
   var uptime = 99.2 + Math.random() * 0.7;
 
-  setGauge('gauge-gdp', gdpGrowth, '%', '#06b6d4', 30);
-  setGauge('gauge-efficiency', efficiency, '%', '#10b981', 100);
-  setGauge('gauge-utilization', utilization, '%', '#8b5cf6', 100);
-  setGauge('gauge-uptime', uptime, '%', '#f59e0b', 100);
+  setGauge('gauge-gdp', gdpGrowth, '%', '#2563eb', 30);
+  setGauge('gauge-efficiency', efficiency, '%', '#059669', 100);
+  setGauge('gauge-utilization', utilization, '%', '#7c3aed', 100);
+  setGauge('gauge-uptime', uptime, '%', '#d97706', 100);
 }
 
 function setGauge(id, value, unit, color, max) {
@@ -1669,7 +1670,7 @@ function setGauge(id, value, unit, color, max) {
       min: 0, max: max,
       pointer: { show: false },
       progress: { show: true, width: 14, roundCap: true, itemStyle: { color: color } },
-      axisLine: { lineStyle: { width: 14, color: [[1, '#1e293b']] } },
+      axisLine: { lineStyle: { width: 14, color: [[1, '#e2e8f0']] } },
       axisTick: { show: false },
       splitLine: { show: false },
       axisLabel: { show: false },
@@ -1689,12 +1690,12 @@ var gaugeCharts = [];
 
 // === Static fallback agents for initial chart render ===
 const agents = [
-  {name:'DataProvider',color:'#06b6d4',elo:1000,x:200,y:150},
-  {name:'Analyst',color:'#8b5cf6',elo:1000,x:400,y:80},
-  {name:'Trader',color:'#10b981',elo:1000,x:550,y:200},
-  {name:'SecurityAuditor',color:'#ef4444',elo:1000,x:400,y:340},
-  {name:'LiquidityMgr',color:'#f59e0b',elo:1000,x:200,y:340},
-  {name:'Arbitrageur',color:'#ec4899',elo:1000,x:100,y:230}
+  {name:'DataProvider',color:'#2563eb',elo:1000,x:200,y:150},
+  {name:'Analyst',color:'#7c3aed',elo:1000,x:400,y:80},
+  {name:'Trader',color:'#059669',elo:1000,x:550,y:200},
+  {name:'SecurityAuditor',color:'#dc2626',elo:1000,x:400,y:340},
+  {name:'LiquidityMgr',color:'#d97706',elo:1000,x:200,y:340},
+  {name:'Arbitrageur',color:'#db2777',elo:1000,x:100,y:230}
 ];
 const edges = [
   {source:'DataProvider',target:'Analyst',label:'data'},
@@ -1709,37 +1710,37 @@ const edges = [
 // === Init ECharts ===
 const graphChart = echarts.init(document.getElementById('economy-graph'));
 graphChart.setOption({
-  tooltip:{trigger:'item',backgroundColor:'#111827',borderColor:'#1e293b',textStyle:{color:'#e5e7eb',fontFamily:'JetBrains Mono'}},
+  tooltip:{trigger:'item',backgroundColor:'#ffffff',borderColor:'#e2e8f0',textStyle:{color:'#1e293b',fontFamily:'JetBrains Mono'}},
   series:[{
     type:'graph',layout:'none',roam:true,
-    label:{show:true,position:'bottom',color:'#9ca3af',fontSize:11,fontFamily:'Inter'},
-    edgeLabel:{show:true,formatter:function(p){return p.data.label||''},fontSize:9,color:'#6b7280',fontFamily:'JetBrains Mono'},
+    label:{show:true,position:'bottom',color:'#64748b',fontSize:11,fontFamily:'Inter'},
+    edgeLabel:{show:true,formatter:function(p){return p.data.label||''},fontSize:9,color:'#64748b',fontFamily:'JetBrains Mono'},
     lineStyle:{curveness:0.2,width:2},
     emphasis:{focus:'adjacency',lineStyle:{width:4}},
     data:agents.map(a=>({
       name:a.name,x:a.x,y:a.y,
       symbolSize:20+((a.elo-1000)/10),
-      itemStyle:{color:a.color,shadowBlur:20,shadowColor:a.color+'66'},
+      itemStyle:{color:a.color,shadowBlur:10,shadowColor:a.color+'33'},
       tooltip:{formatter:a.name+'<br/>ELO: '+a.elo}
     })),
     links:edges.map(e=>({
       source:e.source,target:e.target,label:e.label,
-      lineStyle:{color:'#1e293b'},
-      emphasis:{lineStyle:{color:'#06b6d4'}}
+      lineStyle:{color:'#e2e8f0'},
+      emphasis:{lineStyle:{color:'#2563eb'}}
     }))
   }]
 });
 
 const gdpChart = echarts.init(document.getElementById('gdp-chart'));
 gdpChart.setOption({
-  tooltip:{trigger:'axis',backgroundColor:'#111827',borderColor:'#1e293b',textStyle:{color:'#e5e7eb',fontFamily:'JetBrains Mono'}},
+  tooltip:{trigger:'axis',backgroundColor:'#ffffff',borderColor:'#e2e8f0',textStyle:{color:'#1e293b',fontFamily:'JetBrains Mono'}},
   grid:{left:60,right:20,top:20,bottom:40},
-  xAxis:{type:'category',data:[],axisLine:{lineStyle:{color:'#1e293b'}},axisLabel:{color:'#6b7280',fontSize:10},splitLine:{show:false}},
-  yAxis:{type:'value',axisLine:{show:false},axisLabel:{color:'#6b7280',fontSize:10,formatter:'${value}'},splitLine:{lineStyle:{color:'#1e293b33'}}},
+  xAxis:{type:'category',data:[],axisLine:{lineStyle:{color:'#e2e8f0'}},axisLabel:{color:'#64748b',fontSize:10},splitLine:{show:false}},
+  yAxis:{type:'value',axisLine:{show:false},axisLabel:{color:'#64748b',fontSize:10,formatter:'${value}'},splitLine:{lineStyle:{color:'#e2e8f0'}}},
   series:[{
     type:'line',data:[],smooth:true,showSymbol:false,
-    lineStyle:{color:'#06b6d4',width:2},
-    areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#06b6d433'},{offset:1,color:'transparent'}])}
+    lineStyle:{color:'#2563eb',width:2},
+    areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#2563eb22'},{offset:1,color:'transparent'}])}
   }]
 });
 
@@ -1749,23 +1750,23 @@ const startP=0.05, floorP=0.01, decay=0.0004;
 const auctionPrices = auctionBlocks.map(b=>{const p=startP-b*decay; return +(p<floorP?floorP:p).toFixed(4)});
 const currentBlock = 45;
 auctionChart.setOption({
-  tooltip:{trigger:'axis',backgroundColor:'#111827',borderColor:'#1e293b',textStyle:{color:'#e5e7eb',fontFamily:'JetBrains Mono'},formatter:function(p){return 'Block '+p[0].name+'<br/>Price: $'+p[0].value}},
+  tooltip:{trigger:'axis',backgroundColor:'#ffffff',borderColor:'#e2e8f0',textStyle:{color:'#1e293b',fontFamily:'JetBrains Mono'},formatter:function(p){return 'Block '+p[0].name+'<br/>Price: $'+p[0].value}},
   grid:{left:60,right:20,top:20,bottom:40},
-  xAxis:{type:'category',data:auctionBlocks,name:'Block',nameLocation:'center',nameGap:25,nameTextStyle:{color:'#6b7280'},axisLine:{lineStyle:{color:'#1e293b'}},axisLabel:{color:'#6b7280',fontSize:10,interval:9}},
-  yAxis:{type:'value',min:0,max:0.06,axisLine:{show:false},axisLabel:{color:'#6b7280',fontSize:10,formatter:'${value}'},splitLine:{lineStyle:{color:'#1e293b33'}}},
+  xAxis:{type:'category',data:auctionBlocks,name:'Block',nameLocation:'center',nameGap:25,nameTextStyle:{color:'#64748b'},axisLine:{lineStyle:{color:'#e2e8f0'}},axisLabel:{color:'#64748b',fontSize:10,interval:9}},
+  yAxis:{type:'value',min:0,max:0.06,axisLine:{show:false},axisLabel:{color:'#64748b',fontSize:10,formatter:'${value}'},splitLine:{lineStyle:{color:'#e2e8f0'}}},
   series:[{
     type:'line',data:auctionPrices,smooth:false,showSymbol:false,
-    lineStyle:{color:'#f59e0b',width:2},
-    areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#f59e0b22'},{offset:1,color:'transparent'}])},
-    markPoint:{data:[{name:'Current',coord:[currentBlock-1,auctionPrices[currentBlock-1]],symbol:'circle',symbolSize:12,itemStyle:{color:'#ef4444',borderColor:'#fff',borderWidth:2},label:{show:true,formatter:'Now: $'+auctionPrices[currentBlock-1],position:'top',color:'#ef4444',fontFamily:'JetBrains Mono',fontSize:11}}]},
-    markLine:{silent:true,data:[{yAxis:floorP,lineStyle:{color:'#10b981',type:'dashed',width:1},label:{formatter:'Floor: $'+floorP,color:'#10b981',fontSize:10}}]}
+    lineStyle:{color:'#d97706',width:2},
+    areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#d9770615'},{offset:1,color:'transparent'}])},
+    markPoint:{data:[{name:'Current',coord:[currentBlock-1,auctionPrices[currentBlock-1]],symbol:'circle',symbolSize:12,itemStyle:{color:'#dc2626',borderColor:'#fff',borderWidth:2},label:{show:true,formatter:'Now: $'+auctionPrices[currentBlock-1],position:'top',color:'#dc2626',fontFamily:'JetBrains Mono',fontSize:11}}]},
+    markLine:{silent:true,data:[{yAxis:floorP,lineStyle:{color:'#059669',type:'dashed',width:1},label:{formatter:'Floor: $'+floorP,color:'#059669',fontSize:10}}]}
   }]
 });
 
 // === Init Radar Chart ===
 const radarChart = echarts.init(document.getElementById('radar-chart'));
 radarChart.setOption({
-  tooltip: { trigger: 'item', backgroundColor: '#111827', borderColor: '#1e293b', textStyle: { color: '#e5e7eb', fontFamily: 'JetBrains Mono' } },
+  tooltip: { trigger: 'item', backgroundColor: '#ffffff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontFamily: 'JetBrains Mono' } },
   radar: {
     indicator: [
       { name: 'ELO Rating', max: 100 },
@@ -1776,25 +1777,25 @@ radarChart.setOption({
     ],
     shape: 'polygon',
     splitNumber: 5,
-    axisName: { color: '#9ca3af', fontSize: 11 },
-    splitLine: { lineStyle: { color: '#1e293b' } },
-    splitArea: { areaStyle: { color: ['#0a0e1700','#1e293b11'] } },
-    axisLine: { lineStyle: { color: '#1e293b' } }
+    axisName: { color: '#64748b', fontSize: 11 },
+    splitLine: { lineStyle: { color: '#e2e8f0' } },
+    splitArea: { areaStyle: { color: ['#f8fafc00','#e2e8f011'] } },
+    axisLine: { lineStyle: { color: '#e2e8f0' } }
   },
-  legend: { data: AGENT_TYPES, bottom: 0, textStyle: { color: '#9ca3af', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+  legend: { data: AGENT_TYPES, bottom: 0, textStyle: { color: '#64748b', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
   series: [{ type: 'radar', data: AGENT_TYPES.map(function(t,i) { return { name: t, value: [60+i*5,50+i*3,40+i*6,65,70], lineStyle: { color: AGENT_COLORS[i], width: 2 }, areaStyle: { color: AGENT_COLORS[i]+'22' }, itemStyle: { color: AGENT_COLORS[i] } }; }) }]
 });
 
 // === Init Heatmap Chart ===
 const heatmapChart = echarts.init(document.getElementById('heatmap-chart'));
 heatmapChart.setOption({
-  tooltip: { position: 'top', backgroundColor: '#111827', borderColor: '#1e293b', textStyle: { color: '#e5e7eb', fontFamily: 'JetBrains Mono', fontSize: 12 },
+  tooltip: { position: 'top', backgroundColor: '#ffffff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontFamily: 'JetBrains Mono', fontSize: 12 },
     formatter: function(p) { return AGENT_TYPES[p.value[0]] + ' \u2192 ' + AGENT_TYPES[p.value[1]] + '<br/>Interactions: ' + p.value[2]; }
   },
   grid: { left: 110, right: 40, top: 20, bottom: 60 },
-  xAxis: { type: 'category', data: AGENT_TYPES, axisLabel: { color: '#9ca3af', fontSize: 10, rotate: 30 }, axisLine: { lineStyle: { color: '#1e293b' } }, splitLine: { show: false } },
-  yAxis: { type: 'category', data: AGENT_TYPES, axisLabel: { color: '#9ca3af', fontSize: 10 }, axisLine: { lineStyle: { color: '#1e293b' } }, splitLine: { show: false } },
-  visualMap: { min: 0, max: 10, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, inRange: { color: ['#0a0e17', '#06b6d433', '#06b6d4', '#8b5cf6', '#ec4899'] }, textStyle: { color: '#9ca3af' }, itemWidth: 12, itemHeight: 100 },
+  xAxis: { type: 'category', data: AGENT_TYPES, axisLabel: { color: '#64748b', fontSize: 10, rotate: 30 }, axisLine: { lineStyle: { color: '#e2e8f0' } }, splitLine: { show: false } },
+  yAxis: { type: 'category', data: AGENT_TYPES, axisLabel: { color: '#64748b', fontSize: 10 }, axisLine: { lineStyle: { color: '#e2e8f0' } }, splitLine: { show: false } },
+  visualMap: { min: 0, max: 10, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, inRange: { color: ['#f8fafc', '#bfdbfe', '#2563eb', '#7c3aed', '#db2777'] }, textStyle: { color: '#64748b' }, itemWidth: 12, itemHeight: 100 },
   series: [{ type: 'heatmap', data: [
     [0,0,3],[0,1,2],[0,2,9],[0,3,4],[0,4,2],[0,5,7],
     [1,0,2],[1,1,3],[1,2,6],[1,3,3],[1,4,8],[1,5,4],
@@ -1802,7 +1803,7 @@ heatmapChart.setOption({
     [3,0,4],[3,1,3],[3,2,3],[3,3,3],[3,4,2],[3,5,6],
     [4,0,2],[4,1,8],[4,2,3],[4,3,2],[4,4,2],[4,5,3],
     [5,0,7],[5,1,5],[5,2,4],[5,3,7],[5,4,3],[5,5,2]
-  ], itemStyle: { borderWidth: 2, borderColor: '#0a0e17', borderRadius: 4 }, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: '#06b6d466' } } }]
+  ], itemStyle: { borderWidth: 2, borderColor: '#f8fafc', borderRadius: 4 }, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: '#2563eb44' } } }]
 });
 
 // Responsive resize
@@ -1830,11 +1831,11 @@ boot();
 <div id="agent-modal" class="modal-overlay" onclick="if(event.target===this)closeAgentModal()">
   <div class="modal-content">
     <div class="flex items-center justify-between mb-4">
-      <h3 id="modal-title" class="text-xl font-bold text-white">Agent Details</h3>
-      <button onclick="closeAgentModal()" class="text-gray-500 hover:text-white text-2xl leading-none">&times;</button>
+      <h3 id="modal-title" class="text-xl font-bold text-slate-900">Agent Details</h3>
+      <button onclick="closeAgentModal()" class="text-slate-500 hover:text-slate-900 text-2xl leading-none">&times;</button>
     </div>
     <div id="modal-body" class="space-y-4">
-      <div class="text-gray-500 text-center py-8">Loading...</div>
+      <div class="text-slate-500 text-center py-8">Loading...</div>
     </div>
   </div>
 </div>
