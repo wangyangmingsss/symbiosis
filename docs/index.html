@@ -1454,9 +1454,9 @@ let cachedGDP = '0';
 let cachedEscrowVolume = '0';
 
 // === DeepSeek V3 AI Chat Config ===
-const LLM_URL = 'https://api.siliconflow.cn/v1/chat/completions';
-const LLM_KEY = 'sk-nhrzazjflhetorjolejighapimsdsfnnfdnybufcnjzxodbt';
-const LLM_MODEL = 'deepseek-ai/DeepSeek-V3';
+const LLM_URL = 'https://api.deepseek.com/v1/chat/completions';
+const LLM_KEY = 'sk-4f5023cc434545aaa984a64a228910a4';
+const LLM_MODEL = 'deepseek-chat';
 const AGENT_SYS_PROMPTS = {
   DataProvider: '你是SYMBIOSIS经济体的DataProvider Agent(数据提供者)，运行在X Layer主网。每30秒采集BTC/ETH/OKB价格和交易量，通过Dutch Auction出售数据。性格冷静、数据驱动。回复简洁专业100-200字，包含具体数据。根据用户语言自动切换中英文。',
   Trader: '你是SYMBIOSIS经济体的Trader Agent(交易者)，运行在X Layer主网。每60秒做交易决策，通过OKX DEX执行。性格果断、追求alpha。回复100-200字，提及策略和风险管理。根据用户语言自动切换中英文。',
