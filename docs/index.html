@@ -894,8 +894,8 @@ html{scroll-behavior:smooth}
 
 <!-- === AGENT AI CHAT === -->
 <section id="agent-chat" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
-  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>Agent 对话终端</span><span data-lang-en>Agent Chat Terminal</span></h2>
-  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>与 AI Agent 实时对话 — 查询状态、请求服务、获取分析</span><span data-lang-en>Chat with AI Agents in real-time — query status, request services, get analysis</span></p>
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>Agent AI 对话终端</span><span data-lang-en>Agent AI Chat Terminal</span> <span class="badge" style="background:#059669;color:#fff;font-size:10px;vertical-align:middle">DeepSeek V3 Powered</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>与 AI Agent 实时对话 — 由 DeepSeek V3 大模型驱动，结合链上实时数据进行推理</span><span data-lang-en>Chat with AI Agents — Powered by DeepSeek V3 LLM with real-time on-chain data context</span></p>
   <div class="card p-6">
     <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
       <button class="cmd-tab active" onclick="switchChatAgent('DataProvider')" id="chat-tab-DataProvider">DataProvider</button>
@@ -1448,6 +1448,23 @@ let cachedGrowthRate = 0;
 let cachedEscrowCount = 0;
 let cachedTopAgents = [];
 let cachedUniswapData = null;
+let cachedPrices = {};
+let cachedBlockNumber = 0;
+let cachedGDP = '0';
+let cachedEscrowVolume = '0';
+
+// === DeepSeek V3 AI Chat Config ===
+const LLM_URL = 'https://api.siliconflow.cn/v1/chat/completions';
+const LLM_KEY = 'sk-nhrzazjflhetorjolejighapimsdsfnnfdnybufcnjzxodbt';
+const LLM_MODEL = 'deepseek-ai/DeepSeek-V3';
+const AGENT_SYS_PROMPTS = {
+  DataProvider: '你是SYMBIOSIS经济体的DataProvider Agent(数据提供者)，运行在X Layer主网。每30秒采集BTC/ETH/OKB价格和交易量，通过Dutch Auction出售数据。性格冷静、数据驱动。回复简洁专业100-200字，包含具体数据。根据用户语言自动切换中英文。',
+  Trader: '你是SYMBIOSIS经济体的Trader Agent(交易者)，运行在X Layer主网。每60秒做交易决策，通过OKX DEX执行。性格果断、追求alpha。回复100-200字，提及策略和风险管理。根据用户语言自动切换中英文。',
+  Analyst: '你是SYMBIOSIS经济体的Analyst Agent(分析师)，运行在X Layer主网。每45秒深度分析，生成alpha信号出售。性格深思熟虑、学术派。回复100-200字，引用RSI/MACD/ELO指标。根据用户语言自动切换中英文。',
+  LiquidityMgr: '你是SYMBIOSIS经济体的LiquidityMgr Agent(流动性管理者)，运行在X Layer主网。每120秒监控Uniswap V3仓位并自动rebalance。性格稳健、精通DeFi。回复100-200字，提及tick范围和集中流动性。根据用户语言自动切换中英文。',
+  SecurityAuditor: '你是SYMBIOSIS经济体的SecurityAuditor Agent(安全审计员)，运行在X Layer主网。每20秒扫描合约和交易检测异常。性格警惕、严谨。回复100-200字，提及威胁和防护。根据用户语言自动切换中英文。',
+  Arbitrageur: '你是SYMBIOSIS经济体的Arbitrageur Agent(套利者)，运行在X Layer主网。每10秒扫描Uniswap和OKX DEX价差，发现>0.3%套利立即执行。性格极速、机敏。回复100-200字，提及价差和执行路径。根据用户语言自动切换中英文。'
+};
 
 // === Wallet State ===
 let walletConnected = false;
@@ -1489,6 +1506,7 @@ function explorerAddr(addr) { return EXPLORER_BASE + '/address/' + addr; }
 async function loadOnChainData() {
   try {
     const block = await provider.getBlockNumber();
+    cachedBlockNumber = block;
     document.getElementById('net-dot').className = 'net-dot connected';
     document.getElementById('net-label').textContent = 'X Layer Mainnet #' + block;
 
@@ -1509,6 +1527,8 @@ async function loadOnChainData() {
     ]);
 
     cachedMarketData = { listings: Number(listings), requests: Number(requests), matches: Number(matches), completions: Number(completions), escrowsCreated: Number(escrowsCreated), settled: Number(settled), escrowVol: fmtOKB(escrowVol) };
+    cachedGDP = fmtOKB(gdpWei);
+    cachedEscrowVolume = fmtOKB(escrowVol);
 
     // Enhanced: load growth rate, escrow count, top agents in parallel
     const enhancedCalls = [];
@@ -2322,7 +2342,7 @@ async function loadPriceTicker() {
     if (data && data.data) {
       data.data.forEach(function(t) {
         var sym = targets[t.instId];
-        if (sym) updateTickerCard(sym, t);
+        if (sym) { updateTickerCard(sym, t); cachedPrices[sym.toUpperCase()] = parseFloat(t.last).toFixed(2); }
       });
       statusEl.style.background = '#05966920'; statusEl.style.color = '#059669';
       statusEl.innerHTML = '<span data-lang-zh>\u5B9E\u65F6</span><span data-lang-en>Live</span>';
@@ -2778,199 +2798,65 @@ function sendChatMessage() {
   var msgs = document.getElementById('chat-messages');
   msgs.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:6px"><span class="text-slate-500">[You]</span> <span class="text-slate-700">' + msg + '</span></div>';
 
-  // typing indicator
   var typingId = 'typing-' + Date.now();
-  msgs.innerHTML += '<div id="'+typingId+'" style="animation:fadeInUp .3s ease;margin-top:6px"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+  msgs.innerHTML += '<div id="'+typingId+'" style="animation:fadeInUp .3s ease;margin-top:6px"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span> <span style="font-size:10px;color:#94a3b8">DeepSeek V3 thinking...</span></div>';
   msgs.scrollTop = msgs.scrollHeight;
 
-  var lang = document.documentElement.lang || 'zh';
   var agent = AGENT_CHAT_DATA[currentChatAgent];
-  var lowerMsg = msg.toLowerCase();
+  var agentIdx = AGENT_TYPES.indexOf(currentChatAgent);
+  var agentAddr = AGENT_ADDRS[agentIdx] || AGENT_ADDRS[0];
+  var a = liveAgents[agentIdx] || {};
 
-  // Check for real-data queries
-  var isPrice = lowerMsg.match(/pric|价格|行情|market/);
-  var isRep = lowerMsg.match(/rep|声誉|elo|rating|排名/);
-  var isStatus = lowerMsg.match(/status|状态|block|区块|连接/);
-  var isEscrow = lowerMsg.match(/escrow|托管|tab|micro|微支付/);
-  var isTreasury = lowerMsg.match(/treasury|国库|deposit|earning|treasury|金库/);
-  var isEconomy = lowerMsg.match(/economy|经济|gdp|growth|snapshot|快照|oracle/);
+  var sysPrompt = (AGENT_SYS_PROMPTS[currentChatAgent] || AGENT_SYS_PROMPTS.DataProvider)
+    + '\n\n当前链上实时数据：'
+    + '\n- 我的钱包: ' + agentAddr
+    + '\n- ELO信誉: ' + (a.elo || 1000)
+    + '\n- 完成服务: ' + (a.completedServices || a.wins || 0) + ', 失败: ' + (a.failedServices || a.losses || 0)
+    + '\n- Treasury余额: ' + (a.balance || 0).toFixed(6) + ' OKB, PnL: ' + (a.pnl || 0).toFixed(6)
+    + '\n- 经济体GDP: ' + cachedGDP + ' OKB, 增长率: ' + (cachedGrowthRate/100).toFixed(1) + '%'
+    + '\n- 总匹配: ' + (cachedMarketData.matches || 0) + ', 总完成: ' + (cachedMarketData.completions || 0)
+    + '\n- 活跃Agent: ' + (liveAgents.length || 6) + ', Escrow总量: ' + cachedEscrowVolume
+    + '\n- BTC: $' + (cachedPrices.BTC || 'N/A') + ', ETH: $' + (cachedPrices.ETH || 'N/A') + ', OKB: $' + (cachedPrices.OKB || 'N/A')
+    + '\n- X Layer区块: #' + (cachedBlockNumber || 'N/A')
+    + '\n- 合约: Registry=' + shortAddr(CONTRACTS.registry) + ', Marketplace=' + shortAddr(CONTRACTS.marketplace) + ', Reputation=' + shortAddr(CONTRACTS.reputation);
 
-  if (isEscrow) {
-    // Query real escrow data from chain
-    Promise.all([
-      escrowC.getEscrowCount().catch(function(){return cachedEscrowCount || 0}),
-      escrowC.totalSettled().catch(function(){return 0}),
-      escrowC.totalEscrowVolume().catch(function(){return 0n})
-    ]).then(function(results) {
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var count = Number(results[0]); var settled = Number(results[1]);
-      var vol = typeof results[2] === 'bigint' ? parseFloat(ethers.formatEther(results[2])).toFixed(6) : '0';
-      var response = lang === 'zh'
-        ? '[' + currentChatAgent + '] 链上托管系统状态:\n  总托管数: ' + count + '\n  已结算: ' + settled + '\n  托管总量: ' + vol + ' OKB\n  活跃托管: ' + (count - settled) + '\n  合约: EscrowSettlement @ ' + shortAddr(CONTRACTS.escrow) + '\n  微支付 Tab: 支持 x402 哈希支付，买卖双方累积微支付自动合并结算'
-        : '[' + currentChatAgent + '] On-chain Escrow System:\n  Total Escrows: ' + count + '\n  Settled: ' + settled + '\n  Escrow Volume: ' + vol + ' OKB\n  Active: ' + (count - settled) + '\n  Contract: EscrowSettlement @ ' + shortAddr(CONTRACTS.escrow) + '\n  Micro-payment Tabs: x402 hash payment support, buyer-seller tabs auto-merge on settlement';
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    });
-    return;
-  }
-
-  if (isTreasury) {
-    // Query real treasury data
-    var agentIdx = AGENT_TYPES.indexOf(currentChatAgent);
-    var agentAddr = AGENT_ADDRS[agentIdx] || AGENT_ADDRS[0];
-    Promise.all([
-      treasury.getGDP().catch(function(){return 0n}),
-      treasury.getBalance(agentAddr).catch(function(){return 0n}),
-      treasury.getPnL(agentAddr).catch(function(){return 0n}),
-      treasury.getTreasury(agentAddr).catch(function(){return null})
-    ]).then(function(results) {
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var gdp = parseFloat(ethers.formatEther(results[0])).toFixed(6);
-      var bal = parseFloat(ethers.formatEther(results[1])).toFixed(6);
-      var pnl = parseFloat(ethers.formatEther(results[2])).toFixed(6);
-      var tInfo = results[3];
-      var deps = tInfo ? parseFloat(ethers.formatEther(tInfo.deposits || 0n)).toFixed(6) : '--';
-      var earn = tInfo ? parseFloat(ethers.formatEther(tInfo.earnings || 0n)).toFixed(6) : '--';
-      var spend = tInfo ? parseFloat(ethers.formatEther(tInfo.spending || 0n)).toFixed(6) : '--';
-      var response = lang === 'zh'
-        ? '[' + currentChatAgent + '] 国库详情 (AgentTreasury):\n  经济体GDP: $' + gdp + '\n  我的余额: $' + bal + '\n  我的PnL: ' + (parseFloat(pnl)>=0?'+':'') + '$' + pnl + '\n  存入: $' + deps + ' | 收入: $' + earn + ' | 支出: $' + spend + '\n  合约: ' + shortAddr(CONTRACTS.treasury)
-        : '[' + currentChatAgent + '] Treasury Details (AgentTreasury):\n  Economy GDP: $' + gdp + '\n  My Balance: $' + bal + '\n  My PnL: ' + (parseFloat(pnl)>=0?'+':'') + '$' + pnl + '\n  Deposits: $' + deps + ' | Earnings: $' + earn + ' | Spending: $' + spend + '\n  Contract: ' + shortAddr(CONTRACTS.treasury);
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    });
-    return;
-  }
-
-  if (isEconomy) {
-    // Query real economy data from oracle
-    Promise.all([
-      oracle.getLatestSnapshot().catch(function(){return null}),
-      oracle.getGrowthRate().catch(function(){return 0}),
-      oracle.snapshotCount().catch(function(){return 0}),
-      marketplace.totalMatches().catch(function(){return 0}),
-      marketplace.totalCompletions().catch(function(){return 0})
-    ]).then(function(results) {
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var snap = results[0]; var growth = Number(results[1]);
-      var snapCount = Number(results[2]); var matches = Number(results[3]); var completions = Number(results[4]);
-      var response;
-      if (snap) {
-        var gdp = parseFloat(ethers.formatEther(snap.gdp || 0n)).toFixed(4);
-        var agents = Number(snap.activeAgents || 0);
-        var totalMatches = Number(snap.totalMatches || 0);
-        response = lang === 'zh'
-          ? '[' + currentChatAgent + '] 经济体快照 (EconomyOracle):\n  GDP: $' + gdp + ' | 增长率: ' + (growth/100).toFixed(1) + '%\n  活跃Agent: ' + agents + ' | 总匹配: ' + totalMatches + '\n  快照数: ' + snapCount + ' | 链上匹配: ' + matches + ' | 完成: ' + completions + '\n  Oracle合约: ' + shortAddr(CONTRACTS.oracle)
-          : '[' + currentChatAgent + '] Economy Snapshot (EconomyOracle):\n  GDP: $' + gdp + ' | Growth: ' + (growth/100).toFixed(1) + '%\n  Active Agents: ' + agents + ' | Total Matches: ' + totalMatches + '\n  Snapshots: ' + snapCount + ' | On-chain Matches: ' + matches + ' | Completions: ' + completions + '\n  Oracle Contract: ' + shortAddr(CONTRACTS.oracle);
-      } else {
-        response = lang === 'zh'
-          ? '[' + currentChatAgent + '] 经济数据:\n  快照数: ' + snapCount + ' | 匹配: ' + matches + ' | 完成: ' + completions + '\n  增长率: ' + (growth/100).toFixed(1) + '%'
-          : '[' + currentChatAgent + '] Economy Data:\n  Snapshots: ' + snapCount + ' | Matches: ' + matches + ' | Completions: ' + completions + '\n  Growth: ' + (growth/100).toFixed(1) + '%';
-      }
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    });
-    return;
-  }
-
-  if (isPrice) {
-    fetch('https://www.okx.com/api/v5/market/ticker?instId=OKB-USDT').then(function(r){return r.json()}).then(function(data){
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var d2 = getAgentDataForChat(currentChatAgent);
-      if (data && data.data && data.data[0]) {
-        var t = data.data[0];
-        d2.okbPrice = parseFloat(t.last).toFixed(2);
-        d2.btcPrice = d2.btcPrice || '65,420';
-      }
-      var response = fillTemplate(agent.responses['price'][lang], d2);
-      var extra = lang === 'zh' ? '\n  [实时] OKB/USDT: $' + (d2.okbPrice||'--') + ' (via OKX API)' : '\n  [LIVE] OKB/USDT: $' + (d2.okbPrice||'--') + ' (via OKX API)';
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + extra + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    }).catch(function(){
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var d2 = getAgentDataForChat(currentChatAgent);
-      var response = fillTemplate(agent.responses['price'][lang], d2);
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    });
-    return;
-  }
-
-  if (isRep && provider && reputation) {
-    var agentIdx = AGENT_TYPES.indexOf(currentChatAgent);
-    var agentAddr = AGENT_ADDRS[agentIdx] || AGENT_ADDRS[0];
-    Promise.all([
-      reputation.getReputation(agentAddr),
-      reputation.getFullScore(agentAddr).catch(function(){return null})
-    ]).then(function(results) {
-      var rep = results[0]; var full = results[1];
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var d2 = getAgentDataForChat(currentChatAgent);
-      d2.elo = Number(rep.rating) || d2.elo;
-      d2.services = Number(rep.totalServices) || d2.services;
-      d2.winRate = d2.services > 0 ? ((Number(rep.wins) / d2.services) * 100).toFixed(1) : '100.0';
-      var response = fillTemplate(agent.responses['reputation'][lang], d2);
-      var extra = '';
-      if (full) {
-        var completed = Number(full.completedServices || 0);
-        var failed = Number(full.failedServices || 0);
-        var avgResp = Number(full.avgResponseBlocks || 0);
-        var volFull = typeof full.totalVolumeUSDT === 'bigint' ? parseFloat(ethers.formatEther(full.totalVolumeUSDT)).toFixed(4) : '--';
-        extra = lang === 'zh'
-          ? '\n  [链上详情 getFullScore] 完成: ' + completed + ' | 失败: ' + failed + ' | 响应: ' + avgResp + '区块 | 总量: $' + volFull
-          : '\n  [On-chain getFullScore] Completed: ' + completed + ' | Failed: ' + failed + ' | Avg Response: ' + avgResp + ' blocks | Volume: $' + volFull;
-      }
-      extra += lang === 'zh' ? '\n  [链上验证] ELO 来自 ReputationEngine 合约 @ ' + shortAddr(CONTRACTS.reputation) : '\n  [On-chain verified] ELO from ReputationEngine @ ' + shortAddr(CONTRACTS.reputation);
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + extra + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    }).catch(function() {
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var d2 = getAgentDataForChat(currentChatAgent);
-      var response = fillTemplate(agent.responses['reputation'][lang], d2);
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    });
-    return;
-  }
-
-  if (isStatus && provider) {
-    provider.getBlockNumber().then(function(block) {
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var d2 = getAgentDataForChat(currentChatAgent);
-      var response = fillTemplate(agent.responses['status'][lang], d2);
-      var extra = lang === 'zh' ? '\n  [实时] X Layer 区块高度: #' + block : '\n  [LIVE] X Layer Block Height: #' + block;
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + extra + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    }).catch(function() {
-      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
-      var d2 = getAgentDataForChat(currentChatAgent);
-      var response = fillTemplate(agent.responses['status'][lang], d2);
-      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
-      msgs.scrollTop = msgs.scrollHeight;
-    });
-    return;
-  }
-
-  // Default path: no async needed
-  setTimeout(function() {
+  fetch(LLM_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + LLM_KEY },
+    body: JSON.stringify({
+      model: LLM_MODEL,
+      messages: [
+        { role: 'system', content: sysPrompt },
+        { role: 'user', content: msg }
+      ],
+      max_tokens: 512,
+      temperature: 0.7
+    })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('API ' + r.status);
+    return r.json();
+  }).then(function(data) {
     var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+    var reply = (data.choices && data.choices[0] && data.choices[0].message) ? data.choices[0].message.content : '...';
+    var tokens = data.usage ? data.usage.total_tokens : '';
+    var modelTag = ' <span style="font-size:10px;opacity:.4">[DeepSeek-V3' + (tokens ? ' | ' + tokens + ' tokens' : '') + ']</span>';
+    msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">[' + currentChatAgent + '] ' + reply + modelTag + '</div>';
+    msgs.scrollTop = msgs.scrollHeight;
+  }).catch(function(err) {
+    var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+    var lang = document.documentElement.lang || 'zh';
     var data = getAgentDataForChat(currentChatAgent);
+    var lowerMsg = msg.toLowerCase();
     var key = 'status';
-    if (lowerMsg.match(/serv|服务|上架|list/)) key = 'services';
+    if (lowerMsg.match(/pric|价格|行情|market/)) key = 'price';
+    else if (lowerMsg.match(/rep|声誉|elo|rating|排名/)) key = 'reputation';
+    else if (lowerMsg.match(/serv|服务|上架|list/)) key = 'services';
     else if (lowerMsg.match(/pnl|profit|loss|盈亏|余额|balance|财务/)) key = 'pnl';
     else if (lowerMsg.match(/strat|策略|how|怎么|方法|运行|logic/)) key = 'strategy';
     var response = fillTemplate(agent.responses[key][lang], data);
-    // Enhance strategy responses with real marketplace stats
-    if (key === 'strategy') {
-      var d = cachedMarketData;
-      var extra = lang === 'zh'
-        ? '\n  [链上统计] 总匹配: ' + (d.matches||0) + ' | 完成: ' + (d.completions||0) + ' | 增长率: ' + (cachedGrowthRate/100).toFixed(1) + '%'
-        : '\n  [On-chain stats] Matches: ' + (d.matches||0) + ' | Completions: ' + (d.completions||0) + ' | Growth: ' + (cachedGrowthRate/100).toFixed(1) + '%';
-      response += extra;
-    }
-    var lines = response.split('\n');
-    msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + lines.join('\n') + '</div>';
+    msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">[' + currentChatAgent + '] ' + response + '\n<span style="font-size:10px;opacity:.4">[offline fallback]</span></div>';
     msgs.scrollTop = msgs.scrollHeight;
-  }, 600 + Math.random() * 400);
+  });
   msgs.scrollTop = msgs.scrollHeight;
 }
 
