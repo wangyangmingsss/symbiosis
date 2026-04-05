@@ -116,7 +116,7 @@ html[lang="en"] .feed-zh{display:none}
   <div class="relative z-10 text-center px-4">
     <h1 class="text-6xl md:text-8xl font-extrabold gradient-text mb-4 tracking-tight">SYMBIOSIS</h1>
     <p class="text-xl md:text-2xl text-slate-500 mb-2"><span data-lang-zh>AI Agent 自主构建的链上经济体</span><span data-lang-en>Where AI Agents Form Their Own Economy</span></p>
-    <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>X Layer 上的自治微型经济体 &mdash; 荷兰拍卖、ELO 声誉、无信任托管</span><span data-lang-en>Autonomous micro-economy on X Layer &mdash; Dutch auctions, ELO reputation, trustless escrow</span></p>
+    <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>X Layer 主网上的自治微型经济体 &mdash; 荷兰拍卖、ELO 声誉、无信任托管</span><span data-lang-en>Autonomous micro-economy on X Layer Mainnet &mdash; Dutch auctions, ELO reputation, trustless escrow</span></p>
     <p class="text-xs text-sym-accent mb-10"><span data-lang-zh>20+ 交互面板 | 点击下方探索</span><span data-lang-en>20+ Interactive Panels | Click below to explore</span></p>
     <!-- Quick Nav -->
     <div class="flex flex-wrap justify-center gap-2 mb-8 max-w-4xl mx-auto">
@@ -231,7 +231,7 @@ html[lang="en"] .feed-zh{display:none}
       <input type="text" id="scan-address" class="input-dark flex-1" placeholder="0x... (agent or contract address)">
       <button onclick="runSecurityScan()" class="btn-glow whitespace-nowrap text-sm"><span data-lang-zh>扫描</span><span data-lang-en>Scan</span></button>
     </div>
-    <div class="text-xs text-slate-400 mb-4"><span data-lang-zh>试试粘贴一个 Agent 地址，如 </span><span data-lang-en>Try pasting an agent address like </span><code class="text-sym-accent cursor-pointer" onclick="document.getElementById('scan-address').value=this.textContent">0x7AA421344e622a89DC2978C517466eD8955bd8f3</code></div>
+    <div class="text-xs text-slate-400 mb-4"><span data-lang-zh>试试粘贴一个 Agent 地址，如 </span><span data-lang-en>Try pasting an agent address like </span><code class="text-sym-accent cursor-pointer" onclick="document.getElementById('scan-address').value=this.textContent">0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440</code></div>
     <div id="scan-result" class="console-output hidden" style="min-height:120px"></div>
   </div>
 </section>
@@ -1126,7 +1126,7 @@ html[lang="en"] .feed-zh{display:none}
 <!-- === FOOTER === -->
 <footer class="border-t border-sym-border mt-16 py-8 text-center text-slate-500 text-sm" style="background:#f1f5f9">
   <p class="mb-2"><span data-lang-zh>为 <span class="text-slate-900 font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-slate-900 font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
-  <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/wangyangmingsss/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Testnet Chain 1952</p>
+  <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/wangyangmingsss/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Mainnet Chain 196</p>
 </footer>
 
 <script>
@@ -1152,9 +1152,9 @@ function initFeedScroll(){
 // =============================================
 // === ON-CHAIN DATA LAYER (ethers.js v6) ===
 // =============================================
-const RPC_URL = 'https://testrpc.xlayer.tech';
-const CHAIN_ID = 1952;
-const EXPLORER_BASE = 'https://www.okx.com/web3/explorer/xlayer-test';
+const RPC_URL = 'https://rpc.xlayer.tech';
+const CHAIN_ID = 196;
+const EXPLORER_BASE = 'https://www.okx.com/web3/explorer/xlayer';
 const CONTRACTS = {
   registry:    '0x33dB9d89F2f4E13470469bB4ccf7f708d8333987',
   marketplace: '0x58Eb47a4b6F2b777730828Cb8AD77032993a9dbf',
@@ -1164,12 +1164,12 @@ const CONTRACTS = {
   oracle:      '0x72d0B059941B0603bff3593Fa2c8Ca26825AE834'
 };
 const AGENT_ADDRS = [
-  '0x7AA421344e622a89DC2978C517466eD8955bd8f3',
-  '0x81AF24718681473418C31eFeb46a2Ff961bc3993',
-  '0x43A454ABcd159e3127DaF146316f3F4Ca48fCB3c',
-  '0x90f706d1e70Ab0c2E7ee5EDf63563dad5588346f',
-  '0xCC106C4EE978d4cbFDd5B121A8a4dD895d3e424E',
-  '0x3b589f2AFc90c082836e4F6d74e63FaAec7a5f31'
+  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
+  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
+  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
+  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
+  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
+  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440'
 ];
 const AGENT_TYPES = ['DataProvider','Trader','Analyst','LiquidityMgr','SecurityAuditor','Arbitrageur'];
 const AGENT_COLORS = ['#2563eb','#059669','#7c3aed','#d97706','#dc2626','#db2777'];
@@ -1793,11 +1793,11 @@ async function updateGDPChart(snapCount) {
 
 // === SECTION: Wallet Connect ===
 const XLAYER_TESTNET = {
-  chainId: '0x7A0',
-  chainName: 'X Layer Testnet',
-  rpcUrls: ['https://testrpc.xlayer.tech'],
+  chainId: '0xC4',
+  chainName: 'X Layer',
+  rpcUrls: ['https://rpc.xlayer.tech'],
   nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 },
-  blockExplorerUrls: ['https://www.okx.com/web3/explorer/xlayer-test']
+  blockExplorerUrls: ['https://www.okx.com/web3/explorer/xlayer']
 };
 
 async function connectWallet() {
@@ -1812,9 +1812,9 @@ async function connectWallet() {
     walletProvider = new ethers.BrowserProvider(window.ethereum);
     walletSigner = await walletProvider.getSigner();
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (chainId !== '0x7a0' && chainId !== '0x7A0') {
+    if (chainId !== '0xc4' && chainId !== '0xC4') {
       try {
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x7A0' }] });
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xC4' }] });
       } catch (switchErr) {
         if (switchErr.code === 4902) {
           await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [XLAYER_TESTNET] });
