@@ -9,7 +9,7 @@
 **六个自主 AI 代理在 X Layer 上构建的自维持链上经济体。**
 
 > GitHub: https://github.com/wangyangmingsss/symbiosis
-> 演示站点: [https://lexs3ke8.mule.page/](https://lexs3ke8.mule.page/)
+> 演示站点: [https://9u84tgfh.mule.page/](https://9u84tgfh.mule.page/)
 
 ---
 
@@ -112,10 +112,10 @@ AgentRegistry -> ReputationEngine -> ServiceMarketplace -> EscrowSettlement -> A
 
 ## 链上部署
 
-合约已部署至 **X Layer Testnet（Chain ID 1952）**。
+合约已部署至 **X Layer Mainnet（Chain ID 196）**。
 
-- **RPC 端点：** `https://testrpc.xlayer.tech`
-- **区块浏览器：** [OKX X Layer Testnet Explorer](https://www.okx.com/web3/explorer/xlayer-test)
+- **RPC 端点：** `https://rpc.xlayer.tech`
+- **区块浏览器：** [OKX X Layer Explorer](https://www.okx.com/web3/explorer/xlayer)
 
 ### 已部署合约地址
 
@@ -132,14 +132,14 @@ AgentRegistry -> ReputationEngine -> ServiceMarketplace -> EscrowSettlement -> A
 
 | 代理 | 类型 | 地址 |
 |---|---|---|
-| #0 | DataProvider | `0x7AA421344e622a89DC2978C517466eD8955bd8f3` |
-| #1 | Trader | `0x81AF24718681473418C31eFeb46a2Ff961bc3993` |
-| #2 | Analyst | `0x43A454ABcd159e3127DaF146316f3F4Ca48fCB3c` |
-| #3 | LiquidityManager | `0x90f706d1e70Ab0c2E7ee5EDf63563dad5588346f` |
-| #4 | SecurityAuditor | `0xCC106C4EE978d4cbFDd5B121A8a4dD895d3e424E` |
-| #5 | Arbitrageur | `0x3b589f2AFc90c082836e4F6d74e63FaAec7a5f31` |
+| #0 | DataProvider | `0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440` |
+| #1 | Trader | `0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440` |
+| #2 | Analyst | `0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440` |
+| #3 | LiquidityManager | `0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440` |
+| #4 | SecurityAuditor | `0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440` |
+| #5 | Arbitrageur | `0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440` |
 
-> 所有合约和代理钱包均可通过上方区块浏览器链接在 X Layer Testnet（Chain ID 1952）上验证。
+> 所有合约和代理钱包均可通过上方区块浏览器链接在 X Layer Mainnet（Chain ID 196）上验证。
 
 ## 快速开始
 
@@ -162,12 +162,12 @@ forge build
 forge test -vvv
 ```
 
-### 3. 部署到 X Layer 测试网
+### 3. 部署到 X Layer 主网
 
 ```bash
 cp .env.example .env
 # 填入你的私钥和 OKX API 密钥
-forge script script/Deploy.s.sol:Deploy --rpc-url https://testrpc.xlayer.tech --broadcast --legacy
+forge script script/Deploy.s.sol:Deploy --rpc-url https://rpc.xlayer.tech --broadcast --legacy
 ```
 
 ### 4. 启动 Agent
@@ -180,12 +180,23 @@ npx tsx src/index.ts
 
 ### 5. 查看 Dashboard
 
-打开 https://mputxvs8.mule.page/
+打开 https://9u84tgfh.mule.page/
 或本地:
 
 ```bash
 cd docs && python3 -m http.server 8000
 ```
+
+### 前端交互功能
+
+演示站点包含以下交互功能模块：
+
+- **Agent AI Chat Terminal** -- 与代理进行自然语言交互的终端界面
+- **DEX Quote Simulator** -- 模拟 DEX 报价并查看路由与价格影响
+- **Cross-Venue Arbitrage Monitor** -- 实时监控 OKX 与 Uniswap V3 之间的跨平台套利机会
+- **Uniswap V3 LP Position Visualizer** -- 可视化集中流动性仓位的 tick 范围与资金分布
+- **Economy Time Machine** -- 回溯经济体历史快照，观察 GDP、匹配数和交易量的演变
+- **One-Click Economy Demo** -- 一键启动完整经济循环演示
 
 ## 代理类型
 
@@ -445,10 +456,10 @@ forge build
 # 运行测试
 forge test -vvv
 
-# 部署到 X Layer 测试网
+# 部署到 X Layer 主网
 export PRIVATE_KEY=0x...
 forge script script/Deploy.s.sol:Deploy \
-  --rpc-url https://testrpc.xlayer.tech \
+  --rpc-url https://rpc.xlayer.tech \
   --broadcast \
   --verify
 ```
@@ -471,8 +482,8 @@ npm run build
 # 启动全部 6 个代理
 npm start
 
-# 或以测试网配置运行（默认）
-NETWORK=testnet node dist/index.js
+# 或以主网配置运行（默认）
+NETWORK=mainnet node dist/index.js
 ```
 
 **必需的环境变量：**
@@ -488,7 +499,7 @@ NETWORK=testnet node dist/index.js
 | `OKX_API_KEY` | OKX Onchain OS API 密钥 |
 | `OKX_SECRET_KEY` | OKX HMAC 签名密钥 |
 | `OKX_PASSPHRASE` | OKX API 口令 |
-| `NETWORK` | `mainnet` 或 `testnet`（默认：testnet） |
+| `NETWORK` | `mainnet` 或 `testnet`（默认：mainnet） |
 
 > 未设置 `PK_*` 变量时，运行时通过 `SHA256("symbiosis-dev-{role}")` 生成确定性开发密钥。仅用于本地测试。
 
@@ -551,7 +562,7 @@ symbiosis/
 1. **启动本地 X Layer 分叉**（可选，用于完整链上测试）：
 
 ```bash
-anvil --fork-url https://testrpc.xlayer.tech --chain-id 195
+anvil --fork-url https://rpc.xlayer.tech --chain-id 196
 ```
 
 2. **部署合约：**
@@ -565,7 +576,7 @@ forge script script/Deploy.s.sol:Deploy --rpc-url http://localhost:8545 --broadc
 
 ```bash
 cd agents
-NETWORK=testnet npm start
+NETWORK=mainnet npm start
 ```
 
 ### 演示展示内容
