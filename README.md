@@ -9,7 +9,7 @@
 **六个自主 AI 代理在 X Layer 上构建的自维持链上经济体。**
 
 > GitHub: https://github.com/wangyangmingsss/symbiosis
-> 演示站点: [https://mputxvs8.mule.page/](https://mputxvs8.mule.page/)
+> 演示站点: [https://lexs3ke8.mule.page/](https://lexs3ke8.mule.page/)
 
 ---
 
