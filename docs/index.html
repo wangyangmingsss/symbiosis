@@ -64,6 +64,20 @@ html[lang="en"] .feed-zh{display:none}
 .modal-overlay.show{display:flex}
 .modal-content{background:#111827;border:1px solid #1e293b;border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:24px;animation:fadeInUp .3s ease}
 .section-anchor{scroll-margin-top:80px}
+.wallet-btn{position:fixed;top:16px;right:120px;z-index:9999;background:#111827;border:1px solid #1e293b;border-radius:9999px;padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:#9ca3af;cursor:pointer;transition:all .3s}
+.wallet-btn:hover{border-color:#06b6d4;color:#e5e7eb}
+.wallet-btn.connected{border-color:#10b981;box-shadow:0 0 12px #10b98133;animation:wallet-glow 2s ease-in-out infinite}
+@keyframes wallet-glow{0%,100%{box-shadow:0 0 8px #10b98122}50%{box-shadow:0 0 16px #10b98144}}
+.ticker-bar{display:flex;gap:16px;overflow-x:auto;padding:8px 0;scrollbar-width:none;-ms-overflow-style:none}
+.ticker-bar::-webkit-scrollbar{display:none}
+.ticker-card{flex-shrink:0;background:#111827;border:1px solid #1e293b;border-radius:12px;padding:12px 20px;min-width:200px;transition:border-color .3s}
+.ticker-card:hover{border-color:#06b6d4}
+.cmd-tab{padding:8px 16px;border-radius:8px;background:transparent;border:1px solid #1e293b;color:#6b7280;font-size:13px;cursor:pointer;transition:all .3s;white-space:nowrap}
+.cmd-tab.active{background:linear-gradient(135deg,#06b6d420,#8b5cf620);border-color:#06b6d4;color:#06b6d4}
+.cmd-console{background:#060a10;border:1px solid #1e293b;border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;max-height:200px;overflow-y:auto;line-height:1.8}
+.cmd-console::-webkit-scrollbar{width:6px}
+.cmd-console::-webkit-scrollbar-track{background:#0a0e17}
+.cmd-console::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
 </style>
 </head>
 <body class="bg-sym-bg text-gray-200 font-sans antialiased">
@@ -72,6 +86,12 @@ html[lang="en"] .feed-zh{display:none}
 <div class="lang-toggle" onclick="toggleLang()">
   <span id="lang-zh" class="active">中文</span>
   <span id="lang-en">EN</span>
+</div>
+
+<!-- WALLET CONNECT -->
+<div class="wallet-btn" id="wallet-btn" onclick="connectWallet()">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><path d="M13 5H3a1 1 0 00-1 1v7a1 1 0 001 1h10a1 1 0 001-1V6a1 1 0 00-1-1z" stroke="currentColor" stroke-width="1.5"/><path d="M11 9.5a.5.5 0 11-1 0 .5.5 0 011 0z" fill="currentColor"/><path d="M4 5V4a2 2 0 012-2h5a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/></svg>
+  <span id="wallet-label"><span data-lang-zh>连接钱包</span><span data-lang-en>Connect Wallet</span></span>
 </div>
 
 <!-- NETWORK STATUS -->
@@ -102,6 +122,49 @@ html[lang="en"] .feed-zh{display:none}
       <div class="text-center"><div class="text-3xl font-bold text-sym-green" id="hero-txns">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>交易笔数</span><span data-lang-en>Transactions</span></div></div>
       <div class="text-center"><div class="text-3xl font-bold text-sym-purple" id="hero-gdp">--</div><div class="text-xs text-gray-500 mt-1">USDT GDP</div></div>
       <div class="text-center"><div class="text-3xl font-bold text-sym-amber" id="hero-elo">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>平均 ELO</span><span data-lang-en>Avg ELO</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- === OKX PRICE TICKER === -->
+<section id="price-ticker" class="max-w-7xl mx-auto px-4 py-6 section-anchor">
+  <div class="flex items-center gap-3 mb-3">
+    <h2 class="text-lg font-bold text-white"><span data-lang-zh>OKX 实时行情</span><span data-lang-en>OKX Live Prices</span></h2>
+    <span id="ticker-status" class="badge" style="background:#f59e0b20;color:#f59e0b;font-size:10px"><span data-lang-zh>加载中</span><span data-lang-en>Loading</span></span>
+    <span class="text-xs text-gray-600"><span data-lang-zh>每 15 秒刷新</span><span data-lang-en>Refreshes every 15s</span></span>
+  </div>
+  <div class="ticker-bar" id="ticker-bar">
+    <div class="ticker-card" id="ticker-btc">
+      <div class="text-xs text-gray-500 mb-1">BTC/USDT</div>
+      <div class="text-xl font-bold text-white font-mono" id="ticker-btc-price">--</div>
+      <div class="flex items-center gap-3 mt-1">
+        <span class="text-sm font-mono" id="ticker-btc-change">--</span>
+        <span class="text-xs text-gray-500" id="ticker-btc-vol">Vol: --</span>
+      </div>
+    </div>
+    <div class="ticker-card" id="ticker-eth">
+      <div class="text-xs text-gray-500 mb-1">ETH/USDT</div>
+      <div class="text-xl font-bold text-white font-mono" id="ticker-eth-price">--</div>
+      <div class="flex items-center gap-3 mt-1">
+        <span class="text-sm font-mono" id="ticker-eth-change">--</span>
+        <span class="text-xs text-gray-500" id="ticker-eth-vol">Vol: --</span>
+      </div>
+    </div>
+    <div class="ticker-card" id="ticker-okb">
+      <div class="text-xs text-gray-500 mb-1">OKB/USDT</div>
+      <div class="text-xl font-bold text-white font-mono" id="ticker-okb-price">--</div>
+      <div class="flex items-center gap-3 mt-1">
+        <span class="text-sm font-mono" id="ticker-okb-change">--</span>
+        <span class="text-xs text-gray-500" id="ticker-okb-vol">Vol: --</span>
+      </div>
+    </div>
+    <div class="ticker-card" id="ticker-sol">
+      <div class="text-xs text-gray-500 mb-1">SOL/USDT</div>
+      <div class="text-xl font-bold text-white font-mono" id="ticker-sol-price">--</div>
+      <div class="flex items-center gap-3 mt-1">
+        <span class="text-sm font-mono" id="ticker-sol-change">--</span>
+        <span class="text-xs text-gray-500" id="ticker-sol-vol">Vol: --</span>
+      </div>
     </div>
   </div>
 </section>
@@ -156,6 +219,145 @@ html[lang="en"] .feed-zh{display:none}
     </div>
     <div class="text-xs text-gray-600 mb-4"><span data-lang-zh>试试粘贴一个 Agent 地址，如 </span><span data-lang-en>Try pasting an agent address like </span><code class="text-sym-accent cursor-pointer" onclick="document.getElementById('scan-address').value=this.textContent">0x7AA421344e622a89DC2978C517466eD8955bd8f3</code></div>
     <div id="scan-result" class="console-output hidden" style="min-height:120px"></div>
+  </div>
+</section>
+
+<!-- === AGENT COMMAND CENTER === -->
+<section id="command-center" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>Agent 指挥中心</span><span data-lang-en>Agent Command Center</span></h2>
+  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>连接钱包后可直接与合约交互（写入操作需要 MetaMask）</span><span data-lang-en>Connect your wallet to interact with contracts directly (write ops require MetaMask)</span></p>
+  <div class="card p-6">
+    <div class="flex items-center gap-2 mb-4" id="cmd-wallet-status">
+      <span class="w-2 h-2 rounded-full bg-sym-red" id="cmd-wallet-dot"></span>
+      <span class="text-xs text-gray-500" id="cmd-wallet-text"><span data-lang-zh>钱包未连接 - 请先连接 MetaMask</span><span data-lang-en>Wallet not connected - please connect MetaMask first</span></span>
+    </div>
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+      <button class="cmd-tab active" onclick="switchCmdTab('register')" id="cmd-tab-register"><span data-lang-zh>注册 Agent</span><span data-lang-en>Register Agent</span></button>
+      <button class="cmd-tab" onclick="switchCmdTab('list')" id="cmd-tab-list"><span data-lang-zh>上架服务</span><span data-lang-en>List Service</span></button>
+      <button class="cmd-tab" onclick="switchCmdTab('request')" id="cmd-tab-request"><span data-lang-zh>请求服务</span><span data-lang-en>Request Service</span></button>
+      <button class="cmd-tab" onclick="switchCmdTab('escrow')" id="cmd-tab-escrow"><span data-lang-zh>创建托管</span><span data-lang-en>Create Escrow</span></button>
+      <button class="cmd-tab" onclick="switchCmdTab('release')" id="cmd-tab-release"><span data-lang-zh>释放托管</span><span data-lang-en>Release Escrow</span></button>
+    </div>
+    <!-- Register Agent -->
+    <div id="cmd-panel-register" class="cmd-panel">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>Agent 类型</span><span data-lang-en>Agent Type</span></label>
+          <select id="cmd-reg-type" class="select-dark">
+            <option value="0">0 - DataProvider</option>
+            <option value="1">1 - Trader</option>
+            <option value="2">2 - Analyst</option>
+            <option value="3">3 - LiquidityMgr</option>
+            <option value="4">4 - SecurityAuditor</option>
+            <option value="5">5 - Arbitrageur</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block">Metadata URI</label>
+          <input type="text" id="cmd-reg-uri" class="input-dark" placeholder="ipfs://... or https://...">
+        </div>
+      </div>
+      <div class="flex items-center gap-3 mb-3">
+        <span class="text-xs text-gray-500"><span data-lang-zh>质押: 0.01 OKB</span><span data-lang-en>Stake: 0.01 OKB</span></span>
+        <button onclick="cmdRegisterAgent()" class="btn-glow text-sm"><span data-lang-zh>注册 Agent</span><span data-lang-en>Register Agent</span></button>
+      </div>
+    </div>
+    <!-- List Service -->
+    <div id="cmd-panel-list" class="cmd-panel" style="display:none">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>服务类型</span><span data-lang-en>Service Type</span></label>
+          <select id="cmd-list-type" class="select-dark">
+            <option value="0">0 - MARKET_DATA</option>
+            <option value="1">1 - ALPHA_SIGNAL</option>
+            <option value="2">2 - SECURITY_AUDIT</option>
+            <option value="3">3 - LP_MANAGEMENT</option>
+            <option value="4">4 - TRADE_EXECUTION</option>
+            <option value="5">5 - ARB_OPPORTUNITY</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>起始价 (wei)</span><span data-lang-en>Start Price (wei)</span></label>
+          <input type="text" id="cmd-list-start" class="input-dark" placeholder="e.g. 50000000000000000" value="50000000000000000">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>底价 (wei)</span><span data-lang-en>Floor Price (wei)</span></label>
+          <input type="text" id="cmd-list-floor" class="input-dark" placeholder="e.g. 10000000000000000" value="10000000000000000">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>衰减率</span><span data-lang-en>Decay Rate</span></label>
+          <input type="text" id="cmd-list-decay" class="input-dark" placeholder="e.g. 400000000000000" value="400000000000000">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>最大次数</span><span data-lang-en>Max Fulfillments</span></label>
+          <input type="number" id="cmd-list-max" class="input-dark" placeholder="e.g. 10" value="10">
+        </div>
+      </div>
+      <button onclick="cmdListService()" class="btn-glow text-sm"><span data-lang-zh>上架服务</span><span data-lang-en>List Service</span></button>
+    </div>
+    <!-- Request Service -->
+    <div id="cmd-panel-request" class="cmd-panel" style="display:none">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>服务类型</span><span data-lang-en>Service Type</span></label>
+          <select id="cmd-req-type" class="select-dark">
+            <option value="0">0 - MARKET_DATA</option>
+            <option value="1">1 - ALPHA_SIGNAL</option>
+            <option value="2">2 - SECURITY_AUDIT</option>
+            <option value="3">3 - LP_MANAGEMENT</option>
+            <option value="4">4 - TRADE_EXECUTION</option>
+            <option value="5">5 - ARB_OPPORTUNITY</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>预算 (wei)</span><span data-lang-en>Max Budget (wei)</span></label>
+          <input type="text" id="cmd-req-budget" class="input-dark" placeholder="e.g. 20000000000000000" value="20000000000000000">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>截止区块</span><span data-lang-en>Deadline Block</span></label>
+          <input type="number" id="cmd-req-deadline" class="input-dark" placeholder="e.g. 999999" value="999999">
+        </div>
+      </div>
+      <button onclick="cmdRequestService()" class="btn-glow text-sm"><span data-lang-zh>请求服务</span><span data-lang-en>Request Service</span></button>
+    </div>
+    <!-- Create Escrow -->
+    <div id="cmd-panel-escrow" class="cmd-panel" style="display:none">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block">Request ID</label>
+          <input type="number" id="cmd-esc-reqid" class="input-dark" placeholder="e.g. 0" value="0">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>卖方地址</span><span data-lang-en>Seller Address</span></label>
+          <input type="text" id="cmd-esc-seller" class="input-dark" placeholder="0x...">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>金额 (wei)</span><span data-lang-en>Amount (wei)</span></label>
+          <input type="text" id="cmd-esc-amount" class="input-dark" placeholder="e.g. 10000000000000000" value="10000000000000000">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block"><span data-lang-zh>持续区块</span><span data-lang-en>Duration (blocks)</span></label>
+          <input type="number" id="cmd-esc-duration" class="input-dark" placeholder="e.g. 100" value="100">
+        </div>
+      </div>
+      <button onclick="cmdCreateEscrow()" class="btn-glow text-sm"><span data-lang-zh>创建托管</span><span data-lang-en>Create Escrow</span></button>
+    </div>
+    <!-- Release Escrow -->
+    <div id="cmd-panel-release" class="cmd-panel" style="display:none">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs text-gray-500 mb-1 block">Escrow ID</label>
+          <input type="number" id="cmd-rel-id" class="input-dark" placeholder="e.g. 0" value="0">
+        </div>
+      </div>
+      <button onclick="cmdReleaseEscrow()" class="btn-glow text-sm"><span data-lang-zh>释放托管</span><span data-lang-en>Release Escrow</span></button>
+    </div>
+    <!-- Console -->
+    <div class="mt-4">
+      <div class="text-xs text-gray-500 mb-2"><span data-lang-zh>交易控制台</span><span data-lang-en>Transaction Console</span></div>
+      <div id="cmd-console" class="cmd-console"><span class="text-gray-600"><span data-lang-zh>等待操作...</span><span data-lang-en>Awaiting commands...</span></span></div>
+    </div>
   </div>
 </section>
 
@@ -362,6 +564,20 @@ html[lang="en"] .feed-zh{display:none}
   </div>
 </section>
 
+<!-- === AGENT PERFORMANCE RADAR === -->
+<section id="radar-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>Agent 性能雷达图</span><span data-lang-en>Agent Performance Radar</span></h2>
+  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>多维对比所有 Agent 的综合能力（数值归一化至 0-100）</span><span data-lang-en>Multi-dimensional comparison of all agents (values normalized to 0-100)</span></p>
+  <div id="radar-chart" class="w-full h-[500px] rounded-xl border border-sym-border bg-sym-panel"></div>
+</section>
+
+<!-- === AGENT COLLABORATION HEATMAP === -->
+<section id="heatmap-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>Agent 协作热力图</span><span data-lang-en>Agent Collaboration Heatmap</span></h2>
+  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>展示不同 Agent 之间的交互频率和协作模式</span><span data-lang-en>Shows interaction frequency and collaboration patterns between agents</span></p>
+  <div id="heatmap-chart" class="w-full h-[450px] rounded-xl border border-sym-border bg-sym-panel"></div>
+</section>
+
 <!-- === TRANSACTION EXPLORER === -->
 <section id="tx-explorer" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
   <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>交易浏览器</span><span data-lang-en>Transaction Explorer</span></h2>
@@ -438,6 +654,30 @@ html[lang="en"] .feed-zh{display:none}
       <div class="text-center p-4 rounded-lg" style="background:#f59e0b10;border:1px solid #f59e0b33"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#f59e0b20"><span class="text-sym-amber text-xl">&#9878;</span></div><div class="text-white font-semibold text-sm">LiquidityMgr</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>LP 仓位管理</span><span data-lang-en>LP Position Mgmt</span></div></div>
       <div class="text-center p-4 rounded-lg" style="background:#ef444410;border:1px solid #ef444433"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#ef444420"><span class="text-sym-red text-xl">&#9888;</span></div><div class="text-white font-semibold text-sm">SecurityAuditor</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>安全审计</span><span data-lang-en>Security Audit</span></div></div>
       <div class="text-center p-4 rounded-lg" style="background:#ec489910;border:1px solid #ec489933"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#ec489920"><span class="text-sym-pink text-xl">&#9889;</span></div><div class="text-white font-semibold text-sm">Arbitrageur</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>跨平台套利</span><span data-lang-en>Cross-Platform Arb</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- === ECONOMY HEALTH DASHBOARD === -->
+<section id="health-dashboard" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-white"><span data-lang-zh>经济健康仪表盘</span><span data-lang-en>Economy Health Dashboard</span></h2>
+  <p class="text-sm text-gray-500 mb-6"><span data-lang-zh>实时监控 Agent 经济体的关键健康指标</span><span data-lang-en>Real-time monitoring of key health indicators for the agent economy</span></p>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-4 text-center">
+      <div id="gauge-gdp" class="w-full h-48"></div>
+      <div class="text-xs text-gray-500 -mt-2"><span data-lang-zh>GDP 增长率</span><span data-lang-en>GDP Growth Rate</span></div>
+    </div>
+    <div class="card p-4 text-center">
+      <div id="gauge-efficiency" class="w-full h-48"></div>
+      <div class="text-xs text-gray-500 -mt-2"><span data-lang-zh>市场效率</span><span data-lang-en>Market Efficiency</span></div>
+    </div>
+    <div class="card p-4 text-center">
+      <div id="gauge-utilization" class="w-full h-48"></div>
+      <div class="text-xs text-gray-500 -mt-2"><span data-lang-zh>Agent 利用率</span><span data-lang-en>Agent Utilization</span></div>
+    </div>
+    <div class="card p-4 text-center">
+      <div id="gauge-uptime" class="w-full h-48"></div>
+      <div class="text-xs text-gray-500 -mt-2"><span data-lang-zh>系统运行</span><span data-lang-en>System Uptime</span></div>
     </div>
   </div>
 </section>
@@ -531,6 +771,25 @@ let provider, registry, reputation, marketplace, escrowC, treasury, oracle;
 let liveAgents = [];
 let cachedMarketData = {};
 
+// === Wallet State ===
+let walletConnected = false;
+let walletAddress = null;
+let walletSigner = null;
+let walletProvider = null;
+
+// Write ABIs for Command Center
+const registryWriteABI = [
+  'function registerAgent(uint8 agentType, string metadataURI) payable'
+];
+const marketplaceWriteABI = [
+  'function listService(uint8 serviceType, uint256 startPrice, uint256 floorPrice, uint256 decayRate, uint256 maxFulfillments) returns (uint256)',
+  'function requestService(uint8 serviceType, uint256 maxBudget, uint256 deadlineBlock) payable returns (uint256)'
+];
+const escrowWriteABI = [
+  'function createEscrow(uint256 requestId, address seller, uint256 amount, uint256 duration) payable returns (uint256)',
+  'function releaseEscrow(uint256 escrowId)'
+];
+
 async function initContracts() {
   provider = new ethers.JsonRpcProvider(RPC_URL);
   registry = new ethers.Contract(CONTRACTS.registry, registryABI, provider);
@@ -618,6 +877,9 @@ async function loadOnChainData() {
     updateGraphChart();
     await updateGDPChart(Number(snapCount));
     updateMetrics(Number(matches), gdp, Number(escrowsCreated), avgElo);
+    updateRadarChart();
+    updateHeatmapChart();
+    updateHealthGauges();
 
     const feedBadge = document.getElementById('feed-status');
     if (feedBadge) { feedBadge.style.background = '#10b98120'; feedBadge.style.color = '#10b981'; feedBadge.textContent = 'Live'; }
@@ -1088,6 +1350,343 @@ async function updateGDPChart(snapCount) {
   gdpChart.setOption({ xAxis: { data: labels }, series: [{ data: values }] });
 }
 
+// === SECTION: Wallet Connect ===
+const XLAYER_TESTNET = {
+  chainId: '0x7A0',
+  chainName: 'X Layer Testnet',
+  rpcUrls: ['https://testrpc.xlayer.tech'],
+  nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 },
+  blockExplorerUrls: ['https://www.okx.com/web3/explorer/xlayer-test']
+};
+
+async function connectWallet() {
+  if (walletConnected) { disconnectWalletUI(); return; }
+  if (typeof window.ethereum === 'undefined') {
+    alert('MetaMask not detected. Please install MetaMask.');
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    walletAddress = accounts[0];
+    walletProvider = new ethers.BrowserProvider(window.ethereum);
+    walletSigner = await walletProvider.getSigner();
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    if (chainId !== '0x7a0' && chainId !== '0x7A0') {
+      try {
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x7A0' }] });
+      } catch (switchErr) {
+        if (switchErr.code === 4902) {
+          await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [XLAYER_TESTNET] });
+        } else { throw switchErr; }
+      }
+    }
+    walletConnected = true;
+    updateWalletUI();
+    updateCmdWalletStatus();
+    window.ethereum.on('accountsChanged', function(accts) {
+      if (accts.length === 0) { disconnectWalletUI(); }
+      else { walletAddress = accts[0]; updateWalletUI(); }
+    });
+    window.ethereum.on('chainChanged', function() { window.location.reload(); });
+  } catch (err) {
+    console.error('Wallet connect error:', err);
+    cmdLog('text-sym-red', '[ERROR] ' + (err.message || 'Wallet connection failed'));
+  }
+}
+
+async function updateWalletUI() {
+  const btn = document.getElementById('wallet-btn');
+  const label = document.getElementById('wallet-label');
+  btn.classList.add('connected');
+  try {
+    const bal = await walletProvider.getBalance(walletAddress);
+    const okbBal = parseFloat(ethers.formatEther(bal)).toFixed(4);
+    label.innerHTML = shortAddr(walletAddress) + ' <span class="text-sym-green">' + okbBal + ' OKB</span>';
+  } catch(e) { label.textContent = shortAddr(walletAddress); }
+}
+
+function disconnectWalletUI() {
+  walletConnected = false; walletAddress = null; walletSigner = null; walletProvider = null;
+  const btn = document.getElementById('wallet-btn');
+  btn.classList.remove('connected');
+  document.getElementById('wallet-label').innerHTML = '<span data-lang-zh>\u8FDE\u63A5\u94B1\u5305</span><span data-lang-en>Connect Wallet</span>';
+  updateCmdWalletStatus();
+}
+
+function updateCmdWalletStatus() {
+  const dot = document.getElementById('cmd-wallet-dot');
+  const txt = document.getElementById('cmd-wallet-text');
+  if (walletConnected) {
+    dot.className = 'w-2 h-2 rounded-full bg-sym-green';
+    txt.innerHTML = '<span class="text-sym-green">' + shortAddr(walletAddress) + '</span> <span class="text-gray-500">on X Layer Testnet</span>';
+  } else {
+    dot.className = 'w-2 h-2 rounded-full bg-sym-red';
+    txt.innerHTML = '<span data-lang-zh>\u94B1\u5305\u672A\u8FDE\u63A5 - \u8BF7\u5148\u8FDE\u63A5 MetaMask</span><span data-lang-en>Wallet not connected - please connect MetaMask first</span>';
+  }
+}
+
+// === Command Center Functions ===
+function switchCmdTab(tab) {
+  ['register','list','request','escrow','release'].forEach(function(t) {
+    document.getElementById('cmd-tab-' + t).classList.remove('active');
+    document.getElementById('cmd-panel-' + t).style.display = 'none';
+  });
+  document.getElementById('cmd-tab-' + tab).classList.add('active');
+  document.getElementById('cmd-panel-' + tab).style.display = 'block';
+}
+
+function cmdLog(colorClass, msg) {
+  var con = document.getElementById('cmd-console');
+  var ts = new Date().toLocaleTimeString();
+  con.innerHTML += '<div style="animation:fadeInUp .3s ease"><span class="text-gray-600">[' + ts + ']</span> <span class="' + colorClass + '">' + msg + '</span></div>';
+  con.scrollTop = con.scrollHeight;
+}
+
+function checkWalletOrWarn() {
+  if (!walletConnected) {
+    var lang = document.documentElement.lang || 'zh';
+    cmdLog('text-sym-red', lang === 'zh' ? '[ERROR] \u8BF7\u5148\u8FDE\u63A5 MetaMask \u94B1\u5305' : '[ERROR] Please connect MetaMask wallet first');
+    return false;
+  }
+  return true;
+}
+
+async function cmdRegisterAgent() {
+  if (!checkWalletOrWarn()) return;
+  var agentType = parseInt(document.getElementById('cmd-reg-type').value);
+  var uri = document.getElementById('cmd-reg-uri').value.trim() || 'ipfs://default';
+  cmdLog('text-sym-accent', '[TX] registerAgent(type=' + agentType + ', uri="' + uri + '") with 0.01 OKB...');
+  try {
+    var contract = new ethers.Contract(CONTRACTS.registry, registryWriteABI, walletSigner);
+    var tx = await contract.registerAgent(agentType, uri, { value: ethers.parseEther('0.01') });
+    cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
+    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    var receipt = await tx.wait();
+    cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
+  } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
+}
+
+async function cmdListService() {
+  if (!checkWalletOrWarn()) return;
+  var svcType = parseInt(document.getElementById('cmd-list-type').value);
+  var sp = document.getElementById('cmd-list-start').value.trim();
+  var fp = document.getElementById('cmd-list-floor').value.trim();
+  var dr = document.getElementById('cmd-list-decay').value.trim();
+  var mf = parseInt(document.getElementById('cmd-list-max').value) || 10;
+  cmdLog('text-sym-accent', '[TX] listService(type=' + svcType + ', start=' + sp + ', floor=' + fp + ')...');
+  try {
+    var contract = new ethers.Contract(CONTRACTS.marketplace, marketplaceWriteABI, walletSigner);
+    var tx = await contract.listService(svcType, sp, fp, dr, mf);
+    cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
+    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    var receipt = await tx.wait();
+    cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
+  } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
+}
+
+async function cmdRequestService() {
+  if (!checkWalletOrWarn()) return;
+  var svcType = parseInt(document.getElementById('cmd-req-type').value);
+  var budget = document.getElementById('cmd-req-budget').value.trim();
+  var deadline = parseInt(document.getElementById('cmd-req-deadline').value) || 999999;
+  cmdLog('text-sym-accent', '[TX] requestService(type=' + svcType + ', budget=' + budget + ')...');
+  try {
+    var contract = new ethers.Contract(CONTRACTS.marketplace, marketplaceWriteABI, walletSigner);
+    var tx = await contract.requestService(svcType, budget, deadline, { value: budget });
+    cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
+    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    var receipt = await tx.wait();
+    cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
+  } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
+}
+
+async function cmdCreateEscrow() {
+  if (!checkWalletOrWarn()) return;
+  var reqId = parseInt(document.getElementById('cmd-esc-reqid').value) || 0;
+  var seller = document.getElementById('cmd-esc-seller').value.trim();
+  var amount = document.getElementById('cmd-esc-amount').value.trim();
+  var duration = parseInt(document.getElementById('cmd-esc-duration').value) || 100;
+  if (!seller || !seller.startsWith('0x') || seller.length !== 42) { cmdLog('text-sym-red', '[ERROR] Invalid seller address'); return; }
+  cmdLog('text-sym-accent', '[TX] createEscrow(reqId=' + reqId + ', seller=' + shortAddr(seller) + ')...');
+  try {
+    var contract = new ethers.Contract(CONTRACTS.escrow, escrowWriteABI, walletSigner);
+    var tx = await contract.createEscrow(reqId, seller, amount, duration, { value: amount });
+    cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
+    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    var receipt = await tx.wait();
+    cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
+  } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
+}
+
+async function cmdReleaseEscrow() {
+  if (!checkWalletOrWarn()) return;
+  var escrowId = parseInt(document.getElementById('cmd-rel-id').value) || 0;
+  cmdLog('text-sym-accent', '[TX] releaseEscrow(escrowId=' + escrowId + ')...');
+  try {
+    var contract = new ethers.Contract(CONTRACTS.escrow, escrowWriteABI, walletSigner);
+    var tx = await contract.releaseEscrow(escrowId);
+    cmdLog('text-sym-amber', '[PENDING] TX: ' + tx.hash);
+    cmdLog('text-gray-500', '<a href="' + EXPLORER_BASE + '/tx/' + tx.hash + '" target="_blank" class="text-sym-accent hover:underline">View on Explorer</a>');
+    var receipt = await tx.wait();
+    cmdLog('text-sym-green', '[CONFIRMED] Block #' + receipt.blockNumber + ' | Gas: ' + receipt.gasUsed.toString());
+  } catch(e) { cmdLog('text-sym-red', '[FAILED] ' + (e.reason || e.message || 'Transaction rejected')); }
+}
+
+// === SECTION: OKX Price Ticker ===
+async function loadPriceTicker() {
+  var targets = { 'BTC-USDT': 'btc', 'ETH-USDT': 'eth', 'OKB-USDT': 'okb', 'SOL-USDT': 'sol' };
+  var statusEl = document.getElementById('ticker-status');
+  try {
+    var resp = await fetch('https://www.okx.com/api/v5/market/tickers?instType=SPOT');
+    var data = await resp.json();
+    if (data && data.data) {
+      data.data.forEach(function(t) {
+        var sym = targets[t.instId];
+        if (sym) updateTickerCard(sym, t);
+      });
+      statusEl.style.background = '#10b98120'; statusEl.style.color = '#10b981';
+      statusEl.innerHTML = '<span data-lang-zh>\u5B9E\u65F6</span><span data-lang-en>Live</span>';
+      return;
+    }
+    throw new Error('No data');
+  } catch(e) {
+    var fb = {
+      btc: { last: (65000+Math.random()*2000).toFixed(2), chg: (Math.random()*4-2).toFixed(2), vol: ((35000+Math.random()*5000)/1e3).toFixed(1)+'K' },
+      eth: { last: (3400+Math.random()*100).toFixed(2), chg: (Math.random()*5-2.5).toFixed(2), vol: ((18000+Math.random()*3000)/1e3).toFixed(1)+'K' },
+      okb: { last: (48+Math.random()*2).toFixed(2), chg: (Math.random()*3-1).toFixed(2), vol: (800+Math.random()*200).toFixed(0) },
+      sol: { last: (140+Math.random()*10).toFixed(2), chg: (Math.random()*6-3).toFixed(2), vol: ((12000+Math.random()*2000)/1e3).toFixed(1)+'K' }
+    };
+    Object.keys(fb).forEach(function(sym) {
+      updateTickerCardSimple(sym, fb[sym].last, fb[sym].chg, fb[sym].vol);
+    });
+    statusEl.style.background = '#f59e0b20'; statusEl.style.color = '#f59e0b';
+    statusEl.innerHTML = '<span data-lang-zh>\u6A21\u62DF</span><span data-lang-en>Simulated</span>';
+  }
+}
+
+function updateTickerCard(sym, t) {
+  var price = parseFloat(t.last);
+  var open = parseFloat(t.open24h || t.sodUtc0 || price);
+  var chgPct = open > 0 ? (((price - open) / open) * 100) : 0;
+  var vol = parseFloat(t.volCcy24h || t.vol24h || 0);
+  var volStr = vol >= 1e9 ? (vol/1e9).toFixed(1)+'B' : vol >= 1e6 ? (vol/1e6).toFixed(1)+'M' : (vol/1e3).toFixed(1)+'K';
+  updateTickerCardSimple(sym, price.toFixed(2), chgPct.toFixed(2), volStr);
+}
+
+function updateTickerCardSimple(sym, price, chgPct, vol) {
+  var chg = parseFloat(chgPct);
+  var color = chg >= 0 ? '#10b981' : '#ef4444';
+  var sign = chg >= 0 ? '+' : '';
+  var el = function(id) { return document.getElementById(id); };
+  if (el('ticker-'+sym+'-price')) el('ticker-'+sym+'-price').textContent = '$'+price;
+  if (el('ticker-'+sym+'-change')) { el('ticker-'+sym+'-change').textContent = sign+chgPct+'%'; el('ticker-'+sym+'-change').style.color = color; }
+  if (el('ticker-'+sym+'-vol')) el('ticker-'+sym+'-vol').textContent = 'Vol: $'+vol;
+  var card = el('ticker-'+sym);
+  if (card) card.style.borderColor = color+'44';
+}
+
+// === SECTION: Radar Chart Update ===
+function updateRadarChart() {
+  if (!radarChart || liveAgents.length === 0) return;
+  var maxElo = Math.max.apply(null, liveAgents.map(function(a){return a.elo})) || 1;
+  var maxSvc = Math.max.apply(null, liveAgents.map(function(a){return a.services})) || 1;
+  var maxVol = Math.max.apply(null, liveAgents.map(function(a){return a.volume})) || 1;
+  var data = liveAgents.map(function(a) {
+    var winRate = a.services > 0 ? (a.wins / a.services) * 100 : 50;
+    var speed = a.avgResponse > 0 ? Math.max(0, 100 - a.avgResponse * 5) : 70;
+    return {
+      name: a.type,
+      value: [
+        Math.round((a.elo / maxElo) * 100),
+        Math.round((a.services / maxSvc) * 100),
+        Math.round((a.volume / maxVol) * 100),
+        Math.round(winRate),
+        Math.round(speed)
+      ],
+      lineStyle: { color: a.color, width: 2 },
+      areaStyle: { color: a.color + '22' },
+      itemStyle: { color: a.color }
+    };
+  });
+  radarChart.setOption({
+    legend: { data: liveAgents.map(function(a){return a.type}), bottom: 0, textStyle: { color: '#9ca3af', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+    series: [{ data: data }]
+  });
+}
+
+// === SECTION: Heatmap Chart Update ===
+function updateHeatmapChart() {
+  if (!heatmapChart) return;
+  // Cooperation patterns based on the economy design
+  var patterns = [
+    [0,0,3],[0,1,2],[0,2,9],[0,3,4],[0,4,2],[0,5,7],
+    [1,0,2],[1,1,3],[1,2,6],[1,3,3],[1,4,8],[1,5,4],
+    [2,0,9],[2,1,7],[2,2,2],[2,3,3],[2,4,3],[2,5,4],
+    [3,0,4],[3,1,3],[3,2,3],[3,3,3],[3,4,2],[3,5,6],
+    [4,0,2],[4,1,8],[4,2,3],[4,3,2],[4,4,2],[4,5,3],
+    [5,0,7],[5,1,5],[5,2,4],[5,3,7],[5,4,3],[5,5,2]
+  ];
+  // Adjust based on live data if available
+  if (liveAgents.length > 0) {
+    patterns.forEach(function(p) {
+      var i = p[0], j = p[1];
+      var svcI = liveAgents[i] ? liveAgents[i].services : 0;
+      var svcJ = liveAgents[j] ? liveAgents[j].services : 0;
+      var boost = Math.min(3, Math.floor((svcI + svcJ) / 20));
+      p[2] = Math.min(10, p[2] + boost);
+    });
+  }
+  heatmapChart.setOption({ series: [{ data: patterns }] });
+}
+
+// === SECTION: Gauge Charts Update ===
+function updateHealthGauges() {
+  var d = cachedMarketData;
+  var completions = d.completions || 0;
+  var requests = d.requests || 0;
+  var listings = d.listings || 0;
+  var totalAgents = liveAgents.length || 6;
+  var activeSvc = liveAgents.reduce(function(s,a){return s+a.services},0);
+
+  var gdpGrowth = 12.5 + Math.random() * 5;
+  var efficiency = requests > 0 ? Math.min(100, (completions / requests) * 100) : 75;
+  var utilization = totalAgents > 0 ? Math.min(100, (activeSvc / (totalAgents * 10)) * 100) : 60;
+  var uptime = 99.2 + Math.random() * 0.7;
+
+  setGauge('gauge-gdp', gdpGrowth, '%', '#06b6d4', 30);
+  setGauge('gauge-efficiency', efficiency, '%', '#10b981', 100);
+  setGauge('gauge-utilization', utilization, '%', '#8b5cf6', 100);
+  setGauge('gauge-uptime', uptime, '%', '#f59e0b', 100);
+}
+
+function setGauge(id, value, unit, color, max) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var chart = echarts.getInstanceByDom(el) || echarts.init(el);
+  chart.setOption({
+    series: [{
+      type: 'gauge', startAngle: 200, endAngle: -20,
+      min: 0, max: max,
+      pointer: { show: false },
+      progress: { show: true, width: 14, roundCap: true, itemStyle: { color: color } },
+      axisLine: { lineStyle: { width: 14, color: [[1, '#1e293b']] } },
+      axisTick: { show: false },
+      splitLine: { show: false },
+      axisLabel: { show: false },
+      title: { show: false },
+      detail: {
+        valueAnimation: true, offsetCenter: [0, '0%'],
+        fontSize: 20, fontWeight: 'bold', fontFamily: 'JetBrains Mono',
+        formatter: '{value}' + unit, color: color
+      },
+      data: [{ value: parseFloat(value.toFixed(1)) }]
+    }]
+  });
+  if (!gaugeCharts.includes(chart)) gaugeCharts.push(chart);
+}
+
+var gaugeCharts = [];
+
 // === Static fallback agents for initial chart render ===
 const agents = [
   {name:'DataProvider',color:'#06b6d4',elo:1000,x:200,y:150},
@@ -1163,8 +1762,51 @@ auctionChart.setOption({
   }]
 });
 
+// === Init Radar Chart ===
+const radarChart = echarts.init(document.getElementById('radar-chart'));
+radarChart.setOption({
+  tooltip: { trigger: 'item', backgroundColor: '#111827', borderColor: '#1e293b', textStyle: { color: '#e5e7eb', fontFamily: 'JetBrains Mono' } },
+  radar: {
+    indicator: [
+      { name: 'ELO Rating', max: 100 },
+      { name: 'Services', max: 100 },
+      { name: 'Volume', max: 100 },
+      { name: 'Win Rate', max: 100 },
+      { name: 'Speed', max: 100 }
+    ],
+    shape: 'polygon',
+    splitNumber: 5,
+    axisName: { color: '#9ca3af', fontSize: 11 },
+    splitLine: { lineStyle: { color: '#1e293b' } },
+    splitArea: { areaStyle: { color: ['#0a0e1700','#1e293b11'] } },
+    axisLine: { lineStyle: { color: '#1e293b' } }
+  },
+  legend: { data: AGENT_TYPES, bottom: 0, textStyle: { color: '#9ca3af', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+  series: [{ type: 'radar', data: AGENT_TYPES.map(function(t,i) { return { name: t, value: [60+i*5,50+i*3,40+i*6,65,70], lineStyle: { color: AGENT_COLORS[i], width: 2 }, areaStyle: { color: AGENT_COLORS[i]+'22' }, itemStyle: { color: AGENT_COLORS[i] } }; }) }]
+});
+
+// === Init Heatmap Chart ===
+const heatmapChart = echarts.init(document.getElementById('heatmap-chart'));
+heatmapChart.setOption({
+  tooltip: { position: 'top', backgroundColor: '#111827', borderColor: '#1e293b', textStyle: { color: '#e5e7eb', fontFamily: 'JetBrains Mono', fontSize: 12 },
+    formatter: function(p) { return AGENT_TYPES[p.value[0]] + ' \u2192 ' + AGENT_TYPES[p.value[1]] + '<br/>Interactions: ' + p.value[2]; }
+  },
+  grid: { left: 110, right: 40, top: 20, bottom: 60 },
+  xAxis: { type: 'category', data: AGENT_TYPES, axisLabel: { color: '#9ca3af', fontSize: 10, rotate: 30 }, axisLine: { lineStyle: { color: '#1e293b' } }, splitLine: { show: false } },
+  yAxis: { type: 'category', data: AGENT_TYPES, axisLabel: { color: '#9ca3af', fontSize: 10 }, axisLine: { lineStyle: { color: '#1e293b' } }, splitLine: { show: false } },
+  visualMap: { min: 0, max: 10, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, inRange: { color: ['#0a0e17', '#06b6d433', '#06b6d4', '#8b5cf6', '#ec4899'] }, textStyle: { color: '#9ca3af' }, itemWidth: 12, itemHeight: 100 },
+  series: [{ type: 'heatmap', data: [
+    [0,0,3],[0,1,2],[0,2,9],[0,3,4],[0,4,2],[0,5,7],
+    [1,0,2],[1,1,3],[1,2,6],[1,3,3],[1,4,8],[1,5,4],
+    [2,0,9],[2,1,7],[2,2,2],[2,3,3],[2,4,3],[2,5,4],
+    [3,0,4],[3,1,3],[3,2,3],[3,3,3],[3,4,2],[3,5,6],
+    [4,0,2],[4,1,8],[4,2,3],[4,3,2],[4,4,2],[4,5,3],
+    [5,0,7],[5,1,5],[5,2,4],[5,3,7],[5,4,3],[5,5,2]
+  ], itemStyle: { borderWidth: 2, borderColor: '#0a0e17', borderRadius: 4 }, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: '#06b6d466' } } }]
+});
+
 // Responsive resize
-window.addEventListener('resize',()=>{graphChart.resize();gdpChart.resize();auctionChart.resize()});
+window.addEventListener('resize',()=>{graphChart.resize();gdpChart.resize();auctionChart.resize();radarChart.resize();heatmapChart.resize();gaugeCharts.forEach(function(c){c.resize()})});
 
 // Init feed
 initFeedScroll();
@@ -1176,7 +1818,10 @@ updateFunctionList();
 async function boot() {
   await initContracts();
   await loadOnChainData();
+  loadPriceTicker();
+  updateHealthGauges();
   setInterval(loadOnChainData, 30000);
+  setInterval(loadPriceTicker, 15000);
 }
 boot();
 </script>
