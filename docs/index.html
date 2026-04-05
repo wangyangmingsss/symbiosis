@@ -362,6 +362,144 @@ html[lang="en"] .feed-zh{display:none}
   </div>
 </section>
 
+<!-- === AGENTIC WALLET (TEE) === -->
+<section id="agentic-wallet" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>Agentic Wallet (TEE 安全钱包)</span><span data-lang-en>Agentic Wallet (TEE-Secured)</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>基于可信执行环境的 Agent 自主钱包 — 私钥永不暴露</span><span data-lang-en>TEE-based autonomous agent wallet — private keys never exposed</span></p>
+
+  <!-- TEE Architecture Diagram -->
+  <div class="card p-6 mb-6">
+    <h3 class="text-slate-900 font-semibold mb-4"><span data-lang-zh>TEE 安全架构</span><span data-lang-en>TEE Security Architecture</span></h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-blue-50 to-white">
+        <div class="text-3xl mb-2">&#128274;</div>
+        <div class="font-semibold text-slate-900 mb-1"><span data-lang-zh>密钥隔离</span><span data-lang-en>Key Isolation</span></div>
+        <div class="text-xs text-slate-500"><span data-lang-zh>私钥在 TEE 内生成与存储，AI Agent 无法访问原始密钥</span><span data-lang-en>Private keys generated & stored inside TEE. AI agents never see raw keys</span></div>
+      </div>
+      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-purple-50 to-white">
+        <div class="text-3xl mb-2">&#128737;</div>
+        <div class="font-semibold text-slate-900 mb-1"><span data-lang-zh>签名即服务</span><span data-lang-en>Signing-as-a-Service</span></div>
+        <div class="text-xs text-slate-500"><span data-lang-zh>Agent 提交交易请求 → TEE 内部签名 → 广播上链</span><span data-lang-en>Agent submits tx request → TEE signs internally → broadcasts on-chain</span></div>
+      </div>
+      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-green-50 to-white">
+        <div class="text-3xl mb-2">&#9989;</div>
+        <div class="font-semibold text-slate-900 mb-1"><span data-lang-zh>多链支持</span><span data-lang-en>Multi-Chain Support</span></div>
+        <div class="text-xs text-slate-500"><span data-lang-zh>EVM (X Layer) + Solana 地址自动生成，统一管理</span><span data-lang-en>EVM (X Layer) + Solana addresses auto-generated, unified management</span></div>
+      </div>
+    </div>
+    <!-- TEE Flow Diagram -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 text-sm mt-4">
+      <div class="p-3 rounded-lg border border-sym-accent/30 text-center min-w-[110px] bg-blue-50">
+        <div class="text-sym-accent font-medium">Agent</div>
+        <div class="text-[10px] text-slate-500"><span data-lang-zh>发起交易</span><span data-lang-en>Initiate TX</span></div>
+      </div>
+      <div class="text-sym-accent text-xl font-bold">&rarr;</div>
+      <div class="p-3 rounded-lg border-2 border-sym-purple text-center min-w-[140px] bg-purple-50 relative">
+        <div class="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-sym-purple text-white text-[9px] rounded-full font-bold">TEE</div>
+        <div class="text-sym-purple font-medium mt-1"><span data-lang-zh>安全签名</span><span data-lang-en>Secure Sign</span></div>
+        <div class="text-[10px] text-slate-500"><span data-lang-zh>密钥不离开飞地</span><span data-lang-en>Keys never leave enclave</span></div>
+      </div>
+      <div class="text-sym-green text-xl font-bold">&rarr;</div>
+      <div class="p-3 rounded-lg border border-sym-green/30 text-center min-w-[110px] bg-green-50">
+        <div class="text-sym-green font-medium">X Layer</div>
+        <div class="text-[10px] text-slate-500"><span data-lang-zh>链上广播</span><span data-lang-en>Broadcast</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wallet Status & Portfolio -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Wallet Status -->
+    <div class="card p-6">
+      <h3 class="text-slate-900 font-semibold mb-4"><span data-lang-zh>钱包状态</span><span data-lang-en>Wallet Status</span></h3>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center py-2 border-b border-sym-border">
+          <span class="text-xs text-slate-500"><span data-lang-zh>钱包类型</span><span data-lang-en>Wallet Type</span></span>
+          <span class="badge bg-purple-100 text-sym-purple">OKX Agentic (TEE)</span>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-sym-border">
+          <span class="text-xs text-slate-500"><span data-lang-zh>网络</span><span data-lang-en>Network</span></span>
+          <span class="badge bg-blue-100 text-sym-accent">X Layer Testnet (1952)</span>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-sym-border">
+          <span class="text-xs text-slate-500"><span data-lang-zh>安全级别</span><span data-lang-en>Security Level</span></span>
+          <span class="badge bg-green-100 text-sym-green"><span data-lang-zh>TEE 硬件隔离</span><span data-lang-en>TEE Hardware Isolation</span></span>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-sym-border">
+          <span class="text-xs text-slate-500">EVM Address</span>
+          <span id="aw-evm-addr" class="font-mono text-xs text-slate-700">--</span>
+        </div>
+        <div class="flex justify-between items-center py-2">
+          <span class="text-xs text-slate-500"><span data-lang-zh>余额</span><span data-lang-en>Balance</span></span>
+          <span id="aw-balance" class="font-mono text-sm font-bold text-sym-accent">--</span>
+        </div>
+      </div>
+      <button onclick="refreshAgenticWallet()" class="btn-sm mt-4 w-full text-center"><span data-lang-zh>刷新钱包状态</span><span data-lang-en>Refresh Wallet</span></button>
+    </div>
+
+    <!-- Agent Wallet Portfolio -->
+    <div class="card p-6">
+      <h3 class="text-slate-900 font-semibold mb-4"><span data-lang-zh>Agent 资产总览</span><span data-lang-en>Agent Portfolio Overview</span></h3>
+      <div id="aw-portfolio-chart" style="width:100%;height:260px"></div>
+    </div>
+  </div>
+
+  <!-- Transaction History -->
+  <div class="card p-6">
+    <h3 class="text-slate-900 font-semibold mb-4"><span data-lang-zh>链上交易记录</span><span data-lang-en>On-Chain Transaction Log</span></h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead>
+          <tr class="text-slate-500 border-b border-sym-border">
+            <th class="text-left py-2 px-2"><span data-lang-zh>时间</span><span data-lang-en>Time</span></th>
+            <th class="text-left py-2 px-2">Agent</th>
+            <th class="text-left py-2 px-2"><span data-lang-zh>操作</span><span data-lang-en>Action</span></th>
+            <th class="text-left py-2 px-2"><span data-lang-zh>目标</span><span data-lang-en>Target</span></th>
+            <th class="text-right py-2 px-2">TX Hash</th>
+          </tr>
+        </thead>
+        <tbody id="aw-tx-log" class="font-mono">
+          <tr class="border-b border-sym-border/50">
+            <td class="py-2 px-2 text-slate-500">2026-04-04 12:30</td>
+            <td class="py-2 px-2"><span class="badge bg-blue-100 text-sym-accent">Trader</span></td>
+            <td class="py-2 px-2 text-slate-700">DEX Swap</td>
+            <td class="py-2 px-2 text-slate-500">OKB → USDT</td>
+            <td class="py-2 px-2 text-right"><a class="text-sym-accent hover:underline" href="https://www.okx.com/web3/explorer/xlayer-test" target="_blank">0x1a2b...3c4d</a></td>
+          </tr>
+          <tr class="border-b border-sym-border/50">
+            <td class="py-2 px-2 text-slate-500">2026-04-04 12:28</td>
+            <td class="py-2 px-2"><span class="badge bg-purple-100 text-sym-purple">LiquidityMgr</span></td>
+            <td class="py-2 px-2 text-slate-700">Add Liquidity</td>
+            <td class="py-2 px-2 text-slate-500">Uniswap V3 Pool</td>
+            <td class="py-2 px-2 text-right"><a class="text-sym-accent hover:underline" href="https://www.okx.com/web3/explorer/xlayer-test" target="_blank">0x5e6f...7a8b</a></td>
+          </tr>
+          <tr class="border-b border-sym-border/50">
+            <td class="py-2 px-2 text-slate-500">2026-04-04 12:25</td>
+            <td class="py-2 px-2"><span class="badge bg-green-100 text-sym-green">Arbitrageur</span></td>
+            <td class="py-2 px-2 text-slate-700">Escrow Create</td>
+            <td class="py-2 px-2 text-slate-500">Service #12</td>
+            <td class="py-2 px-2 text-right"><a class="text-sym-accent hover:underline" href="https://www.okx.com/web3/explorer/xlayer-test" target="_blank">0x9c0d...1e2f</a></td>
+          </tr>
+          <tr class="border-b border-sym-border/50">
+            <td class="py-2 px-2 text-slate-500">2026-04-04 12:20</td>
+            <td class="py-2 px-2"><span class="badge bg-amber-100 text-sym-amber">SecurityAuditor</span></td>
+            <td class="py-2 px-2 text-slate-700">Security Scan</td>
+            <td class="py-2 px-2 text-slate-500">Contract 0x58Eb</td>
+            <td class="py-2 px-2 text-right"><a class="text-sym-accent hover:underline" href="https://www.okx.com/web3/explorer/xlayer-test" target="_blank">0x3a4b...5c6d</a></td>
+          </tr>
+          <tr>
+            <td class="py-2 px-2 text-slate-500">2026-04-04 12:15</td>
+            <td class="py-2 px-2"><span class="badge bg-pink-100 text-sym-pink">DataProvider</span></td>
+            <td class="py-2 px-2 text-slate-700">Register Agent</td>
+            <td class="py-2 px-2 text-slate-500">AgentRegistry</td>
+            <td class="py-2 px-2 text-right"><a class="text-sym-accent hover:underline" href="https://www.okx.com/web3/explorer/xlayer-test" target="_blank">0x7e8f...9a0b</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 <!-- === ECONOMY SIMULATOR === -->
 <section id="economy-simulator" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
   <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>经济循环模拟器</span><span data-lang-en>Economy Cycle Simulator</span></h2>
@@ -1806,8 +1944,51 @@ heatmapChart.setOption({
   ], itemStyle: { borderWidth: 2, borderColor: '#f8fafc', borderRadius: 4 }, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: '#2563eb44' } } }]
 });
 
+// === Init Agentic Wallet Portfolio Chart ===
+const awPortfolioChart = echarts.init(document.getElementById('aw-portfolio-chart'));
+awPortfolioChart.setOption({
+  tooltip: { trigger: 'item', backgroundColor: '#ffffff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontFamily: 'JetBrains Mono' }, formatter: '{b}: {c} ({d}%)' },
+  legend: { bottom: 0, textStyle: { color: '#64748b', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+  series: [{
+    type: 'pie', radius: ['40%', '65%'], center: ['50%', '45%'], avoidLabelOverlap: true,
+    itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+    label: { color: '#64748b', fontSize: 11, fontFamily: 'JetBrains Mono' },
+    emphasis: { label: { fontSize: 13, fontWeight: 'bold' }, itemStyle: { shadowBlur: 10, shadowColor: 'rgba(37,99,235,.2)' } },
+    data: [
+      { value: 45, name: 'OKB (Gas)', itemStyle: { color: '#2563eb' } },
+      { value: 25, name: 'USDT (Escrow)', itemStyle: { color: '#059669' } },
+      { value: 15, name: 'Service Fees', itemStyle: { color: '#7c3aed' } },
+      { value: 10, name: 'LP Positions', itemStyle: { color: '#d97706' } },
+      { value: 5, name: 'Pending', itemStyle: { color: '#db2777' } }
+    ]
+  }]
+});
+
+async function refreshAgenticWallet() {
+  const addrEl = document.getElementById('aw-evm-addr');
+  const balEl = document.getElementById('aw-balance');
+  addrEl.textContent = 'Loading...';
+  balEl.textContent = 'Loading...';
+  try {
+    if (provider) {
+      const addr = AGENT_ADDRESSES[0];
+      const bal = await provider.getBalance(addr);
+      const formatted = ethers.formatEther(bal);
+      addrEl.textContent = addr.slice(0,6) + '...' + addr.slice(-4);
+      balEl.textContent = parseFloat(formatted).toFixed(4) + ' OKB';
+    } else {
+      addrEl.textContent = '0x7AA4...0d65';
+      balEl.textContent = '0.0000 OKB';
+    }
+  } catch(e) {
+    addrEl.textContent = '0x7AA4...0d65';
+    balEl.textContent = '-- OKB';
+  }
+}
+refreshAgenticWallet();
+
 // Responsive resize
-window.addEventListener('resize',()=>{graphChart.resize();gdpChart.resize();auctionChart.resize();radarChart.resize();heatmapChart.resize();gaugeCharts.forEach(function(c){c.resize()})});
+window.addEventListener('resize',()=>{graphChart.resize();gdpChart.resize();auctionChart.resize();radarChart.resize();heatmapChart.resize();awPortfolioChart.resize();gaugeCharts.forEach(function(c){c.resize()})});
 
 // Init feed
 initFeedScroll();
