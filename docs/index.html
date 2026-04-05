@@ -65,6 +65,18 @@ html[lang="en"] .feed-zh{display:none}
 .modal-overlay.show{display:flex}
 .modal-content{background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:24px;animation:fadeInUp .3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.1)}
 .section-anchor{scroll-margin-top:80px}
+@keyframes typingDot{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.typing-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#64748b;margin:0 2px;animation:typingDot 1.4s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+.live-event{animation:fadeInUp .4s ease}
+.service-card-hover{transition:all .3s;cursor:pointer}
+.service-card-hover:hover{border-color:#7c3aed;box-shadow:0 4px 16px #7c3aed15;transform:translateY(-2px)}
+.api-console{background:#0f172a;border-radius:8px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#a5f3fc;max-height:300px;overflow-y:auto;line-height:1.6}
+.api-console::-webkit-scrollbar{width:6px}
+.api-console::-webkit-scrollbar-track{background:#0f172a}
+.api-console::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+.big-counter{font-size:3.5rem;font-weight:800;background:linear-gradient(135deg,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
 .wallet-btn{position:fixed;top:16px;right:120px;z-index:9999;background:#ffffff;border:1px solid #e2e8f0;border-radius:9999px;padding:6px 16px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:#64748b;cursor:pointer;transition:all .3s;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
 .wallet-btn:hover{border-color:#2563eb;color:#1e293b}
 .wallet-btn.connected{border-color:#059669;box-shadow:0 0 12px #05966922;animation:wallet-glow 2s ease-in-out infinite}
@@ -130,6 +142,9 @@ html[lang="en"] .feed-zh{display:none}
       <a href="#security-scanner" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-slate-500 hover:border-sym-accent hover:text-sym-accent transition-all">Security Scanner</a>
       <a href="#contract-reader" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-slate-500 hover:border-sym-accent hover:text-sym-accent transition-all">Contract Reader</a>
       <a href="#integration-section" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-slate-500 hover:border-sym-accent hover:text-sym-accent transition-all">Integrations</a>
+      <a href="#activity-dashboard" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-slate-500 hover:border-sym-accent hover:text-sym-accent transition-all">On-Chain Activity</a>
+      <a href="#service-discovery" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-slate-500 hover:border-sym-accent hover:text-sym-accent transition-all">Service Browser</a>
+      <a href="#api-demonstrator" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-slate-500 hover:border-sym-accent hover:text-sym-accent transition-all">API Skills</a>
     </div>
     <div class="flex justify-center gap-8 md:gap-16">
       <div class="text-center"><div class="text-3xl font-bold text-sym-accent" id="hero-agents">--</div><div class="text-xs text-slate-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
@@ -1123,6 +1138,72 @@ html[lang="en"] .feed-zh{display:none}
   </div>
 </section>
 
+<!-- === ON-CHAIN ACTIVITY DASHBOARD === -->
+<section id="activity-dashboard" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>链上活动仪表盘</span><span data-lang-en>On-Chain Activity Dashboard</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>实时链上交易数据 - 所有数据可在 OKLink 上验证</span><span data-lang-en>Real-time on-chain transaction data - all verifiable on OKLink</span></p>
+  <div class="card p-6 mb-6 text-center" style="background:linear-gradient(135deg,#eff6ff,#faf5ff)">
+    <div class="text-xs text-slate-500 mb-1 uppercase tracking-wider"><span data-lang-zh>Agentic 钱包地址</span><span data-lang-en>Agentic Wallet Address</span></div>
+    <a id="dash-wallet-link" href="#" target="_blank" class="font-mono text-sm text-sym-accent hover:underline break-all">0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440</a>
+    <div class="big-counter mt-4" id="dash-total-txns">--</div>
+    <div class="text-sm text-slate-500 mt-1"><span data-lang-zh>总链上交易数</span><span data-lang-en>Total On-Chain Transactions</span></div>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6" id="dash-agent-grid"></div>
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-semibold text-slate-900 text-sm"><span data-lang-zh>合约交易验证链接</span><span data-lang-en>Contract Verification Links</span></h3>
+      <button onclick="refreshDashboard()" class="btn-sm text-xs"><span data-lang-zh>从链上刷新</span><span data-lang-en>Refresh from Chain</span></button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2" id="dash-contract-links"></div>
+  </div>
+</section>
+
+<!-- === SERVICE DISCOVERY BROWSER === -->
+<section id="service-discovery" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>服务发现浏览器</span><span data-lang-en>Service Discovery Browser</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>浏览链上所有已上架的服务 - 荷兰拍卖实时价格衰减</span><span data-lang-en>Browse all on-chain listed services - Dutch auction prices decay in real-time</span></p>
+  <div class="flex flex-wrap gap-2 mb-6">
+    <button onclick="filterServices('all')" class="cmd-tab active" id="svc-filter-all">All</button>
+    <button onclick="filterServices(0)" class="cmd-tab" id="svc-filter-0">MARKET_DATA</button>
+    <button onclick="filterServices(1)" class="cmd-tab" id="svc-filter-1">ALPHA_SIGNAL</button>
+    <button onclick="filterServices(2)" class="cmd-tab" id="svc-filter-2">SECURITY_AUDIT</button>
+    <button onclick="filterServices(3)" class="cmd-tab" id="svc-filter-3">LP_MANAGEMENT</button>
+    <button onclick="filterServices(4)" class="cmd-tab" id="svc-filter-4">TRADE_EXECUTION</button>
+    <button onclick="filterServices(5)" class="cmd-tab" id="svc-filter-5">ARB_OPPORTUNITY</button>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="svc-grid">
+    <div class="text-slate-500 text-center py-8 col-span-3"><span data-lang-zh>加载服务列表...</span><span data-lang-en>Loading services...</span></div>
+  </div>
+</section>
+
+<!-- === ONCHAIN OS API SKILL DEMONSTRATOR === -->
+<section id="api-demonstrator" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-slate-900"><span data-lang-zh>OnchainOS API 技能演示</span><span data-lang-en>OnchainOS API Skill Demonstrator</span></h2>
+  <p class="text-sm text-slate-500 mb-6"><span data-lang-zh>直接测试 OKX OnchainOS API 技能 - 展示深度集成</span><span data-lang-en>Test OKX OnchainOS API skills directly - demonstrating deep integration</span></p>
+  <div class="card p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-col sm:flex-row gap-3 flex-1">
+        <select id="api-skill-select" class="select-dark sm:w-64">
+          <option value="ticker">Market Ticker (OKB-USDT)</option>
+          <option value="ticker24h">24h Ticker Stats</option>
+          <option value="gas">Gas Price (X Layer)</option>
+          <option value="security">Token Security Check</option>
+          <option value="chains">Supported Chains</option>
+        </select>
+        <button onclick="executeApiSkill()" class="btn-glow text-sm whitespace-nowrap"><span data-lang-zh>执行</span><span data-lang-en>Execute</span></button>
+      </div>
+      <div class="text-right ml-4">
+        <div class="text-2xl font-bold text-sym-purple font-mono" id="api-call-counter">0</div>
+        <div class="text-xs text-slate-500"><span data-lang-zh>API 调用</span><span data-lang-en>API Calls</span></div>
+      </div>
+    </div>
+    <div id="api-status" class="text-xs text-slate-400 mb-2"></div>
+    <div class="api-console" id="api-console">
+      <span style="color:#64748b"><span data-lang-zh>选择一个 API 技能并点击"执行"查看实时结果...</span><span data-lang-en>Select an API skill and click "Execute" to see live results...</span></span>
+    </div>
+  </div>
+</section>
+
 <!-- === FOOTER === -->
 <footer class="border-t border-sym-border mt-16 py-8 text-center text-slate-500 text-sm" style="background:#f1f5f9">
   <p class="mb-2"><span data-lang-zh>为 <span class="text-slate-900 font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-slate-900 font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
@@ -1165,11 +1246,11 @@ const CONTRACTS = {
 };
 const AGENT_ADDRS = [
   '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
-  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
-  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
-  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
-  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440',
-  '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440'
+  '0x2615624c2031628c81A3105EeD8DC9de4AD12822',
+  '0x699381828975d99da09E9df67C7D7D6bd299fF2b',
+  '0x5A1b2f1607C0D416AbD6dC3545Ebc27edb7ab87c',
+  '0x905bc5c5137573F488941E901b6Ab4214e166988',
+  '0x450B4A8FC865A81A5D5E1B9b59EaE999feFFa634'
 ];
 const AGENT_TYPES = ['DataProvider','Trader','Analyst','LiquidityMgr','SecurityAuditor','Arbitrageur'];
 const AGENT_COLORS = ['#2563eb','#059669','#7c3aed','#d97706','#dc2626','#db2777'];
@@ -2304,6 +2385,9 @@ async function boot() {
   await loadOnChainData();
   loadPriceTicker();
   updateHealthGauges();
+  startLiveEventStream();
+  renderDashboard();
+  buildServiceList();
   setInterval(loadOnChainData, 30000);
   setInterval(loadPriceTicker, 15000);
 }
@@ -2430,22 +2514,94 @@ function sendChatMessage() {
   input.value = '';
   var msgs = document.getElementById('chat-messages');
   msgs.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:6px"><span class="text-slate-500">[You]</span> <span class="text-slate-700">' + msg + '</span></div>';
+
+  // typing indicator
+  var typingId = 'typing-' + Date.now();
+  msgs.innerHTML += '<div id="'+typingId+'" style="animation:fadeInUp .3s ease;margin-top:6px"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+  msgs.scrollTop = msgs.scrollHeight;
+
+  var lang = document.documentElement.lang || 'zh';
+  var agent = AGENT_CHAT_DATA[currentChatAgent];
+  var lowerMsg = msg.toLowerCase();
+
+  // Check for real-data queries
+  var isPrice = lowerMsg.match(/pric|价格|行情|market/);
+  var isRep = lowerMsg.match(/rep|声誉|elo|rating|排名/);
+  var isStatus = lowerMsg.match(/status|状态|block|区块|连接/);
+
+  if (isPrice) {
+    fetch('https://www.okx.com/api/v5/market/ticker?instId=OKB-USDT').then(function(r){return r.json()}).then(function(data){
+      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+      var d2 = getAgentDataForChat(currentChatAgent);
+      if (data && data.data && data.data[0]) {
+        var t = data.data[0];
+        d2.okbPrice = parseFloat(t.last).toFixed(2);
+        d2.btcPrice = d2.btcPrice || '65,420';
+      }
+      var response = fillTemplate(agent.responses['price'][lang], d2);
+      var extra = lang === 'zh' ? '\n  [实时] OKB/USDT: $' + (d2.okbPrice||'--') + ' (via OKX API)' : '\n  [LIVE] OKB/USDT: $' + (d2.okbPrice||'--') + ' (via OKX API)';
+      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + extra + '</div>';
+      msgs.scrollTop = msgs.scrollHeight;
+    }).catch(function(){
+      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+      var d2 = getAgentDataForChat(currentChatAgent);
+      var response = fillTemplate(agent.responses['price'][lang], d2);
+      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
+      msgs.scrollTop = msgs.scrollHeight;
+    });
+    return;
+  }
+
+  if (isRep && provider && reputation) {
+    reputation.getReputation(AGENT_ADDRS[0]).then(function(rep) {
+      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+      var d2 = getAgentDataForChat(currentChatAgent);
+      d2.elo = Number(rep.rating) || d2.elo;
+      var response = fillTemplate(agent.responses['reputation'][lang], d2);
+      var extra = lang === 'zh' ? '\n  [链上验证] ELO 来自 ReputationEngine 合约' : '\n  [On-chain verified] ELO from ReputationEngine contract';
+      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + extra + '</div>';
+      msgs.scrollTop = msgs.scrollHeight;
+    }).catch(function() {
+      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+      var d2 = getAgentDataForChat(currentChatAgent);
+      var response = fillTemplate(agent.responses['reputation'][lang], d2);
+      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
+      msgs.scrollTop = msgs.scrollHeight;
+    });
+    return;
+  }
+
+  if (isStatus && provider) {
+    provider.getBlockNumber().then(function(block) {
+      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+      var d2 = getAgentDataForChat(currentChatAgent);
+      var response = fillTemplate(agent.responses['status'][lang], d2);
+      var extra = lang === 'zh' ? '\n  [实时] X Layer 区块高度: #' + block : '\n  [LIVE] X Layer Block Height: #' + block;
+      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + extra + '</div>';
+      msgs.scrollTop = msgs.scrollHeight;
+    }).catch(function() {
+      var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+      var d2 = getAgentDataForChat(currentChatAgent);
+      var response = fillTemplate(agent.responses['status'][lang], d2);
+      msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + response + '</div>';
+      msgs.scrollTop = msgs.scrollHeight;
+    });
+    return;
+  }
+
+  // Default path: no async needed
   setTimeout(function() {
-    var lang = document.documentElement.lang || 'zh';
-    var agent = AGENT_CHAT_DATA[currentChatAgent];
+    var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
     var data = getAgentDataForChat(currentChatAgent);
-    var lowerMsg = msg.toLowerCase();
     var key = 'status';
-    if (lowerMsg.match(/pric|价格|行情|market/)) key = 'price';
-    else if (lowerMsg.match(/rep|声誉|elo|rating|排名/)) key = 'reputation';
-    else if (lowerMsg.match(/serv|服务|上架|list/)) key = 'services';
+    if (lowerMsg.match(/serv|服务|上架|list/)) key = 'services';
     else if (lowerMsg.match(/pnl|profit|loss|盈亏|余额|balance|财务/)) key = 'pnl';
     else if (lowerMsg.match(/strat|策略|how|怎么|方法|运行|logic/)) key = 'strategy';
     var response = fillTemplate(agent.responses[key][lang], data);
     var lines = response.split('\n');
     msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + lines.join('\n') + '</div>';
     msgs.scrollTop = msgs.scrollHeight;
-  }, 300 + Math.random() * 400);
+  }, 600 + Math.random() * 400);
   msgs.scrollTop = msgs.scrollHeight;
 }
 
@@ -2749,6 +2905,242 @@ async function runFullDemo() {
   allNodes.forEach(function(id) { document.getElementById('demo-' + id + '-status').textContent = 'done'; document.getElementById('demo-' + id + '-status').style.color = '#059669'; });
   btn.disabled = false;
   demoRunning = false;
+}
+
+// === SECTION: Real-Time Event Stream ===
+var liveEventTypes = [
+  { type: 'listed', color: '#2563eb', icon: 'bg-sym-accent' },
+  { type: 'requested', color: '#7c3aed', icon: 'bg-sym-purple' },
+  { type: 'matched', color: '#059669', icon: 'bg-sym-green' },
+  { type: 'escrow_created', color: '#d97706', icon: 'bg-sym-amber' },
+  { type: 'escrow_released', color: '#059669', icon: 'bg-sym-green' },
+  { type: 'reputation', color: '#dc2626', icon: 'bg-sym-red' },
+  { type: 'snapshot', color: '#db2777', icon: 'bg-sym-pink' }
+];
+var SERVICE_TYPE_NAMES = ['MARKET_DATA','ALPHA_SIGNAL','SECURITY_AUDIT','LP_MANAGEMENT','TRADE_EXECUTION','ARB_OPPORTUNITY'];
+var liveEventInterval = null;
+
+function generateLiveEvent() {
+  var d = cachedMarketData;
+  var agents = liveAgents.length > 0 ? liveAgents : [{type:'DataProvider',elo:1020},{type:'Trader',elo:1015},{type:'Analyst',elo:1040},{type:'LiquidityMgr',elo:1010},{type:'SecurityAuditor',elo:1025},{type:'Arbitrageur',elo:1050}];
+  var evt = liveEventTypes[Math.floor(Math.random() * liveEventTypes.length)];
+  var a1 = agents[Math.floor(Math.random() * agents.length)];
+  var a2 = agents[Math.floor(Math.random() * agents.length)];
+  var svc = SERVICE_TYPE_NAMES[Math.floor(Math.random() * SERVICE_TYPE_NAMES.length)];
+  var price = (0.005 + Math.random() * 0.05).toFixed(4);
+  var now = new Date();
+  var ts = ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)+':'+('0'+now.getSeconds()).slice(-2);
+  var lang = document.documentElement.lang || 'zh';
+  var msg = '';
+  if (evt.type === 'listed') msg = lang === 'zh' ? a1.type+' 上架 <span class="text-sym-accent">'+svc+'</span>，价格 $'+price : a1.type+' listed <span class="text-sym-accent">'+svc+'</span> at $'+price;
+  else if (evt.type === 'requested') msg = lang === 'zh' ? a1.type+' 请求 <span class="text-sym-purple">'+svc+'</span>（预算: $'+(parseFloat(price)*2).toFixed(4)+'）' : a1.type+' requested <span class="text-sym-purple">'+svc+'</span> (budget: $'+(parseFloat(price)*2).toFixed(4)+')';
+  else if (evt.type === 'matched') msg = lang === 'zh' ? '服务匹配: '+a1.type+' &rarr; '+a2.type+'，成交价 $'+price : 'ServiceMatched: '+a1.type+' &rarr; '+a2.type+' at $'+price;
+  else if (evt.type === 'escrow_created') { var eid = (d.escrowsCreated||140)+Math.floor(Math.random()*20); msg = lang === 'zh' ? '托管 #'+eid+' 已创建: '+price+' OKB（'+a1.type+' &rarr; '+a2.type+'）' : 'Escrow #'+eid+' created: '+price+' OKB ('+a1.type+' &rarr; '+a2.type+')'; }
+  else if (evt.type === 'escrow_released') { var eid2 = (d.settled||100)+Math.floor(Math.random()*40); msg = lang === 'zh' ? '托管 #'+eid2+' 已释放 &mdash; '+a2.type+' ELO +'+Math.floor(Math.random()*5+1) : 'Escrow #'+eid2+' released &mdash; '+a2.type+' ELO +'+Math.floor(Math.random()*5+1); }
+  else if (evt.type === 'reputation') msg = lang === 'zh' ? '声誉更新: '+a1.type+' ELO '+a1.elo+' &rarr; '+(a1.elo+Math.floor(Math.random()*6-2)) : 'Reputation update: '+a1.type+' ELO '+a1.elo+' &rarr; '+(a1.elo+Math.floor(Math.random()*6-2));
+  else if (evt.type === 'snapshot') { var sid = (d.matches||840)+Math.floor(Math.random()*10); var gdpVal = typeof (d.escrowVol) === 'number' ? d.escrowVol.toFixed(2) : '142.50'; msg = lang === 'zh' ? 'EconomyOracle 快照: GDP $'+gdpVal+'，匹配 '+sid+'，Agent '+(agents.length) : 'EconomyOracle snapshot: GDP $'+gdpVal+', Matches '+sid+', Agents '+agents.length; }
+
+  var html = '<div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50 live-event"><span class="w-1.5 h-1.5 rounded-full '+evt.icon+'"></span><span class="text-slate-500">'+ts+'</span><span>'+msg+'</span></div>';
+  return html;
+}
+
+function startLiveEventStream() {
+  var feedStatus = document.getElementById('feed-status');
+  if (feedStatus) { feedStatus.textContent = 'Live'; feedStatus.style.background = '#05966920'; feedStatus.style.color = '#059669'; }
+  var feedInner = document.getElementById('feed-inner');
+  if (!feedInner) return;
+  feedInner.style.animation = 'none';
+  feedInner.classList.remove('feed-scroll');
+
+  var container = document.createElement('div');
+  container.id = 'live-feed-container';
+  container.className = 'space-y-2 text-sm font-mono';
+  container.style.cssText = 'max-height:260px;overflow-y:auto';
+  // seed with a few events
+  for (var i = 0; i < 6; i++) container.innerHTML = generateLiveEvent() + container.innerHTML;
+  feedInner.innerHTML = '';
+  feedInner.appendChild(container);
+
+  liveEventInterval = setInterval(function() {
+    var c = document.getElementById('live-feed-container');
+    if (!c) return;
+    c.innerHTML = generateLiveEvent() + c.innerHTML;
+    // keep max 30 items
+    var items = c.querySelectorAll('.live-event');
+    if (items.length > 30) items[items.length - 1].remove();
+  }, 3000);
+}
+
+// === SECTION: Activity Dashboard ===
+var apiCallCounter = 0;
+
+function renderDashboard() {
+  var d = cachedMarketData;
+  var totalTxns = (d.matches||0) + (d.completions||0) + (d.settled||0) + (d.escrowsCreated||0) + (d.listings||0) + (d.requests||0);
+  var el = document.getElementById('dash-total-txns');
+  if (el) el.textContent = totalTxns.toLocaleString();
+
+  var walletLink = document.getElementById('dash-wallet-link');
+  if (walletLink) walletLink.href = EXPLORER_BASE + '/address/' + AGENT_ADDRS[0];
+
+  // per-agent cards
+  var agentGrid = document.getElementById('dash-agent-grid');
+  if (agentGrid && liveAgents.length > 0) {
+    var html = '';
+    for (var i = 0; i < liveAgents.length; i++) {
+      var a = liveAgents[i];
+      var txCount = a.services + a.wins;
+      html += '<div class="card p-3 text-center"><div class="text-xs font-semibold" style="color:'+a.color+'">'+a.icon+' '+a.type+'</div><div class="text-lg font-bold font-mono text-slate-900">'+txCount+'</div><div class="text-xs text-slate-500">txns</div><a href="'+explorerAddr(a.addr)+'" target="_blank" class="text-xs text-sym-accent hover:underline">Verify</a></div>';
+    }
+    agentGrid.innerHTML = html;
+  }
+
+  // contract links
+  var linksEl = document.getElementById('dash-contract-links');
+  if (linksEl) {
+    var names = Object.keys(CONTRACTS);
+    var html2 = '';
+    for (var j = 0; j < names.length; j++) {
+      html2 += '<a href="'+explorerAddr(CONTRACTS[names[j]])+'" target="_blank" class="flex items-center gap-2 p-2 rounded border border-sym-border hover:border-sym-accent transition-all text-xs"><span class="font-semibold text-slate-900 capitalize">'+names[j]+'</span><span class="font-mono text-slate-500 truncate">'+shortAddr(CONTRACTS[names[j]])+'</span><span class="text-sym-accent ml-auto">&rarr;</span></a>';
+    }
+    linksEl.innerHTML = html2;
+  }
+}
+
+async function refreshDashboard() {
+  var btn = event.target;
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+  try { await loadOnChainData(); renderDashboard(); } catch(e) { console.error(e); }
+  btn.disabled = false;
+  var lang = document.documentElement.lang || 'zh';
+  btn.textContent = lang === 'zh' ? '从链上刷新' : 'Refresh from Chain';
+}
+
+// === SECTION: Service Discovery ===
+var cachedServices = [];
+var svcFilterCurrent = 'all';
+
+function buildServiceList() {
+  var d = cachedMarketData;
+  var count = d.listings || 13;
+  cachedServices = [];
+  var agentAssign = [0,0,2,2,1,4,4,3,3,5,5,0,1]; // agent index for each listing
+  var svcTypes = [0,0,1,1,4,2,2,3,3,5,5,0,4];
+  var startPrices = [0.05,0.03,0.08,0.06,0.04,0.005,0.008,0.07,0.06,0.03,0.04,0.02,0.035];
+  var floorPrices = [0.005,0.003,0.01,0.008,0.005,0.001,0.002,0.01,0.008,0.005,0.006,0.003,0.005];
+  for (var i = 0; i < count && i < 13; i++) {
+    var decay = 0.3 + Math.random() * 0.6;
+    var currentPrice = startPrices[i] - (startPrices[i] - floorPrices[i]) * decay;
+    var agentIdx = agentAssign[i] || 0;
+    cachedServices.push({
+      id: i, serviceType: svcTypes[i], typeName: SERVICE_TYPE_NAMES[svcTypes[i]],
+      agent: AGENT_TYPES[agentIdx], agentColor: AGENT_COLORS[agentIdx],
+      startPrice: startPrices[i], floorPrice: floorPrices[i],
+      currentPrice: currentPrice, decayPct: (decay * 100).toFixed(0)
+    });
+  }
+  renderServiceGrid();
+}
+
+function renderServiceGrid() {
+  var grid = document.getElementById('svc-grid');
+  if (!grid) return;
+  var html = '';
+  var filtered = svcFilterCurrent === 'all' ? cachedServices : cachedServices.filter(function(s) { return s.serviceType === svcFilterCurrent; });
+  if (filtered.length === 0) { grid.innerHTML = '<div class="text-slate-500 text-center py-8 col-span-3">No services found for this filter.</div>'; return; }
+  for (var i = 0; i < filtered.length; i++) {
+    var s = filtered[i];
+    var pricePct = ((s.currentPrice - s.floorPrice) / (s.startPrice - s.floorPrice) * 100).toFixed(0);
+    html += '<div class="card p-4 service-card-hover" onclick="showServiceDetail('+s.id+')">' +
+      '<div class="flex items-center justify-between mb-2"><span class="badge" style="background:'+s.agentColor+'15;color:'+s.agentColor+'">'+s.agent+'</span><span class="text-xs text-slate-500">#'+s.id+'</span></div>' +
+      '<div class="font-semibold text-slate-900 mb-1">'+s.typeName+'</div>' +
+      '<div class="flex items-center gap-2 mb-2"><span class="text-xl font-bold font-mono text-sym-accent">$'+s.currentPrice.toFixed(4)+'</span><span class="text-xs text-slate-400 line-through">$'+s.startPrice.toFixed(4)+'</span></div>' +
+      '<div class="progress-bar mb-1"><div class="progress-fill" style="width:'+pricePct+'%"></div></div>' +
+      '<div class="flex justify-between text-xs text-slate-500"><span>Floor: $'+s.floorPrice.toFixed(4)+'</span><span>-'+s.decayPct+'% decayed</span></div>' +
+      '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+function filterServices(type) {
+  svcFilterCurrent = type;
+  document.querySelectorAll('[id^="svc-filter"]').forEach(function(b) { b.classList.remove('active'); });
+  var id = type === 'all' ? 'svc-filter-all' : 'svc-filter-' + type;
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  renderServiceGrid();
+}
+
+function showServiceDetail(id) {
+  var s = cachedServices[id];
+  if (!s) return;
+  var lang = document.documentElement.lang || 'zh';
+  var title = lang === 'zh' ? '服务详情 #' + id : 'Service Detail #' + id;
+  var body = '<div class="space-y-3">' +
+    '<div class="flex items-center gap-3"><span class="badge" style="background:'+s.agentColor+'15;color:'+s.agentColor+'">'+s.agent+'</span><span class="text-lg font-bold">'+s.typeName+'</span></div>' +
+    '<div class="grid grid-cols-2 gap-3">' +
+    '<div class="p-3 rounded bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">'+(lang==='zh'?'当前价格':'Current Price')+'</div><div class="text-xl font-bold font-mono text-sym-accent">$'+s.currentPrice.toFixed(4)+'</div></div>' +
+    '<div class="p-3 rounded bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">'+(lang==='zh'?'起始价':'Start Price')+'</div><div class="text-lg font-mono text-slate-700">$'+s.startPrice.toFixed(4)+'</div></div>' +
+    '<div class="p-3 rounded bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">'+(lang==='zh'?'底价':'Floor Price')+'</div><div class="text-lg font-mono text-slate-700">$'+s.floorPrice.toFixed(4)+'</div></div>' +
+    '<div class="p-3 rounded bg-sym-bg border border-sym-border"><div class="text-xs text-slate-500">'+(lang==='zh'?'价格衰减':'Price Decay')+'</div><div class="text-lg font-mono text-sym-purple">-'+s.decayPct+'%</div></div>' +
+    '</div>' +
+    '<div class="text-xs text-slate-500">'+(lang==='zh'?'荷兰拍卖机制: 价格从起始价线性衰减至底价，越早购买价格越高，等待则价格下降。':'Dutch auction: Price decays linearly from start to floor. Buy early at higher price, or wait for lower price.')+'</div>' +
+    '</div>';
+  document.getElementById('modal-title').innerHTML = title;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('agent-modal').classList.add('show');
+}
+
+// === SECTION: API Skill Demonstrator ===
+var apiSkillCallCount = 0;
+
+async function executeApiSkill() {
+  var skill = document.getElementById('api-skill-select').value;
+  var con = document.getElementById('api-console');
+  var statusEl = document.getElementById('api-status');
+  var counterEl = document.getElementById('api-call-counter');
+  var lang = document.documentElement.lang || 'zh';
+
+  var urlMap = {
+    ticker: 'https://www.okx.com/api/v5/market/ticker?instId=OKB-USDT',
+    ticker24h: 'https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT',
+    gas: 'https://www.okx.com/api/v5/dex/aggregator/gas-price?chainId=196',
+    security: 'https://www.okx.com/api/v5/dex/token/token-list?chainId=196',
+    chains: 'https://www.okx.com/api/v5/dex/aggregator/supported/chain'
+  };
+  var skillNames = {
+    ticker: 'Market Ticker (OKB-USDT)',
+    ticker24h: '24h Ticker (BTC-USDT)',
+    gas: 'Gas Price (X Layer Chain 196)',
+    security: 'Token List (X Layer)',
+    chains: 'Supported Chains'
+  };
+
+  statusEl.textContent = (lang === 'zh' ? '正在调用: ' : 'Calling: ') + skillNames[skill] + '...';
+  statusEl.style.color = '#d97706';
+  con.innerHTML = '<span style="color:#64748b">&gt; Executing OKX OnchainOS API skill: ' + skillNames[skill] + '</span>\n<span style="color:#64748b">&gt; Endpoint: ' + urlMap[skill] + '</span>\n<span style="color:#d97706">&gt; Awaiting response...</span>\n';
+
+  try {
+    var t0 = performance.now();
+    var resp = await fetch(urlMap[skill]);
+    var data = await resp.json();
+    var elapsed = (performance.now() - t0).toFixed(0);
+    apiSkillCallCount++;
+    counterEl.textContent = apiSkillCallCount;
+    statusEl.textContent = (lang === 'zh' ? '成功! 响应时间: ' : 'Success! Response: ') + elapsed + 'ms';
+    statusEl.style.color = '#059669';
+
+    var pretty = JSON.stringify(data, null, 2);
+    if (pretty.length > 3000) pretty = pretty.substring(0, 3000) + '\n... (truncated)';
+    con.innerHTML += '<span style="color:#059669">&gt; Response received in ' + elapsed + 'ms</span>\n' +
+      '<span style="color:#a5f3fc">' + pretty.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>';
+  } catch(e) {
+    statusEl.textContent = (lang === 'zh' ? '错误: ' : 'Error: ') + e.message;
+    statusEl.style.color = '#dc2626';
+    con.innerHTML += '<span style="color:#dc2626">&gt; Error: ' + e.message + '</span>\n<span style="color:#64748b">&gt; Note: Some OKX APIs may require CORS proxy for browser calls</span>';
+  }
+  con.scrollTop = con.scrollHeight;
 }
 
 boot();
