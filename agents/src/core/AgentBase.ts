@@ -14,6 +14,7 @@ import {
   ESCROW_SETTLEMENT_ABI,
   AGENT_TREASURY_ABI,
   ECONOMY_ORACLE_ABI,
+  GOVERNANCE_REGISTRY_ABI,
   AgentType,
 } from "../config/contracts.js";
 
@@ -24,6 +25,7 @@ export interface AgentContracts {
   escrow: Contract;
   treasury: Contract;
   oracle: Contract;
+  governance: Contract;
 }
 
 export abstract class AgentBase {
@@ -63,6 +65,7 @@ export abstract class AgentBase {
       escrow: new Contract(ADDRESSES.EscrowSettlement, ESCROW_SETTLEMENT_ABI, this.wallet),
       treasury: new Contract(ADDRESSES.AgentTreasury, AGENT_TREASURY_ABI, this.wallet),
       oracle: new Contract(ADDRESSES.EconomyOracle, ECONOMY_ORACLE_ABI, this.wallet),
+      governance: new Contract(ADDRESSES.GovernanceRegistry, GOVERNANCE_REGISTRY_ABI, this.wallet),
     };
   }
 

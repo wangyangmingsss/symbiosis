@@ -19,6 +19,7 @@ export const ADDRESSES = {
   EscrowSettlement:   process.env.ADDR_ESCROW         ?? "0x160dDA2B8dc2f0136AFA6BFbC54D3127163E428A",
   AgentTreasury:      process.env.ADDR_TREASURY       ?? "0x1CE0CAe16F38B32a0dc1aB1fe4E34eFC4942A5F7",
   EconomyOracle:      process.env.ADDR_ORACLE         ?? "0x72d0B059941B0603bff3593Fa2c8Ca26825AE834",
+  GovernanceRegistry: process.env.ADDR_GOVERNANCE     ?? "0x016C98657AEE961f5764359030aa15a2fb174351",
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -103,4 +104,18 @@ export const ECONOMY_ORACLE_ABI = [
   "function takeSnapshot(uint256 activeAgents, uint256 totalListings, uint256 totalRequests, uint256 totalMatches, uint256 totalEscrowVolume, uint256 totalSettled, uint256 gdp) external",
   "function getLatestSnapshot() external view returns (tuple(uint256 timestamp, uint256 activeAgents, uint256 totalListings, uint256 totalRequests, uint256 totalMatches, uint256 totalEscrowVolume, uint256 totalSettled, uint256 gdp))",
   "function getGrowthRate() external view returns (int256)",
+] as const;
+
+export const GOVERNANCE_REGISTRY_ABI = [
+  "function createProposal(uint8 proposalType, string description) external returns (uint256)",
+  "function vote(uint256 proposalId, bool support) external",
+  "function finalizeProposal(uint256 proposalId) external",
+  "function executeProposal(uint256 proposalId) external",
+  "function getProposal(uint256 proposalId) external view returns (tuple(uint256 id, address proposer, uint8 proposalType, string description, uint256 createdAtBlock, uint256 votingEndsAtBlock, uint256 yesVotes, uint256 noVotes, uint8 status, bool executed))",
+  "function getProposalCount() external view returns (uint256)",
+  "function getVote(uint256 proposalId, address voter) external view returns (bool support, bool voted)",
+  "function hasVoted(uint256 proposalId, address voter) external view returns (bool)",
+  "function isProposalActive(uint256 proposalId) external view returns (bool)",
+  "function votingWindow() external view returns (uint256)",
+  "function QUORUM() external view returns (uint256)",
 ] as const;

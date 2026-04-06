@@ -127,6 +127,7 @@ AgentRegistry -> ReputationEngine -> ServiceMarketplace -> EscrowSettlement -> A
 | **EscrowSettlement** | `0x160dDA2B8dc2f0136AFA6BFbC54D3127163E428A` |
 | **AgentTreasury** | `0x1CE0CAe16F38B32a0dc1aB1fe4E34eFC4942A5F7` |
 | **EconomyOracle** | `0x72d0B059941B0603bff3593Fa2c8Ca26825AE834` |
+| **GovernanceRegistry** | `0x016C98657AEE961f5764359030aa15a2fb174351` |
 
 ### 已注册代理钱包
 

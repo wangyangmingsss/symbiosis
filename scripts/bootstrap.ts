@@ -95,6 +95,7 @@ const ADDRESSES = {
   EscrowSettlement:   process.env.ADDR_ESCROW      ?? "0x160dDA2B8dc2f0136AFA6BFbC54D3127163E428A",
   AgentTreasury:      process.env.ADDR_TREASURY    ?? "0x1CE0CAe16F38B32a0dc1aB1fe4E34eFC4942A5F7",
   EconomyOracle:      process.env.ADDR_ORACLE      ?? "0x72d0B059941B0603bff3593Fa2c8Ca26825AE834",
+  GovernanceRegistry: process.env.ADDR_GOVERNANCE  ?? "0x016C98657AEE961f5764359030aa15a2fb174351",
 };
 
 /** Keccak-256 hashes of canonical service type strings */
