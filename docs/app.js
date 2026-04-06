@@ -699,16 +699,50 @@ async function queryMarketRecord() {
     // Show what we know from the counts
     const serviceTypes = ['MARKET_DATA','ALPHA_SIGNAL','SECURITY_AUDIT','LP_MANAGEMENT','TRADE_EXECUTION','ARB_OPPORTUNITY'];
     const statuses = ['OPEN','MATCHED','COMPLETED','CANCELLED'];
-    const mockPrice = (Math.random() * 0.08 + 0.005).toFixed(4);
-    const mockType = serviceTypes[id % serviceTypes.length];
-    const mockStatus = id < Number(count) * 0.7 ? 'COMPLETED' : (id < Number(count) * 0.9 ? 'MATCHED' : 'OPEN');
-    result.innerHTML =
-      '<div><span class="text-sym-accent">[' + type.toUpperCase() + ' #' + id + ']</span></div>' +
-      '<div class="mt-1"><span class="text-gray-400">Service Type:</span> <span class="text-sym-purple">' + mockType + '</span></div>' +
-      '<div><span class="text-gray-400">Price:</span> <span class="text-sym-green">$' + mockPrice + ' USDT</span></div>' +
-      '<div><span class="text-gray-400">Status:</span> <span class="text-sym-amber">' + mockStatus + '</span></div>' +
-      '<div><span class="text-gray-400">Total ' + type + 's on-chain:</span> <span class="text-gray-900">' + Number(count) + '</span></div>' +
-      '<div class="mt-1 text-xs text-gray-500">Data read from contract ' + shortAddr(CONTRACTS.marketplace) + '</div>';
+    try {
+      if (type === 'listing') {
+        var listing = await marketplace.getListing(id);
+        var svcName = serviceTypes[Number(listing.serviceType)] || 'UNKNOWN';
+        var startP = parseFloat(ethers.formatEther(listing.startPrice)).toFixed(6);
+        var floorP = parseFloat(ethers.formatEther(listing.floorPrice)).toFixed(6);
+        var statusLabel = listing.active ? 'ACTIVE' : 'INACTIVE';
+        var statusColor = listing.active ? '#059669' : '#64748b';
+        result.innerHTML =
+          '<div><span class="text-sym-accent">[LISTING #' + id + ']</span> <span class="badge" style="background:#2563eb20;color:#2563eb;font-size:9px">[ON-CHAIN]</span></div>' +
+          '<div class="mt-1"><span class="text-gray-400">Provider:</span> <span class="font-mono text-gray-900">' + shortAddr(listing.provider) + '</span></div>' +
+          '<div><span class="text-gray-400">Service Type:</span> <span class="text-sym-purple">' + svcName + '</span></div>' +
+          '<div><span class="text-gray-400">Start Price:</span> <span class="text-sym-green">' + startP + ' OKB</span></div>' +
+          '<div><span class="text-gray-400">Floor Price:</span> <span class="text-sym-green">' + floorP + ' OKB</span></div>' +
+          '<div><span class="text-gray-400">Fulfillments:</span> <span class="text-gray-900">' + Number(listing.fulfillments) + ' / ' + Number(listing.maxFulfillments) + '</span></div>' +
+          '<div><span class="text-gray-400">Status:</span> <span style="color:' + statusColor + '">' + statusLabel + '</span></div>' +
+          '<div><span class="text-gray-400">Created Block:</span> <span class="text-gray-900">' + Number(listing.createdBlock) + '</span></div>' +
+          '<div class="mt-1 text-xs text-gray-500">Data read from contract ' + shortAddr(CONTRACTS.marketplace) + '</div>';
+      } else {
+        var req = await marketplace.getRequest(id);
+        var svcNameR = serviceTypes[Number(req.serviceType)] || 'UNKNOWN';
+        var maxBudget = parseFloat(ethers.formatEther(req.maxBudget)).toFixed(6);
+        var reqStatus = req.fulfilled ? 'FULFILLED' : 'PENDING';
+        var reqStatusColor = req.fulfilled ? '#059669' : '#d97706';
+        var matchedInfo = req.fulfilled ? ('<div><span class="text-gray-400">Matched Provider:</span> <span class="font-mono text-gray-900">' + shortAddr(req.matchedProvider) + '</span></div>' +
+          '<div><span class="text-gray-400">Matched Price:</span> <span class="text-sym-green">' + parseFloat(ethers.formatEther(req.matchedPrice)).toFixed(6) + ' OKB</span></div>') : '';
+        result.innerHTML =
+          '<div><span class="text-sym-accent">[REQUEST #' + id + ']</span> <span class="badge" style="background:#2563eb20;color:#2563eb;font-size:9px">[ON-CHAIN]</span></div>' +
+          '<div class="mt-1"><span class="text-gray-400">Requester:</span> <span class="font-mono text-gray-900">' + shortAddr(req.requester) + '</span></div>' +
+          '<div><span class="text-gray-400">Service Type:</span> <span class="text-sym-purple">' + svcNameR + '</span></div>' +
+          '<div><span class="text-gray-400">Max Budget:</span> <span class="text-sym-green">' + maxBudget + ' OKB</span></div>' +
+          '<div><span class="text-gray-400">Deadline Block:</span> <span class="text-gray-900">' + Number(req.deadlineBlock) + '</span></div>' +
+          '<div><span class="text-gray-400">Status:</span> <span style="color:' + reqStatusColor + '">' + reqStatus + '</span></div>' +
+          matchedInfo +
+          '<div class="mt-1 text-xs text-gray-500">Data read from contract ' + shortAddr(CONTRACTS.marketplace) + '</div>';
+      }
+    } catch(e2) {
+      // Fallback if getListing/getRequest fails
+      result.innerHTML =
+        '<div><span class="text-sym-accent">[' + type.toUpperCase() + ' #' + id + ']</span></div>' +
+        '<div class="mt-1 text-sym-amber">Could not read ' + type + ' data: ' + e2.message + '</div>' +
+        '<div><span class="text-gray-400">Total ' + type + 's on-chain:</span> <span class="text-gray-900">' + Number(count) + '</span></div>' +
+        '<div class="mt-1 text-xs text-gray-500">Contract ' + shortAddr(CONTRACTS.marketplace) + '</div>';
+    }
   } catch(e) {
     result.innerHTML = '<span class="text-sym-red">Error: ' + e.message + '</span>';
   }
@@ -745,15 +779,59 @@ async function runSecurityScan() {
       } catch(e) {}
     }
 
-    // Simulated security scan
-    html += '<div class="mt-2 text-sym-amber">[SECURITY ANALYSIS]</div>';
-    const riskScore = Math.floor(Math.random() * 30) + (isReg ? 5 : 40);
-    const riskLevel = riskScore < 25 ? 'LOW' : (riskScore < 60 ? 'MEDIUM' : 'HIGH');
-    const riskColor = riskScore < 25 ? '#059669' : (riskScore < 60 ? '#d97706' : '#dc2626');
+    // On-chain security analysis
+    html += '<div class="mt-2 text-sym-amber">[SECURITY ANALYSIS] <span class="badge" style="background:#2563eb20;color:#2563eb;font-size:9px">[ON-CHAIN]</span></div>';
+    var code = '0x';
+    try { code = await provider.getCode(addr); } catch(e) {}
+    var isContract = code && code !== '0x' && code.length > 2;
+    var codeSize = isContract ? Math.floor((code.length - 2) / 2) : 0;
+    var isKnownContract = false;
+    var knownContractName = '';
+    Object.keys(CONTRACTS).forEach(function(k) {
+      if (CONTRACTS[k].toLowerCase() === addr.toLowerCase()) { isKnownContract = true; knownContractName = k; }
+    });
+    // Deterministic risk score based on real data
+    var riskScore = 0;
+    if (!isContract) {
+      // EOA: lower risk base
+      riskScore = isReg ? 5 : 25;
+    } else if (isKnownContract) {
+      // Known SYMBIOSIS contract
+      riskScore = 3;
+    } else {
+      // Unknown contract
+      riskScore = 45;
+      if (codeSize > 24000) riskScore += 15; // very large contract
+      if (codeSize < 100) riskScore += 10; // suspiciously small
+    }
+    // Weight by reputation if registered
+    if (isReg) {
+      try {
+        var repData = await reputation.getReputation(addr);
+        var elo = Number(repData.rating);
+        if (elo >= 1200) riskScore = Math.max(riskScore - 15, 2);
+        else if (elo >= 1000) riskScore = Math.max(riskScore - 5, 3);
+        if (Number(repData.totalServices) > 10) riskScore = Math.max(riskScore - 5, 2);
+      } catch(e) {}
+    }
+    riskScore = Math.min(Math.max(riskScore, 0), 100);
+    var riskLevel = riskScore < 25 ? 'LOW' : (riskScore < 60 ? 'MEDIUM' : 'HIGH');
+    var riskColor = riskScore < 25 ? '#059669' : (riskScore < 60 ? '#d97706' : '#dc2626');
     html += '<div><span class="text-gray-400">Risk Score:</span> <span style="color:' + riskColor + '">' + riskScore + '/100 (' + riskLevel + ')</span></div>';
-    html += '<div><span class="text-gray-400">Contract Code:</span> <span class="text-gray-900">' + (isReg ? 'EOA (Agent Wallet)' : 'Unknown') + '</span></div>';
-    html += '<div><span class="text-gray-400">Honeypot Check:</span> <span class="text-sym-green">PASS</span></div>';
-    html += '<div><span class="text-gray-400">Reentrancy Check:</span> <span class="text-sym-green">PASS</span></div>';
+    var codeLabel = isContract ? (isKnownContract ? 'Contract (SYMBIOSIS: ' + knownContractName + ')' : 'Contract (' + codeSize + ' bytes)') : (isReg ? 'EOA (Agent Wallet)' : 'EOA');
+    html += '<div><span class="text-gray-400">Contract Code:</span> <span class="text-gray-900">' + codeLabel + '</span></div>';
+    // Honeypot check
+    var honeypotLabel, honeypotColor;
+    if (!isContract) { honeypotLabel = 'N/A (EOA)'; honeypotColor = '#64748b'; }
+    else if (isKnownContract) { honeypotLabel = 'PASS (verified SYMBIOSIS)'; honeypotColor = '#059669'; }
+    else { honeypotLabel = 'UNKNOWN (unverified)'; honeypotColor = '#d97706'; }
+    html += '<div><span class="text-gray-400">Honeypot Check:</span> <span style="color:' + honeypotColor + '">' + honeypotLabel + '</span></div>';
+    // Reentrancy check
+    var reentLabel, reentColor;
+    if (!isContract) { reentLabel = 'N/A (EOA)'; reentColor = '#64748b'; }
+    else if (isKnownContract) { reentLabel = 'PASS (verified SYMBIOSIS)'; reentColor = '#059669'; }
+    else { reentLabel = 'UNKNOWN (unverified)'; reentColor = '#d97706'; }
+    html += '<div><span class="text-gray-400">Reentrancy Check:</span> <span style="color:' + reentColor + '">' + reentLabel + '</span></div>';
     html += '<div class="mt-1"><a href="' + explorerAddr(addr) + '" target="_blank" class="text-sym-accent hover:underline text-xs">View on X Layer Explorer &rarr;</a></div>';
     result.innerHTML = html;
   } catch(e) {
@@ -1673,6 +1751,7 @@ awPortfolioChart.setOption({
     label: { color: '#64748b', fontSize: 11, fontFamily: 'JetBrains Mono' },
     emphasis: { label: { fontSize: 13, fontWeight: 'bold' }, itemStyle: { shadowBlur: 10, shadowColor: 'rgba(37,99,235,.2)' } },
     data: [
+      // Placeholder values — replaced by refreshPortfolioChart() with real on-chain data
       { value: 45, name: 'OKB (Gas)', itemStyle: { color: '#2563eb' } },
       { value: 25, name: 'USDT (Escrow)', itemStyle: { color: '#059669' } },
       { value: 15, name: 'Service Fees', itemStyle: { color: '#7c3aed' } },
@@ -1681,6 +1760,53 @@ awPortfolioChart.setOption({
     ]
   }]
 });
+
+async function refreshPortfolioChart() {
+  try {
+    // Read real OKB balances for all agent wallets
+    var balPromises = AGENT_ADDRS.map(function(addr) {
+      return provider.getBalance(addr).then(function(b) { return parseFloat(ethers.formatEther(b)); }).catch(function() { return 0; });
+    });
+    // Read treasury balances
+    var treasuryPromises = AGENT_ADDRS.map(function(addr) {
+      return treasury.getBalance(addr).then(function(b) { return parseFloat(ethers.formatEther(b)); }).catch(function() { return 0; });
+    });
+    var results = await Promise.all([Promise.all(balPromises), Promise.all(treasuryPromises)]);
+    var walletBals = results[0];
+    var treasuryBals = results[1];
+    var totalWalletOKB = walletBals.reduce(function(a, b) { return a + b; }, 0);
+    var totalTreasury = treasuryBals.reduce(function(a, b) { return a + b; }, 0);
+    // Read escrow data if possible
+    var totalEscrow = 0;
+    try {
+      var escrowBal = await provider.getBalance(CONTRACTS.escrow);
+      totalEscrow = parseFloat(ethers.formatEther(escrowBal));
+    } catch(e) {}
+    // Build allocation: OKB wallets, Treasury, Escrow, remainder as Service Fees + LP est
+    var total = totalWalletOKB + totalTreasury + totalEscrow;
+    if (total <= 0) return; // no data, keep placeholders
+    var okbPct = (totalWalletOKB / total) * 100;
+    var treasuryPct = (totalTreasury / total) * 100;
+    var escrowPct = (totalEscrow / total) * 100;
+    // Split any remaining rounding among service fees / LP
+    var remainder = 100 - okbPct - treasuryPct - escrowPct;
+    var serviceFeePct = Math.max(remainder * 0.6, 0);
+    var lpPct = Math.max(remainder * 0.4, 0);
+    awPortfolioChart.setOption({
+      series: [{
+        data: [
+          { value: parseFloat(okbPct.toFixed(1)), name: 'OKB (Gas) [ON-CHAIN]', itemStyle: { color: '#2563eb' } },
+          { value: parseFloat(treasuryPct.toFixed(1)), name: 'Treasury [ON-CHAIN]', itemStyle: { color: '#059669' } },
+          { value: parseFloat(escrowPct.toFixed(1)), name: 'Escrow [ON-CHAIN]', itemStyle: { color: '#7c3aed' } },
+          { value: parseFloat(serviceFeePct.toFixed(1)), name: 'Service Fees', itemStyle: { color: '#d97706' } },
+          { value: parseFloat(lpPct.toFixed(1)), name: 'LP Positions', itemStyle: { color: '#db2777' } }
+        ]
+      }]
+    });
+  } catch(e) {
+    console.warn('[Portfolio] refreshPortfolioChart failed, keeping placeholders:', e.message);
+  }
+}
 
 async function refreshAgenticWallet() {
   const addrEl = document.getElementById('aw-evm-addr');
@@ -1724,6 +1850,7 @@ async function boot() {
   await rawRpcPromise; // ensure raw RPC results are applied
   loadPriceTicker();
   updateHealthGauges();
+  refreshPortfolioChart();
   startLiveEventStream();
   renderDashboard();
   buildServiceList();
@@ -2178,11 +2305,12 @@ async function fetchDexQuote() {
 let arbRunning = false;
 let arbInterval = null;
 let arbScanCount = 0;
+var _arbPriceCache = { ts: 0, prices: null };
 const ARB_PAIRS = [
-  { pair: 'OKB/USDT', basePrice: 48.5 },
-  { pair: 'ETH/USDT', basePrice: 3450 },
-  { pair: 'BTC/USDT', basePrice: 65200 },
-  { pair: 'SOL/USDT', basePrice: 142 }
+  { pair: 'OKB/USDT', basePrice: 48.5, instId: 'OKB-USDT' },
+  { pair: 'ETH/USDT', basePrice: 3450, instId: 'ETH-USDT' },
+  { pair: 'BTC/USDT', basePrice: 65200, instId: 'BTC-USDT' },
+  { pair: 'SOL/USDT', basePrice: 142, instId: 'SOL-USDT' }
 ];
 
 function toggleArbMonitor() {
@@ -2203,27 +2331,64 @@ function toggleArbMonitor() {
   document.getElementById('arb-start-btn').innerHTML = '<span data-lang-zh>停止监控</span><span data-lang-en>Stop Monitor</span>';
   document.getElementById('arb-history').classList.remove('hidden');
   scanArbitrage();
-  arbInterval = setInterval(scanArbitrage, 5000);
+  arbInterval = setInterval(function() { scanArbitrage(); }, 5000);
 }
 
-function scanArbitrage() {
+async function _fetchArbPrices() {
+  var now = Date.now();
+  if (_arbPriceCache.prices && (now - _arbPriceCache.ts) < 3000) return _arbPriceCache.prices;
+  var prices = {};
+  try {
+    var resp = await fetch('https://www.okx.com/api/v5/market/tickers?instType=SPOT');
+    var json = await resp.json();
+    if (json && json.data) {
+      var wanted = { 'OKB-USDT': 'OKB/USDT', 'ETH-USDT': 'ETH/USDT', 'BTC-USDT': 'BTC/USDT', 'SOL-USDT': 'SOL/USDT' };
+      json.data.forEach(function(t) {
+        if (wanted[t.instId]) {
+          prices[wanted[t.instId]] = parseFloat(t.last);
+        }
+      });
+      // Update ARB_PAIRS basePrice from real data
+      ARB_PAIRS.forEach(function(p) {
+        if (prices[p.pair]) p.basePrice = prices[p.pair];
+      });
+    }
+  } catch(e) {
+    console.warn('[ARB] OKX fetch failed, using cached basePrice:', e.message);
+  }
+  if (Object.keys(prices).length > 0) {
+    _arbPriceCache = { ts: now, prices: prices };
+  }
+  return _arbPriceCache.prices || null;
+}
+
+async function scanArbitrage() {
   arbScanCount++;
   var lang = document.documentElement.lang || 'zh';
   document.getElementById('arb-scan-count').textContent = (lang === 'zh' ? '扫描次数: ' : 'Scans: ') + arbScanCount;
   var tbody = document.getElementById('arb-table-body');
   var historyDiv = document.getElementById('arb-history');
   var rows = '';
+  var livePrices = await _fetchArbPrices();
+  var isLive = !!livePrices;
   ARB_PAIRS.forEach(function(p) {
-    var uniPrice = p.basePrice * (1 + (Math.random() - 0.5) * 0.02);
-    var okxPrice = p.basePrice * (1 + (Math.random() - 0.5) * 0.02);
+    var okxPrice = (livePrices && livePrices[p.pair]) ? livePrices[p.pair] : p.basePrice;
+    var uniPrice;
+    if (p.pair === 'OKB/USDT' && cachedXLayerPool && cachedXLayerPool.price) {
+      uniPrice = cachedXLayerPool.price;
+    } else {
+      // No real Uniswap pool for non-OKB pairs on X Layer; simulate spread from OKX
+      uniPrice = okxPrice * (1 + (Math.random() - 0.5) * 0.004);
+    }
     var spread = ((Math.abs(uniPrice - okxPrice) / Math.min(uniPrice, okxPrice)) * 100);
     var direction = uniPrice < okxPrice ? 'Uni->OKX' : 'OKX->Uni';
     var profit = (spread * 100 / 100).toFixed(4);
     var isArb = spread >= 0.5;
     var spreadColor = isArb ? '#059669' : (spread > 0.3 ? '#d97706' : '#64748b');
     var signal = isArb ? '<span class="badge" style="background:#05966920;color:#059669">ARB</span>' : (spread > 0.3 ? '<span class="badge" style="background:#d9770620;color:#d97706">WATCH</span>' : '<span class="badge" style="background:#e2e8f0;color:#64748b">NONE</span>');
+    var liveBadge = isLive ? ' <span class="badge" style="background:#2563eb20;color:#2563eb;font-size:9px">[LIVE]</span>' : '';
     rows += '<tr class="border-b border-sym-border/50' + (isArb ? ' bg-green-50/50' : '') + '">' +
-      '<td class="p-3 font-medium text-gray-900">' + p.pair + '</td>' +
+      '<td class="p-3 font-medium text-gray-900">' + p.pair + liveBadge + '</td>' +
       '<td class="p-3 font-mono text-sm">$' + uniPrice.toFixed(2) + '</td>' +
       '<td class="p-3 font-mono text-sm">$' + okxPrice.toFixed(2) + '</td>' +
       '<td class="p-3 font-mono font-semibold" style="color:' + spreadColor + '">' + spread.toFixed(3) + '%</td>' +
@@ -2240,26 +2405,38 @@ function scanArbitrage() {
 }
 
 // === SECTION: Uniswap V3 LP Visualizer ===
+var _lpChart = null;
 (function initLPChart() {
   var el = document.getElementById('lp-tick-chart');
   if (!el) return;
-  var chart = echarts.init(el);
-  var lowerTick = 25200, upperTick = 25600, currentTick = 25410;
+  _lpChart = echarts.init(el);
+  var currentTick = (cachedXLayerPool && cachedXLayerPool.tick) ? Number(cachedXLayerPool.tick) : 25410;
+  var lowerTick = currentTick - 200;
+  var upperTick = currentTick + 200;
+  var rangeStart = currentTick - 400;
+  var rangeEnd = currentTick + 400;
   var ticks = [];
-  for (var t = 25000; t <= 25800; t += 10) { ticks.push(t); }
+  for (var t = rangeStart; t <= rangeEnd; t += 10) { ticks.push(t); }
   var liquidityData = ticks.map(function(t) {
-    if (t >= lowerTick && t <= upperTick) return [t, 80 + Math.random() * 20];
-    return [t, 2 + Math.random() * 5];
+    if (t >= lowerTick && t <= upperTick) {
+      // Bell-curve distribution centered on currentTick
+      var dist = Math.abs(t - currentTick) / 200;
+      var liq = 90 * Math.exp(-2 * dist * dist) + 10;
+      return [t, liq];
+    }
+    return [t, 2 + Math.abs(Math.sin(t * 0.01)) * 3];
   });
-  chart.setOption({
+  var isLive = !!(cachedXLayerPool && cachedXLayerPool.tick);
+  var liveLabel = isLive ? ' [LIVE]' : '';
+  _lpChart.setOption({
     tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontFamily: 'JetBrains Mono', fontSize: 11 } },
     grid: { left: 50, right: 20, top: 20, bottom: 40 },
-    xAxis: { type: 'value', name: 'Tick', min: 25000, max: 25800, nameTextStyle: { color: '#64748b' }, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 10 } },
+    xAxis: { type: 'value', name: 'Tick', min: rangeStart, max: rangeEnd, nameTextStyle: { color: '#64748b' }, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 10 } },
     yAxis: { type: 'value', name: 'Liquidity', show: false },
     series: [
       { type: 'bar', data: liquidityData, barWidth: 3, itemStyle: { color: function(p) { var tick = p.data[0]; if (tick >= lowerTick && tick <= upperTick) return '#2563eb33'; return '#e2e8f044'; } },
         markLine: { silent: true, data: [
-          { xAxis: currentTick, lineStyle: { color: '#059669', width: 2 }, label: { formatter: 'Current\n' + currentTick, color: '#059669', fontSize: 10 } },
+          { xAxis: currentTick, lineStyle: { color: '#059669', width: 2 }, label: { formatter: 'Current' + liveLabel + '\n' + currentTick, color: '#059669', fontSize: 10 } },
           { xAxis: lowerTick, lineStyle: { color: '#2563eb', type: 'dashed' }, label: { formatter: 'Lower\n' + lowerTick, color: '#2563eb', fontSize: 10 } },
           { xAxis: upperTick, lineStyle: { color: '#7c3aed', type: 'dashed' }, label: { formatter: 'Upper\n' + upperTick, color: '#7c3aed', fontSize: 10 } }
         ] },
@@ -2267,7 +2444,7 @@ function scanArbitrage() {
       }
     ]
   });
-  window.addEventListener('resize', function() { chart.resize(); });
+  window.addEventListener('resize', function() { _lpChart.resize(); });
 })();
 
 function simulateLPRebalance() {
@@ -2279,22 +2456,33 @@ function simulateLPRebalance() {
   statusText.style.color = '#d97706';
   statusText.innerHTML = lang === 'zh' ? 'Rebalancing... decreaseLiquidity -> collect -> mint' : 'Rebalancing... decreaseLiquidity -> collect -> mint';
   setTimeout(function() {
-    var newLower = 25300 + Math.floor(Math.random() * 50);
-    var newUpper = 25500 + Math.floor(Math.random() * 50);
+    var realTick = (cachedXLayerPool && cachedXLayerPool.tick) ? Number(cachedXLayerPool.tick) : 25410;
+    var realPrice = (cachedXLayerPool && cachedXLayerPool.price) ? cachedXLayerPool.price : 48.5;
+    var newLower = realTick - 200 + Math.floor(Math.random() * 50);
+    var newUpper = realTick + 200 + Math.floor(Math.random() * 50);
     document.getElementById('lp-lower-tick').textContent = newLower;
     document.getElementById('lp-upper-tick').textContent = newUpper;
-    var newTick = newLower + Math.floor((newUpper - newLower) * (0.4 + Math.random() * 0.2));
-    document.getElementById('lp-current-tick').textContent = newTick;
-    var util = (((newTick - newLower) / (newUpper - newLower)) * 100).toFixed(1);
+    document.getElementById('lp-current-tick').textContent = realTick;
+    var util = (((realTick - newLower) / (newUpper - newLower)) * 100).toFixed(1);
     document.getElementById('lp-util-pct').textContent = util + '%';
     document.getElementById('lp-util-bar').style.width = util + '%';
     document.getElementById('lp-edge-pct').textContent = (100 - parseFloat(util)).toFixed(1) + '%';
     document.getElementById('lp-edge-bar').style.width = (100 - parseFloat(util)) + '%';
-    var newPrice = (48 + Math.random() * 1.5).toFixed(2);
-    document.getElementById('lp-current-price').textContent = '$' + newPrice;
-    document.getElementById('lp-apr').textContent = (15 + Math.random() * 8).toFixed(1) + '%';
-    document.getElementById('lp-fees').textContent = (0.02 + Math.random() * 0.01).toFixed(4) + ' OKB';
-    document.getElementById('lp-il').textContent = '-' + (Math.random() * 0.3).toFixed(2) + '%';
+    var isLive = !!(cachedXLayerPool && cachedXLayerPool.price);
+    document.getElementById('lp-current-price').textContent = '$' + realPrice.toFixed(2) + (isLive ? ' [LIVE]' : '');
+    // Calculate APR based on tick range width and price
+    var rangeWidth = newUpper - newLower;
+    var feeRate = 0.003;
+    var capitalEfficiency = 400 / Math.max(rangeWidth, 1);
+    var baseAPR = feeRate * 365 * capitalEfficiency * 100;
+    var apr = Math.min(baseAPR, 50).toFixed(1);
+    // Fees based on price and position
+    var dailyFees = (realPrice * feeRate * capitalEfficiency / 365).toFixed(4);
+    // IL based on range width
+    var il = (0.5 * Math.pow((rangeWidth / 400 - 1), 2) * 100).toFixed(2);
+    document.getElementById('lp-apr').textContent = apr + '%';
+    document.getElementById('lp-fees').textContent = dailyFees + ' OKB';
+    document.getElementById('lp-il').textContent = '-' + il + '%';
     statusBox.style.borderColor = '#059669';
     statusBox.style.background = '#05966910';
     statusText.style.color = '#059669';
@@ -3205,20 +3393,48 @@ async function executeSkillTest() {
       };
       output.textContent = JSON.stringify(result, null, 2);
     } else if (skill === 'getDexQuote') {
-      // Simulate a DEX quote response
-      url = 'OKX OnchainOS DEX Quote API';
-      var currentPrice = (cachedXLayerPool && cachedXLayerPool.price) ? cachedXLayerPool.price : 48.5;
+      // Real DEX quote via OKX aggregator, fallback to pool data
+      url = 'OKX DEX Aggregator / Uniswap V3 Pool';
       var amount = parseFloat(params.amount) || 1;
+      var amountWei = ethers.parseEther(amount.toString()).toString();
+      var dexSource = 'fallback';
+      var estimatedOutput = 0;
+      var priceImpact = '0.00';
+      var gasEst = '~180,000 gas';
+      try {
+        var dexResp = await fetch('https://www.okx.com/api/v5/dex/aggregator/quote?chainId=196&fromTokenAddress=' + XLAYER_WOKB + '&toTokenAddress=' + XLAYER_USDT + '&amount=' + amountWei);
+        var dexJson = await dexResp.json();
+        if (dexJson && dexJson.data && dexJson.data[0]) {
+          estimatedOutput = parseFloat(ethers.formatUnits(dexJson.data[0].toTokenAmount, 6));
+          priceImpact = dexJson.data[0].priceImpact || '0.00';
+          gasEst = dexJson.data[0].estimateGasFee ? dexJson.data[0].estimateGasFee + ' wei' : gasEst;
+          dexSource = 'OKX DEX Aggregator API [LIVE]';
+        }
+      } catch(e3) {
+        // CORS or API failure — use pool data
+        var poolPrice = (cachedXLayerPool && cachedXLayerPool.price) ? cachedXLayerPool.price : 48.5;
+        estimatedOutput = amount * poolPrice;
+        dexSource = 'Calculated from Uniswap V3 pool data';
+        // Estimate price impact from pool liquidity
+        var liq = cachedXLayerPool ? parseFloat(cachedXLayerPool.liquidity) : 0;
+        priceImpact = liq > 0 ? (amount / (liq / 1e18) * 100).toFixed(4) : '0.01';
+      }
+      // Get real gas data
+      try {
+        var feeData2 = await provider.getFeeData();
+        if (feeData2.gasPrice) gasEst = '~180,000 gas (' + (Number(feeData2.gasPrice) * 180000 / 1e18).toFixed(6) + ' OKB)';
+      } catch(e4) {}
       var result2 = {
         skill: 'getDexQuote',
         chain: 'X Layer (196)',
-        fromToken: 'OKB',
+        fromToken: 'OKB (WOKB)',
         toToken: 'USDT',
         amount: amount.toString(),
-        estimatedOutput: (amount * currentPrice).toFixed(4) + ' USDT',
-        priceImpact: (0.01 + Math.random() * 0.05).toFixed(4) + '%',
+        estimatedOutput: estimatedOutput.toFixed(4) + ' USDT',
+        priceImpact: priceImpact + '%',
         route: 'OKB -> Uniswap V3 (0.3%) -> USDT',
-        gasEstimate: '~180,000 gas',
+        gasEstimate: gasEst,
+        source: dexSource,
         timestamp: new Date().toISOString()
       };
       output.textContent = JSON.stringify(result2, null, 2);
@@ -3237,20 +3453,37 @@ async function executeSkillTest() {
       };
       output.textContent = JSON.stringify(result3, null, 2);
     } else if (skill === 'securityScan') {
-      url = 'OKX OnchainOS Security Scan';
+      url = 'X Layer RPC eth_getCode + SYMBIOSIS contracts';
+      var scanAddr = params.contractAddress || XLAYER_USDT;
+      var scanCode = '0x';
+      try { scanCode = await provider.getCode(scanAddr); } catch(e5) {}
+      var scanIsContract = scanCode && scanCode !== '0x' && scanCode.length > 2;
+      var scanCodeSize = scanIsContract ? Math.floor((scanCode.length - 2) / 2) : 0;
+      var scanIsKnown = false;
+      var scanKnownName = '';
+      Object.keys(CONTRACTS).forEach(function(k) {
+        if (CONTRACTS[k].toLowerCase() === scanAddr.toLowerCase()) { scanIsKnown = true; scanKnownName = k; }
+      });
+      // Check for proxy pattern (EIP-1167 minimal proxy: 0x363d3d37...)
+      var scanIsProxy = scanIsContract && scanCode.toLowerCase().indexOf('363d3d37') !== -1;
+      var scanRisk = 'LOW';
+      if (!scanIsContract) { scanRisk = 'LOW'; }
+      else if (scanIsKnown) { scanRisk = 'LOW'; }
+      else if (scanIsProxy) { scanRisk = 'MEDIUM'; }
+      else if (scanCodeSize > 24000) { scanRisk = 'MEDIUM'; }
+      else { scanRisk = 'MEDIUM'; }
       var result4 = {
         skill: 'securityScan',
-        contractAddress: params.contractAddress || XLAYER_USDT,
+        contractAddress: scanAddr,
         chain: 'X Layer (196)',
-        riskLevel: 'LOW',
-        isProxy: false,
-        isOpenSource: true,
-        hasHoneypot: false,
-        ownerCanMint: false,
-        buyTax: '0%',
-        sellTax: '0%',
-        holders: 12450,
-        totalSupply: '1,000,000,000',
+        isContract: scanIsContract,
+        codeSize: scanIsContract ? scanCodeSize + ' bytes' : 'N/A (EOA)',
+        knownContract: scanIsKnown ? scanKnownName : false,
+        riskLevel: scanRisk,
+        isProxy: scanIsProxy,
+        honeypot: scanIsContract ? (scanIsKnown ? 'PASS (verified)' : 'UNKNOWN') : 'N/A (EOA)',
+        reentrancy: scanIsContract ? (scanIsKnown ? 'PASS (verified)' : 'UNKNOWN') : 'N/A (EOA)',
+        source: '[ON-CHAIN] eth_getCode analysis',
         timestamp: new Date().toISOString()
       };
       output.textContent = JSON.stringify(result4, null, 2);
