@@ -40,6 +40,7 @@
   <a href="#strategy-config" data-label="Strategy" title="Strategy"></a>
   <a href="#bridge-explorer" data-label="Bridge" title="Bridge"></a>
   <a href="#agent-tournament" data-label="Tournament" title="Tournament"></a>
+  <a href="#governance-hub" data-label="Governance" title="Governance"></a>
 </nav>
 
 <!-- LANG TOGGLE -->
@@ -97,6 +98,7 @@
       <a href="#strategy-config" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-green hover:text-sym-green hover:shadow-[0_0_12px_rgba(0,179,134,.15)] transition-all">Strategy Config</a>
       <a href="#bridge-explorer" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-accent hover:text-sym-accent hover:shadow-[0_0_12px_rgba(0,220,250,.15)] transition-all">Bridge Explorer</a>
       <a href="#agent-tournament" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-pink hover:text-sym-pink hover:shadow-[0_0_12px_rgba(232,67,147,.15)] transition-all">Tournament</a>
+      <a href="#governance-hub" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-purple hover:text-sym-purple hover:shadow-[0_0_12px_rgba(123,97,255,.15)] transition-all">Governance</a>
     </div>
     <div class="flex justify-center gap-8 md:gap-16">
       <div class="text-center"><div class="text-3xl font-bold text-sym-accent" id="hero-agents">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
@@ -1764,6 +1766,133 @@
           </div>
           <div class="text-2xl font-bold mt-1" id="tourney-winner-name">--</div>
           <div class="text-sm text-gray-400 mt-1" id="tourney-winner-score">--</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 6: Governance Dashboard
+     ============================================================ -->
+<section id="governance-hub" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900">
+    <span data-lang-zh>治理仪表板</span>
+    <span data-lang-en>Governance Dashboard</span>
+    <span class="badge" style="background:#7b61ff;color:#fff;font-size:10px;vertical-align:middle">DAO</span>
+  </h2>
+  <p class="text-sm text-gray-400 mb-6">
+    <span data-lang-zh>GovernanceRegistry 合约实时提案、投票与执行状态 (X Layer 主网 Chain 196)</span>
+    <span data-lang-en>GovernanceRegistry contract live proposals, voting &amp; execution status (X Layer Mainnet Chain 196)</span>
+  </p>
+
+  <!-- Governance Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+    <div class="card p-5 text-center">
+      <div class="text-2xl font-bold text-sym-purple font-mono" id="gov-total-proposals">--</div>
+      <div class="text-xs text-gray-400 mt-1"><span data-lang-zh>总提案数</span><span data-lang-en>Total Proposals</span></div>
+    </div>
+    <div class="card p-5 text-center">
+      <div class="text-2xl font-bold text-sym-green font-mono" id="gov-passed-count">--</div>
+      <div class="text-xs text-gray-400 mt-1"><span data-lang-zh>已通过</span><span data-lang-en>Passed</span></div>
+    </div>
+    <div class="card p-5 text-center">
+      <div class="text-2xl font-bold text-sym-red font-mono" id="gov-rejected-count">--</div>
+      <div class="text-xs text-gray-400 mt-1"><span data-lang-zh>已拒绝</span><span data-lang-en>Rejected</span></div>
+    </div>
+    <div class="card p-5 text-center">
+      <div class="text-2xl font-bold text-sym-amber font-mono" id="gov-participation">--</div>
+      <div class="text-xs text-gray-400 mt-1"><span data-lang-zh>平均参与率</span><span data-lang-en>Avg Participation</span></div>
+    </div>
+    <div class="card p-5 text-center">
+      <div class="text-2xl font-bold text-sym-accent font-mono" id="gov-quorum">4</div>
+      <div class="text-xs text-gray-400 mt-1"><span data-lang-zh>法定人数</span><span data-lang-en>Quorum Required</span></div>
+    </div>
+  </div>
+
+  <!-- Proposal Timeline -->
+  <div class="card p-6 mb-6">
+    <h3 class="text-sm font-semibold text-gray-900 mb-4">
+      <span data-lang-zh>提案生命周期</span><span data-lang-en>Proposal Lifecycle</span>
+    </h3>
+    <div class="flex items-center justify-between text-center gap-2" id="gov-lifecycle">
+      <div class="flex-1">
+        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center text-white text-lg font-bold" style="background:linear-gradient(135deg,#7b61ff,#00dcfa)">1</div>
+        <div class="text-xs text-gray-500 mt-2"><span data-lang-zh>创建</span><span data-lang-en>Created</span></div>
+        <div class="text-[10px] text-gray-300 mt-1"><span data-lang-zh>提交提案</span><span data-lang-en>Submit Proposal</span></div>
+      </div>
+      <div class="flex-shrink-0 w-8 h-0.5 bg-gradient-to-r from-purple-400 to-blue-400"></div>
+      <div class="flex-1">
+        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center text-white text-lg font-bold" style="background:linear-gradient(135deg,#00dcfa,#00b386)">2</div>
+        <div class="text-xs text-gray-500 mt-2"><span data-lang-zh>投票中</span><span data-lang-en>Voting</span></div>
+        <div class="text-[10px] text-gray-300 mt-1"><span data-lang-zh>Agent 投票</span><span data-lang-en>Agents Vote</span></div>
+      </div>
+      <div class="flex-shrink-0 w-8 h-0.5 bg-gradient-to-r from-green-400 to-yellow-400"></div>
+      <div class="flex-1">
+        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center text-white text-lg font-bold" style="background:linear-gradient(135deg,#00b386,#e8a317)">3</div>
+        <div class="text-xs text-gray-500 mt-2"><span data-lang-zh>通过 / 拒绝</span><span data-lang-en>Passed / Rejected</span></div>
+        <div class="text-[10px] text-gray-300 mt-1"><span data-lang-zh>达到法定人数</span><span data-lang-en>Quorum Reached</span></div>
+      </div>
+      <div class="flex-shrink-0 w-8 h-0.5 bg-gradient-to-r from-yellow-400 to-pink-400"></div>
+      <div class="flex-1">
+        <div class="w-10 h-10 rounded-full mx-auto flex items-center justify-center text-white text-lg font-bold" style="background:linear-gradient(135deg,#e8a317,#e84393)">4</div>
+        <div class="text-xs text-gray-500 mt-2"><span data-lang-zh>已执行</span><span data-lang-en>Executed</span></div>
+        <div class="text-[10px] text-gray-300 mt-1"><span data-lang-zh>链上生效</span><span data-lang-en>On-chain Effect</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left: Create Proposal Form -->
+    <div class="card p-6">
+      <h3 class="text-sm font-semibold text-gray-900 mb-4">
+        <span data-lang-zh>创建提案</span><span data-lang-en>Create Proposal</span>
+      </h3>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs text-gray-400 mb-1 block">
+            <span data-lang-zh>提案类型</span><span data-lang-en>Proposal Type</span>
+          </label>
+          <select id="gov-proposal-type" class="select-dark w-full">
+            <option value="0">FeeReduction</option>
+            <option value="1">RiskIncrease</option>
+            <option value="2">RiskDecrease</option>
+            <option value="3">LPWidenRange</option>
+            <option value="4">LPTightenRange</option>
+            <option value="5">GasOptimization</option>
+            <option value="6">EmergencyPause</option>
+            <option value="7">CustomAction</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 mb-1 block">
+            <span data-lang-zh>描述</span><span data-lang-en>Description</span>
+          </label>
+          <textarea id="gov-proposal-desc" class="input-dark w-full" rows="3" placeholder="Describe your proposal..."></textarea>
+        </div>
+        <button onclick="govCreateProposal()" class="btn-glow w-full text-sm">
+          <span data-lang-zh>提交提案</span><span data-lang-en>Submit Proposal</span>
+        </button>
+        <p class="text-[10px] text-gray-300">
+          <span data-lang-zh>模拟模式 — 实际链上创建需要已注册 Agent 钱包</span>
+          <span data-lang-en>Simulation mode — real on-chain creation requires registered agent wallet</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Right: Active Proposals -->
+    <div class="lg:col-span-2 card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-semibold text-gray-900">
+          <span data-lang-zh>活跃提案</span><span data-lang-en>Active Proposals</span>
+        </h3>
+        <button onclick="govLoadProposals()" class="text-xs text-sym-accent hover:underline">
+          <span data-lang-zh>刷新</span><span data-lang-en>Refresh</span>
+        </button>
+      </div>
+      <div id="gov-proposals-list" class="space-y-3" style="max-height:520px;overflow-y:auto">
+        <div class="text-gray-300 text-center py-8">
+          <span data-lang-zh>加载中...</span><span data-lang-en>Loading...</span>
         </div>
       </div>
     </div>

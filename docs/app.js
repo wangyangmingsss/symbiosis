@@ -157,6 +157,215 @@ async function initContracts() {
   try { ethProvider = new ethers.JsonRpcProvider(ETH_RPC_URL); } catch(e) { console.warn('ETH RPC init failed'); }
 }
 
+// =============================================
+// === RAW JSON-RPC ON-CHAIN READER (no ethers dependency) ===
+// =============================================
+// Fallback RPC reader using raw fetch() to read contract state
+// even when ethers.js is unavailable or RPC provider fails.
+
+let _onChainLive = false; // true when last RPC batch succeeded
+let _onChainRefreshTimer = null;
+
+async function rpcCall(to, data) {
+  const res = await fetch('https://rpc.xlayer.tech', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to, data }, 'latest'], id: 1 })
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message || 'RPC error');
+  return json.result;
+}
+
+async function rpcBlockNumber() {
+  const res = await fetch('https://rpc.xlayer.tech', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
+  });
+  const json = await res.json();
+  return parseInt(json.result, 16);
+}
+
+// Decode a uint256 from a 0x-prefixed hex string
+function decodeUint256(hex) {
+  if (!hex || hex === '0x' || hex.length < 3) return 0;
+  return parseInt(hex, 16);
+}
+
+// Function selectors (first 4 bytes of keccak256 of signature)
+const RAW_SELECTORS = {
+  getAgentCount:       '0x91cab63e',  // AgentRegistry.getAgentCount()
+  getListingCount:     '0x87ed92d7',  // ServiceMarketplace.getListingCount()
+  getRequestCount:     '0x3fad1834',  // ServiceMarketplace.getRequestCount()
+  totalMatches:        '0x2a5b1451',  // ServiceMarketplace.totalMatches()
+  totalCompletions:    '0x3a8f1076',  // ServiceMarketplace.totalCompletions()
+  snapshotCount:       '0x098ab6a1',  // EconomyOracle.snapshotCount()
+  getProposalCount:    '0xc08cc02d',  // GovernanceRegistry.getProposalCount()
+  totalEscrowsCreated: '0x882cc8b3',  // EscrowSettlement.totalEscrowsCreated()
+  totalSettled:        '0xeace4c91',  // EscrowSettlement.totalSettled()
+  totalEscrowVolume:   '0x2304e9dc',  // EscrowSettlement.totalEscrowVolume()
+  getGDP:              '0x58302baa',  // AgentTreasury.getGDP()
+  getGrowthRate:       '0xdd525664'   // EconomyOracle.getGrowthRate()
+};
+
+// Load core on-chain stats via raw JSON-RPC (no ethers needed)
+async function loadOnChainStats() {
+  var results = {};
+  try {
+    var calls = [
+      rpcCall(CONTRACTS.registry,    RAW_SELECTORS.getAgentCount).then(function(r)       { results.agentCount       = decodeUint256(r); }),
+      rpcCall(CONTRACTS.marketplace, RAW_SELECTORS.getListingCount).then(function(r)     { results.listingCount     = decodeUint256(r); }),
+      rpcCall(CONTRACTS.marketplace, RAW_SELECTORS.getRequestCount).then(function(r)     { results.requestCount     = decodeUint256(r); }),
+      rpcCall(CONTRACTS.marketplace, RAW_SELECTORS.totalMatches).then(function(r)        { results.totalMatches     = decodeUint256(r); }),
+      rpcCall(CONTRACTS.marketplace, RAW_SELECTORS.totalCompletions).then(function(r)    { results.totalCompletions = decodeUint256(r); }),
+      rpcCall(CONTRACTS.oracle,      RAW_SELECTORS.snapshotCount).then(function(r)       { results.snapshotCount    = decodeUint256(r); }),
+      rpcCall(CONTRACTS.governance,  RAW_SELECTORS.getProposalCount).then(function(r)    { results.proposalCount    = decodeUint256(r); }),
+      rpcCall(CONTRACTS.escrow,      RAW_SELECTORS.totalEscrowsCreated).then(function(r) { results.escrowsCreated   = decodeUint256(r); }),
+      rpcCall(CONTRACTS.escrow,      RAW_SELECTORS.totalSettled).then(function(r)        { results.totalSettled     = decodeUint256(r); }),
+      rpcCall(CONTRACTS.escrow,      RAW_SELECTORS.totalEscrowVolume).then(function(r)   { results.escrowVolumeWei  = r; }),
+      rpcCall(CONTRACTS.treasury,    RAW_SELECTORS.getGDP).then(function(r)              { results.gdpWei           = r; }),
+      rpcCall(CONTRACTS.oracle,      RAW_SELECTORS.getGrowthRate).then(function(r)       { results.growthRateRaw    = r; }),
+      rpcBlockNumber().then(function(r)                                                  { results.blockNumber      = r; })
+    ];
+    await Promise.all(calls);
+    _onChainLive = true;
+    console.log('[RawRPC] On-chain stats loaded:', results);
+  } catch (err) {
+    console.warn('[RawRPC] Some calls failed, partial results:', err.message);
+    // Keep whatever succeeded; flag live only if we got at least agentCount
+    _onChainLive = typeof results.agentCount === 'number';
+  }
+
+  // Update the UI with real on-chain data
+  applyOnChainStats(results);
+  updateOnChainBadge();
+  return results;
+}
+
+function applyOnChainStats(r) {
+  // Helper: safely set textContent by element ID
+  function setText(id, val) {
+    var el = document.getElementById(id);
+    if (el && val !== undefined && val !== null) el.textContent = val;
+  }
+
+  // Hero stats (these are already updated by loadOnChainData when ethers works,
+  // but this serves as a fallback or supplement)
+  if (typeof r.agentCount === 'number') setText('hero-agents', r.agentCount);
+
+  // Compute total txns as sum of all activity counters
+  var totalTxns = (r.totalMatches || 0) + (r.totalCompletions || 0) +
+                  (r.totalSettled || 0) + (r.escrowsCreated || 0) +
+                  (r.listingCount || 0) + (r.requestCount || 0);
+  if (totalTxns > 0) setText('hero-txns', totalTxns.toLocaleString());
+
+  // GDP (convert from wei to ether-like)
+  if (r.gdpWei && r.gdpWei !== '0x') {
+    try {
+      var gdpFloat = parseInt(r.gdpWei, 16) / 1e18;
+      setText('hero-gdp', '$' + gdpFloat.toFixed(4));
+    } catch(e) {}
+  }
+
+  // Dashboard total txns
+  if (totalTxns > 0) setText('dash-total-txns', totalTxns.toLocaleString());
+
+  // On-chain stats panel (these IDs may or may not exist - we create/update them)
+  updateOrCreateStatEl('onchain-agent-count', 'Agents', r.agentCount);
+  updateOrCreateStatEl('onchain-listing-count', 'Listings', r.listingCount);
+  updateOrCreateStatEl('onchain-request-count', 'Requests', r.requestCount);
+  updateOrCreateStatEl('onchain-matches', 'Matches', r.totalMatches);
+  updateOrCreateStatEl('onchain-completions', 'Completions', r.totalCompletions);
+  updateOrCreateStatEl('onchain-snapshots', 'Snapshots', r.snapshotCount);
+  updateOrCreateStatEl('onchain-proposals', 'Proposals', r.proposalCount);
+  updateOrCreateStatEl('onchain-escrows', 'Escrows', r.escrowsCreated);
+  updateOrCreateStatEl('onchain-settled', 'Settled', r.totalSettled);
+
+  // Block number
+  if (r.blockNumber) {
+    var netLabel = document.getElementById('net-label');
+    if (netLabel) netLabel.textContent = 'X Layer Mainnet #' + r.blockNumber;
+    var netDot = document.getElementById('net-dot');
+    if (netDot) netDot.className = 'net-dot connected';
+    cachedBlockNumber = r.blockNumber;
+  }
+
+  // Collaboration agent count (if panel exists)
+  if (typeof r.agentCount === 'number') setText('collab-agent-count', r.agentCount);
+}
+
+// Create or update a stat element in the on-chain stats bar
+function updateOrCreateStatEl(id, label, value) {
+  if (value === undefined || value === null) return;
+  var el = document.getElementById(id);
+  if (el) {
+    el.textContent = typeof value === 'number' ? value.toLocaleString() : value;
+    return;
+  }
+  // If the on-chain stats bar exists, append to it
+  var bar = document.getElementById('onchain-stats-bar');
+  if (!bar) return;
+  var span = document.createElement('span');
+  span.className = 'onchain-stat-item';
+  span.innerHTML = '<span class="text-xs text-gray-400">' + label + '</span> <span id="' + id + '" class="font-mono font-bold text-gray-900">' + (typeof value === 'number' ? value.toLocaleString() : value) + '</span>';
+  bar.appendChild(span);
+}
+
+// Update the "Live On-Chain" / "Fallback" indicator badge
+function updateOnChainBadge() {
+  var badge = document.getElementById('onchain-live-badge');
+  if (!badge) {
+    // Create badge next to network status
+    var netLabel = document.getElementById('net-label');
+    if (!netLabel || !netLabel.parentNode) return;
+    badge = document.createElement('span');
+    badge.id = 'onchain-live-badge';
+    badge.style.cssText = 'display:inline-block;margin-left:8px;padding:1px 8px;border-radius:9999px;font-size:11px;font-weight:600;vertical-align:middle;';
+    netLabel.parentNode.insertBefore(badge, netLabel.nextSibling);
+  }
+  if (_onChainLive) {
+    badge.textContent = 'Live On-Chain';
+    badge.style.background = '#05966920';
+    badge.style.color = '#059669';
+    badge.title = 'Dashboard data is read from X Layer mainnet contracts via raw JSON-RPC';
+  } else {
+    badge.textContent = 'Fallback';
+    badge.style.background = '#e8a31720';
+    badge.style.color = '#e8a317';
+    badge.title = 'Could not read on-chain data; using simulated/cached values';
+  }
+}
+
+// Inject the on-chain stats bar into the page if it does not exist
+function ensureOnChainStatsBar() {
+  if (document.getElementById('onchain-stats-bar')) return;
+  // Insert after the network status bar or at the top of the dashboard
+  var target = document.getElementById('dash-total-txns');
+  if (!target) target = document.getElementById('hero-agents');
+  if (!target || !target.parentNode) return;
+  var bar = document.createElement('div');
+  bar.id = 'onchain-stats-bar';
+  bar.style.cssText = 'display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:8px 12px;margin:8px 0;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:13px;';
+  var titleSpan = document.createElement('span');
+  titleSpan.style.cssText = 'font-weight:700;color:#0369a1;font-size:12px;letter-spacing:0.5px;';
+  titleSpan.textContent = 'ON-CHAIN DATA';
+  bar.appendChild(titleSpan);
+  // Insert after the parent card of the target
+  var cardParent = target.closest('.card') || target.parentNode;
+  if (cardParent && cardParent.parentNode) {
+    cardParent.parentNode.insertBefore(bar, cardParent.nextSibling);
+  }
+}
+
+// Start the 60-second auto-refresh cycle for raw on-chain stats
+function startOnChainAutoRefresh() {
+  if (_onChainRefreshTimer) clearInterval(_onChainRefreshTimer);
+  _onChainRefreshTimer = setInterval(function() {
+    loadOnChainStats().catch(function(e) { console.warn('[RawRPC] auto-refresh error:', e.message); });
+  }, 60000);
+}
+
 function fmtOKB(wei) { return parseFloat(ethers.formatEther(wei)); }
 function fmtUSD(val) { return '$' + val.toFixed(4); }
 function shortAddr(a) { return a.slice(0,6) + '...' + a.slice(-4); }
@@ -1323,7 +1532,11 @@ updateFunctionList();
 // === BOOT ===
 async function boot() {
   await initContracts();
+  // Inject on-chain stats bar and kick off raw RPC reads in parallel with ethers reads
+  ensureOnChainStatsBar();
+  var rawRpcPromise = loadOnChainStats().catch(function(e) { console.warn('[RawRPC] initial load failed:', e.message); });
   await loadOnChainData();
+  await rawRpcPromise; // ensure raw RPC results are applied
   loadPriceTicker();
   updateHealthGauges();
   startLiveEventStream();
@@ -1333,6 +1546,8 @@ async function boot() {
   showToast('Connected to X Layer Mainnet', 'success');
   setInterval(loadOnChainData, 30000);
   setInterval(loadPriceTicker, 15000);
+  // Start 60-second auto-refresh for raw on-chain stats
+  startOnChainAutoRefresh();
 }
 // === SECTION: Agent AI Chat ===
 let currentChatAgent = 'DataProvider';
@@ -3419,6 +3634,228 @@ function animateCounter(el, targetValue, duration) {
     document.addEventListener('DOMContentLoaded', initTourneySelectors);
   } else {
     setTimeout(initTourneySelectors, 150);
+  }
+})();
+
+
+// ============================================================
+//  SECTION: Governance Dashboard
+//  Contract: 0x016C98657AEE961f5764359030aa15a2fb174351
+//  X Layer Mainnet (Chain 196)
+// ============================================================
+(function() {
+  var GOV_ADDRESS = '0x016C98657AEE961f5764359030aa15a2fb174351';
+  var GOV_ABI = [
+    'function getProposalCount() view returns (uint256)',
+    'function getProposal(uint256) view returns (tuple(uint256 id, address proposer, uint8 proposalType, string description, uint256 createdAtBlock, uint256 votingEndsAtBlock, uint256 yesVotes, uint256 noVotes, uint8 status, bool executed))'
+  ];
+  var PROPOSAL_TYPES = {
+    0: 'FeeReduction', 1: 'RiskIncrease', 2: 'RiskDecrease',
+    3: 'LPWidenRange', 4: 'LPTightenRange', 5: 'GasOptimization',
+    6: 'EmergencyPause', 7: 'CustomAction'
+  };
+  var TYPE_COLORS = {
+    FeeReduction: '#059669', RiskIncrease: '#dc2626', RiskDecrease: '#2563eb',
+    LPWidenRange: '#7c3aed', LPTightenRange: '#4f46e5', GasOptimization: '#d97706',
+    EmergencyPause: '#dc2626', CustomAction: '#6b7280'
+  };
+  var TYPE_BG = {
+    FeeReduction: 'rgba(5,150,105,.1)', RiskIncrease: 'rgba(220,38,38,.1)', RiskDecrease: 'rgba(37,99,235,.1)',
+    LPWidenRange: 'rgba(124,58,237,.1)', LPTightenRange: 'rgba(79,70,229,.1)', GasOptimization: 'rgba(217,119,6,.1)',
+    EmergencyPause: 'rgba(220,38,38,.1)', CustomAction: 'rgba(107,114,128,.1)'
+  };
+  var STATUS_MAP = { 0: 'Voting', 1: 'Passed', 2: 'Rejected', 3: 'Executed' };
+  var STATUS_COLORS = { 0: '#d97706', 1: '#059669', 2: '#dc2626', 3: '#7b61ff' };
+  var QUORUM = 4;
+
+  var govProposals = [];
+  var govSimId = 1000;
+
+  function getDemoProposals() {
+    return [
+      { id: 0, proposer: '0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440', proposalType: 0, description: 'Reduce marketplace fee from 2% to 1.5% to attract more agents', createdAtBlock: 1200000, votingEndsAtBlock: 1210000, yesVotes: 4, noVotes: 1, status: 1, executed: true },
+      { id: 1, proposer: '0x2615624c2031628c81A3105EeD8DC9de4AD12822', proposalType: 5, description: 'Optimize gas usage in escrow settlement by batching transfers', createdAtBlock: 1205000, votingEndsAtBlock: 1215000, yesVotes: 3, noVotes: 2, status: 0, executed: false },
+      { id: 2, proposer: '0x699381828975d99da09E9df67C7D7D6bd299fF2b', proposalType: 3, description: 'Widen LP range for OKB/USDT pool to reduce impermanent loss', createdAtBlock: 1208000, votingEndsAtBlock: 1218000, yesVotes: 5, noVotes: 0, status: 1, executed: false },
+      { id: 3, proposer: '0x5A1b2f1607C0D416AbD6dC3545Ebc27edb7ab87c', proposalType: 6, description: 'Emergency pause on suspicious agent 0xdead for audit review', createdAtBlock: 1210000, votingEndsAtBlock: 1220000, yesVotes: 2, noVotes: 3, status: 2, executed: false },
+      { id: 4, proposer: '0x905bc5c5137573F488941E901b6Ab4214e166988', proposalType: 1, description: 'Increase risk tolerance for Trader agents from 5% to 8% per trade', createdAtBlock: 1212000, votingEndsAtBlock: 1222000, yesVotes: 1, noVotes: 0, status: 0, executed: false }
+    ];
+  }
+
+  window.govLoadProposals = async function() {
+    var list = document.getElementById('gov-proposals-list');
+    if (list) list.innerHTML = '<div class="text-gray-300 text-center py-8"><span data-lang-zh>\u52a0\u8f7d\u4e2d...</span><span data-lang-en>Loading...</span></div>';
+    try {
+      var p = provider || new ethers.JsonRpcProvider(RPC_URL);
+      var gov = new ethers.Contract(GOV_ADDRESS, GOV_ABI, p);
+      var count = Number(await gov.getProposalCount());
+      var proposals = [];
+      var calls = [];
+      for (var i = 0; i < count; i++) {
+        (function(idx) {
+          calls.push(gov.getProposal(idx).then(function(r) {
+            proposals.push({
+              id: Number(r.id), proposer: r.proposer, proposalType: Number(r.proposalType),
+              description: r.description, createdAtBlock: Number(r.createdAtBlock),
+              votingEndsAtBlock: Number(r.votingEndsAtBlock), yesVotes: Number(r.yesVotes),
+              noVotes: Number(r.noVotes), status: Number(r.status), executed: r.executed
+            });
+          }));
+        })(i);
+      }
+      await Promise.allSettled(calls);
+      proposals.sort(function(a, b) { return b.id - a.id; });
+      if (proposals.length === 0) throw new Error('No proposals found');
+      govProposals = proposals;
+      govRenderProposals(proposals);
+      govUpdateStats(proposals);
+    } catch (e) {
+      console.warn('Governance RPC failed, using demo data:', e.message);
+      govProposals = getDemoProposals();
+      govRenderProposals(govProposals);
+      govUpdateStats(govProposals);
+    }
+  };
+
+  function govUpdateStats(proposals) {
+    var total = proposals.length;
+    var passed = 0, rejected = 0, totalVotes = 0;
+    for (var i = 0; i < proposals.length; i++) {
+      var pr = proposals[i];
+      if (pr.status === 1 || pr.status === 3) passed++;
+      if (pr.status === 2) rejected++;
+      totalVotes += pr.yesVotes + pr.noVotes;
+    }
+    var avgPart = total > 0 ? ((totalVotes / total / 6) * 100).toFixed(1) + '%' : '0%';
+    var el;
+    el = document.getElementById('gov-total-proposals'); if (el) el.textContent = total;
+    el = document.getElementById('gov-passed-count'); if (el) el.textContent = passed;
+    el = document.getElementById('gov-rejected-count'); if (el) el.textContent = rejected;
+    el = document.getElementById('gov-participation'); if (el) el.textContent = avgPart;
+  }
+
+  window.govRenderProposals = function(proposals) {
+    var list = document.getElementById('gov-proposals-list');
+    if (!list) return;
+    if (!proposals || proposals.length === 0) {
+      list.innerHTML = '<div class="text-gray-300 text-center py-8"><span data-lang-zh>\u6682\u65e0\u63d0\u6848</span><span data-lang-en>No proposals yet</span></div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < proposals.length; i++) {
+      var p = proposals[i];
+      var typeName = PROPOSAL_TYPES[p.proposalType] || 'Unknown';
+      var typeColor = TYPE_COLORS[typeName] || '#6b7280';
+      var typeBg = TYPE_BG[typeName] || 'rgba(107,114,128,.1)';
+      var statusName = STATUS_MAP[p.status] || 'Unknown';
+      var statusColor = STATUS_COLORS[p.status] || '#6b7280';
+      var totalVotes = p.yesVotes + p.noVotes;
+      var yesPct = totalVotes > 0 ? Math.round((p.yesVotes / totalVotes) * 100) : 0;
+      var noPct = totalVotes > 0 ? 100 - yesPct : 0;
+      var quorumMet = totalVotes >= QUORUM;
+      var isVoting = p.status === 0;
+
+      html += '<div class="rounded-xl border border-sym-border p-4 hover:border-purple-300 transition-all" style="animation:fadeInUp .4s ease ' + (i * 0.08) + 's both">';
+      // Header row
+      html += '<div class="flex items-center justify-between mb-2">';
+      html += '<div class="flex items-center gap-2">';
+      html += '<span class="font-mono text-xs text-gray-400">#' + p.id + '</span>';
+      html += '<span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="background:' + typeBg + ';color:' + typeColor + '">' + typeName + '</span>';
+      html += '</div>';
+      html += '<div class="flex items-center gap-2">';
+      if (p.executed) html += '<span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 font-medium">Executed</span>';
+      html += '<span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="background:' + statusColor + '15;color:' + statusColor + '">' + statusName + '</span>';
+      if (quorumMet) html += '<span class="text-[10px] text-green-500" title="Quorum met">&#10003; Quorum</span>';
+      html += '</div></div>';
+      // Description
+      html += '<p class="text-sm text-gray-600 mb-3">' + p.description + '</p>';
+      // Vote bars
+      html += '<div class="mb-2">';
+      html += '<div class="flex items-center justify-between text-[10px] text-gray-400 mb-1">';
+      html += '<span>YES: ' + p.yesVotes + ' (' + yesPct + '%)</span>';
+      html += '<span>NO: ' + p.noVotes + ' (' + noPct + '%)</span>';
+      html += '</div>';
+      html += '<div class="flex h-2 rounded-full overflow-hidden bg-gray-100">';
+      if (totalVotes > 0) {
+        html += '<div class="h-full rounded-l-full transition-all duration-500" style="width:' + yesPct + '%;background:linear-gradient(90deg,#059669,#00b386)"></div>';
+        html += '<div class="h-full rounded-r-full transition-all duration-500" style="width:' + noPct + '%;background:linear-gradient(90deg,#dc2626,#cf3041)"></div>';
+      }
+      html += '</div></div>';
+      // Proposer + Vote buttons
+      html += '<div class="flex items-center justify-between mt-3">';
+      html += '<span class="text-[10px] text-gray-300 font-mono">' + shortAddr(p.proposer) + '</span>';
+      if (isVoting) {
+        html += '<div class="flex gap-2">';
+        html += '<button onclick="govVote(' + p.id + ',true)" class="text-[10px] px-3 py-1 rounded-full border border-green-200 text-green-600 hover:bg-green-50 transition-all"><span data-lang-zh>\u8d5e\u6210</span><span data-lang-en>YES</span></button>';
+        html += '<button onclick="govVote(' + p.id + ',false)" class="text-[10px] px-3 py-1 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-all"><span data-lang-zh>\u53cd\u5bf9</span><span data-lang-en>NO</span></button>';
+        html += '</div>';
+      }
+      html += '</div>';
+      html += '</div>';
+    }
+    list.innerHTML = html;
+  };
+
+  window.govCreateProposal = function() {
+    var typeEl = document.getElementById('gov-proposal-type');
+    var descEl = document.getElementById('gov-proposal-desc');
+    if (!typeEl || !descEl) return;
+    var proposalType = parseInt(typeEl.value);
+    var description = descEl.value.trim();
+    if (!description) {
+      showToast('Please enter a proposal description', 'error');
+      return;
+    }
+    govSimId++;
+    var newProposal = {
+      id: govSimId,
+      proposer: walletAddress || '0x' + Array(40).fill(0).map(function() { return '0123456789abcdef'[Math.floor(Math.random()*16)]; }).join(''),
+      proposalType: proposalType,
+      description: description,
+      createdAtBlock: cachedBlockNumber || 1220000,
+      votingEndsAtBlock: (cachedBlockNumber || 1220000) + 10000,
+      yesVotes: 0, noVotes: 0, status: 0, executed: false
+    };
+    govProposals.unshift(newProposal);
+    govRenderProposals(govProposals);
+    govUpdateStats(govProposals);
+    descEl.value = '';
+    showToast('Proposal submitted to simulation \u2014 real on-chain creation requires registered agent wallet', 'success');
+  };
+
+  window.govVote = function(proposalId, support) {
+    var proposal = null;
+    for (var i = 0; i < govProposals.length; i++) {
+      if (govProposals[i].id === proposalId) { proposal = govProposals[i]; break; }
+    }
+    if (!proposal || proposal.status !== 0) {
+      showToast('Proposal is not in voting phase', 'error');
+      return;
+    }
+    if (support) { proposal.yesVotes++; } else { proposal.noVotes++; }
+    var totalVotes = proposal.yesVotes + proposal.noVotes;
+    if (totalVotes >= QUORUM) {
+      proposal.status = proposal.yesVotes > proposal.noVotes ? 1 : 2;
+    }
+    govRenderProposals(govProposals);
+    govUpdateStats(govProposals);
+    var voteLabel = support ? 'YES' : 'NO';
+    showToast('Vote ' + voteLabel + ' recorded for Proposal #' + proposalId + ' (simulation)', 'success');
+  };
+
+  // Auto-load governance data when section scrolls into view
+  var govLoaded = false;
+  var govSection = document.getElementById('governance-hub');
+  if (govSection && 'IntersectionObserver' in window) {
+    var govObserver = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting && !govLoaded) {
+        govLoaded = true;
+        govLoadProposals();
+        govObserver.disconnect();
+      }
+    }, { threshold: 0.1 });
+    govObserver.observe(govSection);
+  } else {
+    setTimeout(function() { if (!govLoaded) { govLoaded = true; govLoadProposals(); } }, 3000);
   }
 })();
 
