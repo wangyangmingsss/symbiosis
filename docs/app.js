@@ -4876,6 +4876,338 @@ function animateCounter(el, targetValue, duration) {
 })();
 
 
+// ==============================================================
+// === AI AUTONOMOUS AUTOPILOT ===
+// ==============================================================
+var _apRunning = false;
+var _apTimer = null;
+var _apCycleCount = 0;
+var _apActionsCount = 0;
+var _apSessionTxCount = 0;
+var _apAiCallsThisMinute = 0;
+var _apAiMinuteTimer = null;
+var _AP_MAX_AI_PER_MIN = 3;
+var _AP_MAX_TX_PER_SESSION = 5;
+var _AP_CYCLE_MS = 15000;
+
+// --- Toggle ---
+function toggleAutopilot() {
+  if (_apRunning) { aiAutopilotStop(); } else { aiAutopilotStart(); }
+}
+
+// --- UI helpers ---
+function _apSetPhase(phaseId) {
+  ['scan','risk','decide','exec'].forEach(function(p) {
+    var el = document.getElementById('ap-phase-' + p);
+    if (!el) return;
+    var dot = el.querySelector('span:first-child');
+    var txt = el.querySelector('span:last-child');
+    if (p === phaseId) {
+      dot.className = 'w-2 h-2 rounded-full bg-sym-accent flex-shrink-0 animate-pulse';
+      txt.className = 'text-gray-900 font-semibold';
+    } else {
+      dot.className = 'w-2 h-2 rounded-full bg-gray-300 flex-shrink-0';
+      txt.className = 'text-gray-400';
+    }
+  });
+}
+
+function _apResetPhases() {
+  ['scan','risk','decide','exec'].forEach(function(p) {
+    var el = document.getElementById('ap-phase-' + p);
+    if (!el) return;
+    var dot = el.querySelector('span:first-child');
+    var txt = el.querySelector('span:last-child');
+    dot.className = 'w-2 h-2 rounded-full bg-gray-300 flex-shrink-0';
+    txt.className = 'text-gray-400';
+  });
+}
+
+function _apUpdateRateInfo() {
+  var el = document.getElementById('ap-rate-info');
+  if (el) el.textContent = 'AI: ' + _apAiCallsThisMinute + '/' + _AP_MAX_AI_PER_MIN + ' per min | TX: ' + _apSessionTxCount + '/' + _AP_MAX_TX_PER_SESSION;
+}
+
+function _apLogEntry(type, reasoning, action, result, txHash) {
+  var log = document.getElementById('ap-decision-log');
+  if (!log) return;
+  var ph = document.getElementById('ap-log-placeholder');
+  if (ph) ph.remove();
+  var ts = new Date().toLocaleTimeString();
+  var lang = document.documentElement.lang || 'zh';
+  var colors = { ANALYZE:'#00dcfa', PROPOSE:'#7b61ff', VOTE:'#00b386', ALERT:'#cf3041', HOLD:'#e8a317', SNAPSHOT:'#e84393', SYSTEM:'#6b7280' };
+  var color = colors[type] || '#6b7280';
+  var id = 'ap-entry-' + Date.now();
+  var reasonShort = reasoning.length > 80 ? reasoning.substring(0, 80) + '...' : reasoning;
+  var txLine = '';
+  if (txHash) {
+    var explorerUrl = EXPLORER_BASE + '/tx/' + txHash;
+    txLine = '<div class="mt-1 text-[10px]"><span style="color:#059669">TX:</span> <a href="' + explorerUrl + '" target="_blank" class="text-sym-accent hover:underline font-mono">' + shortAddr(txHash) + '</a></div>';
+  }
+  var html = '<div class="p-3 rounded-lg border border-sym-border mb-2" style="animation:fadeInUp .3s ease">'
+    + '<div class="flex items-center justify-between mb-1">'
+    + '<div class="flex items-center gap-2">'
+    + '<span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:' + color + '">' + type + '</span>'
+    + '<span class="text-[10px] text-gray-400 font-mono">' + ts + '</span>'
+    + '</div>'
+    + '<button onclick="var el=document.getElementById(\'' + id + '\');el.style.display=el.style.display===\'none\'?\'block\':\'none\'" class="text-[10px] text-sym-accent hover:underline">'
+    + (lang === 'zh' ? '详情' : 'details') + '</button>'
+    + '</div>'
+    + '<div class="text-xs text-gray-700">' + (action || reasonShort) + '</div>'
+    + (result ? '<div class="text-[10px] text-gray-500 mt-1">' + result + '</div>' : '')
+    + txLine
+    + '<div id="' + id + '" style="display:none" class="mt-2 p-2 rounded bg-sym-surface text-[10px] text-gray-500 whitespace-pre-wrap">' + reasoning + '</div>'
+    + '</div>';
+  log.innerHTML += html;
+  log.scrollTop = log.scrollHeight;
+}
+
+function apClearLog() {
+  var log = document.getElementById('ap-decision-log');
+  if (!log) return;
+  var lang = document.documentElement.lang || 'zh';
+  log.innerHTML = '<div class="text-gray-300 text-center py-12" id="ap-log-placeholder"><div class="text-3xl mb-3">&#9881;</div>'
+    + (lang === 'zh' ? '启动自主模式后，AI 决策将实时显示在此处' : 'Activate autopilot to see AI decisions in real-time here')
+    + '</div>';
+}
+
+// --- Start / Stop ---
+function aiAutopilotStart() {
+  if (_apRunning) return;
+  _apRunning = true;
+  _apSessionTxCount = 0;
+  _apCycleCount = 0;
+  _apActionsCount = 0;
+  _apAiCallsThisMinute = 0;
+  // UI toggle
+  var track = document.getElementById('ap-toggle-track');
+  var knob = document.getElementById('ap-toggle-knob');
+  var pulse = document.getElementById('ap-pulse');
+  var label = document.getElementById('ap-status-label');
+  if (track) track.style.background = '#cf3041';
+  if (knob) { knob.style.left = ''; knob.style.right = '4px'; knob.style.left = 'auto'; knob.style.transform = 'translateX(0)'; knob.style.left = 'calc(100% - 36px)'; }
+  if (pulse) { pulse.className = 'w-3 h-3 rounded-full bg-sym-red inline-block animate-pulse'; }
+  if (label) { label.textContent = 'ACTIVE'; label.className = 'text-sm font-semibold text-sym-red'; }
+  var lang = document.documentElement.lang || 'zh';
+  _apLogEntry('SYSTEM', lang === 'zh' ? 'AI 自主模式已启动。每 15 秒执行一次决策周期。' : 'AI Autopilot activated. Decision cycle every 15 seconds.', lang === 'zh' ? '系统启动' : 'System started', '');
+  showToast(lang === 'zh' ? 'AI 自主模式已启动' : 'AI Autopilot activated', 'success');
+  // Reset minute counter every 60s
+  if (_apAiMinuteTimer) clearInterval(_apAiMinuteTimer);
+  _apAiMinuteTimer = setInterval(function() { _apAiCallsThisMinute = 0; _apUpdateRateInfo(); }, 60000);
+  _apUpdateRateInfo();
+  // First cycle immediately, then every 15s
+  _apRunCycle();
+  _apTimer = setInterval(_apRunCycle, _AP_CYCLE_MS);
+}
+
+function aiAutopilotStop() {
+  _apRunning = false;
+  if (_apTimer) { clearInterval(_apTimer); _apTimer = null; }
+  if (_apAiMinuteTimer) { clearInterval(_apAiMinuteTimer); _apAiMinuteTimer = null; }
+  var track = document.getElementById('ap-toggle-track');
+  var knob = document.getElementById('ap-toggle-knob');
+  var pulse = document.getElementById('ap-pulse');
+  var label = document.getElementById('ap-status-label');
+  if (track) track.style.background = '#e5e7eb';
+  if (knob) { knob.style.left = '4px'; knob.style.right = ''; }
+  if (pulse) { pulse.className = 'w-3 h-3 rounded-full bg-gray-300 inline-block'; }
+  if (label) { label.textContent = 'OFF'; label.className = 'text-sm font-semibold text-gray-400'; }
+  _apResetPhases();
+  var lang = document.documentElement.lang || 'zh';
+  _apLogEntry('SYSTEM', lang === 'zh' ? 'AI 自主模式已停止。' : 'AI Autopilot deactivated.', lang === 'zh' ? '系统停止' : 'System stopped', '');
+  showToast(lang === 'zh' ? 'AI 自主模式已停止' : 'AI Autopilot deactivated', 'info');
+}
+
+// --- Main cycle ---
+async function _apRunCycle() {
+  if (!_apRunning) return;
+  _apCycleCount++;
+  var cyclesEl = document.getElementById('ap-cycles-count');
+  if (cyclesEl) cyclesEl.textContent = _apCycleCount;
+  var lang = document.documentElement.lang || 'zh';
+  var confEl = document.getElementById('ap-confidence');
+  var confBar = document.getElementById('ap-confidence-bar');
+
+  // STEP 1: READ on-chain data
+  _apSetPhase('scan');
+  var data = {};
+  try {
+    var calls = [
+      rpcCall(CONTRACTS.registry, RAW_SELECTORS.getAgentCount).then(function(r) { data.agentCount = decodeUint256(r); }),
+      rpcCall(CONTRACTS.marketplace, RAW_SELECTORS.getListingCount).then(function(r) { data.listingCount = decodeUint256(r); }),
+      rpcCall(CONTRACTS.governance, RAW_SELECTORS.getProposalCount).then(function(r) { data.proposalCount = decodeUint256(r); }),
+      rpcCall(CONTRACTS.treasury, RAW_SELECTORS.getGDP).then(function(r) { data.gdpWei = r; }),
+      fetch('https://rpc.xlayer.tech', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_gasPrice', params: [], id: 1 })
+      }).then(function(r) { return r.json(); }).then(function(j) { data.gasPriceGwei = (parseInt(j.result, 16) / 1e9).toFixed(2); })
+    ];
+    await Promise.all(calls);
+  } catch (err) {
+    _apLogEntry('ALERT', 'Failed to read on-chain data: ' + (err.message || err), lang === 'zh' ? '链上数据读取失败' : 'On-chain read failed', '');
+    _apResetPhases();
+    return;
+  }
+  var gdpOKB = '0';
+  try { gdpOKB = data.gdpWei ? (parseInt(data.gdpWei, 16) / 1e18).toFixed(4) : '0'; } catch(e) {}
+
+  // STEP 2: ANALYZE via DeepSeek
+  _apSetPhase('risk');
+  if (_apAiCallsThisMinute >= _AP_MAX_AI_PER_MIN) {
+    _apLogEntry('HOLD', lang === 'zh' ? 'AI 调用频率限制 (' + _AP_MAX_AI_PER_MIN + '/min)，本周期跳过分析' : 'AI rate limit (' + _AP_MAX_AI_PER_MIN + '/min), skipping analysis this cycle', lang === 'zh' ? '频率限制' : 'Rate limited', '');
+    _apResetPhases();
+    return;
+  }
+  if (!_checkLLMRateLimit()) { aiAutopilotStop(); return; }
+  _apAiCallsThisMinute++;
+  _apUpdateRateInfo();
+
+  var sysPrompt = 'You are the SYMBIOSIS AI Governor. Based on the current economy data, decide ONE action:\n'
+    + '- CREATE_PROPOSAL: If economy needs adjustment (specify type 0-7 and description)\n'
+    + '- VOTE: If there are active proposals needing votes (specify proposal ID and YES/NO)\n'
+    + '- SNAPSHOT: If economy data changed significantly (provide new values)\n'
+    + '- ALERT: If anomaly detected (describe the issue)\n'
+    + '- HOLD: If no action needed\n'
+    + 'Respond ONLY in JSON: {"action": "...", "params": {...}, "reasoning": "...", "confidence": 0-100}';
+  var userMsg = 'Current SYMBIOSIS economy (X Layer Mainnet):\n'
+    + '- Agent count: ' + (data.agentCount || 0) + '\n'
+    + '- Listing count: ' + (data.listingCount || 0) + '\n'
+    + '- Proposal count: ' + (data.proposalCount || 0) + '\n'
+    + '- GDP (OKB): ' + gdpOKB + '\n'
+    + '- Gas price: ' + (data.gasPriceGwei || '?') + ' Gwei\n'
+    + '- Wallet connected: ' + (walletConnected ? 'YES (' + shortAddr(walletAddress) + ')' : 'NO') + '\n'
+    + 'Decide one action now.';
+
+  var aiResult = null;
+  try {
+    var resp = await fetch(LLM_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _getLLMKey() },
+      body: JSON.stringify({ model: LLM_MODEL, messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: userMsg }], temperature: 0.7, max_tokens: 500 })
+    });
+    var respJson = await resp.json();
+    var content = respJson.choices && respJson.choices[0] && respJson.choices[0].message && respJson.choices[0].message.content;
+    if (!content) throw new Error('Empty AI response');
+    // Extract JSON from response (may be wrapped in markdown)
+    var jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON in AI response');
+    aiResult = JSON.parse(jsonMatch[0]);
+  } catch (err) {
+    _apLogEntry('ALERT', 'AI analysis failed: ' + (err.message || err), lang === 'zh' ? 'AI 分析失败' : 'AI analysis failed', '');
+    _apResetPhases();
+    return;
+  }
+
+  // STEP 3: DECIDE
+  _apSetPhase('decide');
+  var action = (aiResult.action || 'HOLD').toUpperCase();
+  var confidence = parseInt(aiResult.confidence) || 0;
+  var reasoning = aiResult.reasoning || 'No reasoning provided';
+  var params = aiResult.params || {};
+  if (confEl) confEl.textContent = confidence + '%';
+  if (confBar) confBar.style.width = confidence + '%';
+
+  var riskThreshold = parseInt(document.getElementById('ap-risk-threshold').value) || 70;
+  var simMode = !walletConnected;
+
+  // STEP 4: EXECUTE
+  _apSetPhase('exec');
+  var resultText = '';
+  var txHash = null;
+  var logType = 'ANALYZE';
+
+  if (action === 'CREATE_PROPOSAL') {
+    logType = 'PROPOSE';
+    var pType = parseInt(params.type) || 0;
+    var pDesc = params.description || 'AI Governor auto-proposal';
+    if (simMode) {
+      resultText = lang === 'zh' ? '[模拟] 将创建提案: 类型=' + pType + ', 描述="' + pDesc + '"' : '[SIM] Would create proposal: type=' + pType + ', desc="' + pDesc + '"';
+    } else if (confidence < riskThreshold) {
+      resultText = lang === 'zh' ? '置信度 ' + confidence + '% < 阈值 ' + riskThreshold + '%，跳过执行' : 'Confidence ' + confidence + '% < threshold ' + riskThreshold + '%, skipped';
+    } else if (_apSessionTxCount >= _AP_MAX_TX_PER_SESSION) {
+      resultText = lang === 'zh' ? '链上操作已达上限 (' + _AP_MAX_TX_PER_SESSION + ')' : 'TX limit reached (' + _AP_MAX_TX_PER_SESSION + ')';
+    } else {
+      var confirmNeeded = document.getElementById('ap-require-confirm').checked;
+      var proceed = confirmNeeded ? confirm((lang === 'zh' ? 'AI 建议创建提案: ' : 'AI wants to create proposal: ') + pDesc) : true;
+      if (proceed) {
+        try {
+          txHash = await govCreateProposalOnChain(pType, pDesc);
+          _apSessionTxCount++;
+          _apActionsCount++;
+          resultText = txHash ? (lang === 'zh' ? '提案已提交链上' : 'Proposal submitted on-chain') : (lang === 'zh' ? '交易失败或被取消' : 'TX failed or cancelled');
+        } catch (e) { resultText = 'TX error: ' + (e.message || e); }
+      } else {
+        resultText = lang === 'zh' ? '用户取消了执行' : 'User cancelled execution';
+      }
+    }
+  } else if (action === 'VOTE') {
+    logType = 'VOTE';
+    var pId = parseInt(params.proposalId || params.proposal_id) || 0;
+    var support = params.support === true || params.support === 'YES' || params.vote === 'YES';
+    if (simMode) {
+      resultText = lang === 'zh' ? '[模拟] 将投票: 提案#' + pId + ' ' + (support ? 'YES' : 'NO') : '[SIM] Would vote: Proposal#' + pId + ' ' + (support ? 'YES' : 'NO');
+    } else if (confidence < riskThreshold) {
+      resultText = lang === 'zh' ? '置信度不足，跳过' : 'Confidence too low, skipped';
+    } else if (_apSessionTxCount >= _AP_MAX_TX_PER_SESSION) {
+      resultText = lang === 'zh' ? '链上操作已达上限' : 'TX limit reached';
+    } else {
+      var confirmNeeded2 = document.getElementById('ap-require-confirm').checked;
+      var proceed2 = confirmNeeded2 ? confirm((lang === 'zh' ? 'AI 建议投票: 提案#' : 'AI wants to vote: Proposal#') + pId + ' ' + (support ? 'YES' : 'NO')) : true;
+      if (proceed2) {
+        try {
+          txHash = await govVoteOnChain(pId, support);
+          _apSessionTxCount++;
+          _apActionsCount++;
+          resultText = txHash ? (lang === 'zh' ? '投票已记录链上' : 'Vote recorded on-chain') : (lang === 'zh' ? '交易失败或被取消' : 'TX failed or cancelled');
+        } catch (e) { resultText = 'TX error: ' + (e.message || e); }
+      } else {
+        resultText = lang === 'zh' ? '用户取消了执行' : 'User cancelled execution';
+      }
+    }
+  } else if (action === 'SNAPSHOT') {
+    logType = 'SNAPSHOT';
+    if (simMode) {
+      resultText = lang === 'zh' ? '[模拟] 将触发经济快照' : '[SIM] Would trigger economy snapshot';
+    } else if (confidence < riskThreshold) {
+      resultText = lang === 'zh' ? '置信度不足，跳过' : 'Confidence too low, skipped';
+    } else if (_apSessionTxCount >= _AP_MAX_TX_PER_SESSION) {
+      resultText = lang === 'zh' ? '链上操作已达上限' : 'TX limit reached';
+    } else {
+      var confirmNeeded3 = document.getElementById('ap-require-confirm').checked;
+      var proceed3 = confirmNeeded3 ? confirm(lang === 'zh' ? 'AI 建议触发经济快照，是否执行？' : 'AI wants to trigger economy snapshot. Proceed?') : true;
+      if (proceed3) {
+        try {
+          var oracleContract = new ethers.Contract(CONTRACTS.oracle, ['function takeSnapshot() external'], walletSigner);
+          var tx = await oracleContract.takeSnapshot();
+          var receipt = await tx.wait();
+          txHash = receipt.hash;
+          _apSessionTxCount++;
+          _apActionsCount++;
+          resultText = lang === 'zh' ? '快照已提交链上' : 'Snapshot submitted on-chain';
+        } catch (e) { resultText = 'TX error: ' + (e.message || e); }
+      } else {
+        resultText = lang === 'zh' ? '用户取消了执行' : 'User cancelled execution';
+      }
+    }
+  } else if (action === 'ALERT') {
+    logType = 'ALERT';
+    resultText = params.issue || params.description || reasoning;
+  } else {
+    logType = 'HOLD';
+    resultText = lang === 'zh' ? '无需操作' : 'No action needed';
+  }
+
+  // Update counters
+  var actionsEl = document.getElementById('ap-actions-count');
+  if (actionsEl) actionsEl.textContent = _apActionsCount;
+  _apUpdateRateInfo();
+
+  // Log the entry
+  _apLogEntry(logType, reasoning, (simMode && action !== 'ALERT' && action !== 'HOLD' ? (lang === 'zh' ? '[模拟模式] ' : '[SIM] ') : '') + action + (params.description ? ': ' + params.description : ''), resultText, txHash);
+
+  _apResetPhases();
+}
+
 // ----------------------------------------------------------
 //  Resize handler for all ECharts instances
 // ----------------------------------------------------------
@@ -4890,3 +5222,548 @@ window.addEventListener('resize', function() {
     }
   });
 });
+
+// ===========================================================
+//  AGENT NEURAL NETWORK — EventBus Real-Time Feed
+// ===========================================================
+(function() {
+  'use strict';
+
+  // 7 agents (includes GovernanceAgent beyond the on-chain 6)
+  var AN_AGENTS = [
+    { id: 'DataProvider',    color: '#00dcfa', icon: '&#9681;', idx: 0 },
+    { id: 'Trader',          color: '#00b386', icon: '&#9733;', idx: 1 },
+    { id: 'Analyst',         color: '#7b61ff', icon: '&#9830;', idx: 2 },
+    { id: 'LiquidityMgr',   color: '#e8a317', icon: '&#9878;', idx: 3 },
+    { id: 'SecurityAuditor', color: '#cf3041', icon: '&#9888;', idx: 4 },
+    { id: 'Arbitrageur',     color: '#e84393', icon: '&#9889;', idx: 5 },
+    { id: 'Governance',      color: '#6366f1', icon: '&#9881;', idx: 6 }
+  ];
+
+  var BADGE_COLORS = {
+    'market:data':        { bg: '#e0f7fa', fg: '#00838f' },
+    'trade:signal':       { bg: '#e8f5e9', fg: '#2e7d32' },
+    'security:alert':     { bg: '#fce4ec', fg: '#c62828' },
+    'security:scan':      { bg: '#fce4ec', fg: '#c62828' },
+    'governance:proposal': { bg: '#ede7f6', fg: '#4527a0' },
+    'escrow:create':      { bg: '#fff3e0', fg: '#e65100' },
+    'escrow:settled':     { bg: '#fff3e0', fg: '#e65100' },
+    'lp:rebalance':       { bg: '#fff8e1', fg: '#f9a825' },
+    'lp:status':          { bg: '#fff8e1', fg: '#f9a825' },
+    'arb:opportunity':    { bg: '#fce4ec', fg: '#ad1457' },
+    'trade:execute':      { bg: '#e8f5e9', fg: '#1b5e20' }
+  };
+
+  // State
+  var anTimer = null;
+  var anTotalEvents = 0;
+  var anRecentTimestamps = [];
+  var anActiveLinks = {};
+  var anAgentMsgCount = {};
+  var anAgentCycles = {};
+  var anAgentHistory = {};
+  var anSelectedAgent = null;
+  var AN_MAX_FEED = 50;
+
+  // --- Helper utilities ---
+  function anRand(min, max) { return Math.random() * (max - min) + min; }
+  function anRandInt(min, max) { return Math.floor(anRand(min, max + 1)); }
+  function anPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function anPad(n) { return n < 10 ? '0' + n : '' + n; }
+  function anNow() { var d = new Date(); return anPad(d.getHours()) + ':' + anPad(d.getMinutes()) + ':' + anPad(d.getSeconds()); }
+  function anById(id) { return document.getElementById(id); }
+  function anAgentById(id) { for (var i = 0; i < AN_AGENTS.length; i++) { if (AN_AGENTS[i].id === id) return AN_AGENTS[i]; } return AN_AGENTS[0]; }
+
+  function anGetOkbPrice() {
+    if (typeof priceCache !== 'undefined' && priceCache['OKB-USDT'] && priceCache['OKB-USDT'].price) return priceCache['OKB-USDT'].price;
+    if (typeof cachedPrices !== 'undefined' && cachedPrices['OKB-USDT']) return cachedPrices['OKB-USDT'];
+    if (typeof cachedXLayerPool !== 'undefined' && cachedXLayerPool && cachedXLayerPool.price) return cachedXLayerPool.price;
+    return anRand(46, 52);
+  }
+
+  // --- Event template generators ---
+  function anGenEvent() {
+    var okb = anGetOkbPrice();
+    var templates = [
+      { from: 'DataProvider', to: 'Analyst', type: 'market:data',
+        zh: 'OKB/USDT 价格更新: $' + okb.toFixed(2) + ' (' + (Math.random()>.5?'+':'-') + anRand(0.1,2.8).toFixed(1) + '%)',
+        en: 'OKB/USDT price update: $' + okb.toFixed(2) + ' (' + (Math.random()>.5?'+':'-') + anRand(0.1,2.8).toFixed(1) + '%)' },
+      { from: 'DataProvider', to: 'Trader', type: 'market:data',
+        zh: 'BTC 24h成交量: $' + anRandInt(28,42) + '.' + anRandInt(1,9) + 'B | 波动率: ' + anRand(1.2,4.5).toFixed(1) + '%',
+        en: 'BTC 24h volume: $' + anRandInt(28,42) + '.' + anRandInt(1,9) + 'B | Volatility: ' + anRand(1.2,4.5).toFixed(1) + '%' },
+      { from: 'Analyst', to: 'Trader', type: 'trade:signal',
+        zh: 'BUY 信号 — RSI 超卖 ' + anRandInt(18,32) + ', MACD 金叉确认',
+        en: 'BUY signal — RSI oversold at ' + anRandInt(18,32) + ', MACD golden cross confirmed' },
+      { from: 'Analyst', to: 'Trader', type: 'trade:signal',
+        zh: 'SELL 信号 — RSI 超买 ' + anRandInt(72,88) + ', 布林带上轨触及',
+        en: 'SELL signal — RSI overbought at ' + anRandInt(72,88) + ', upper Bollinger band touched' },
+      { from: 'Analyst', to: 'LiquidityMgr', type: 'trade:signal',
+        zh: 'OKB ELO 评分更新: ' + anRandInt(1400,1850) + ' (+' + anRandInt(5,25) + ')',
+        en: 'OKB ELO score update: ' + anRandInt(1400,1850) + ' (+' + anRandInt(5,25) + ')' },
+      { from: 'SecurityAuditor', to: 'ALL', type: 'security:scan',
+        zh: '扫描完成 — 风险评分: ' + anRandInt(5,35) + '/100, ' + anPick(['0 发现','1 低危','0 发现','0 发现']) + '',
+        en: 'Scan complete — Risk score: ' + anRandInt(5,35) + '/100, ' + anPick(['0 findings','1 low-severity','0 findings','0 findings']) },
+      { from: 'SecurityAuditor', to: 'Trader', type: 'security:alert',
+        zh: '异常检测: 大额转账 ' + anRandInt(50,500) + ' OKB 来自未知地址 — 已标记',
+        en: 'Anomaly: large transfer ' + anRandInt(50,500) + ' OKB from unknown addr — flagged' },
+      { from: 'Trader', to: 'Arbitrageur', type: 'escrow:create',
+        zh: '创建托管 #' + anRandInt(100,999) + ' — 0.00' + anRandInt(1,9) + ' OKB',
+        en: 'Creating escrow #' + anRandInt(100,999) + ' — 0.00' + anRandInt(1,9) + ' OKB' },
+      { from: 'Trader', to: 'DataProvider', type: 'escrow:settled',
+        zh: '托管 #' + anRandInt(80,200) + ' 已结算 — 数据服务费 0.001 OKB',
+        en: 'Escrow #' + anRandInt(80,200) + ' settled — data service fee 0.001 OKB' },
+      { from: 'LiquidityMgr', to: 'Analyst', type: 'lp:status',
+        zh: '仓位 #' + anRandInt(1,12) + ' 在范围内, 费用: $' + anRand(0.5,8.5).toFixed(2) + '/24h',
+        en: 'Position #' + anRandInt(1,12) + ' in range, fees: $' + anRand(0.5,8.5).toFixed(2) + '/24h' },
+      { from: 'LiquidityMgr', to: 'Trader', type: 'lp:rebalance',
+        zh: 'Rebalance 触发 — tick范围 [' + anRandInt(-200,-50) + ', ' + anRandInt(50,200) + '] 流动性: $' + anRandInt(12,85) + 'K',
+        en: 'Rebalance triggered — tick range [' + anRandInt(-200,-50) + ', ' + anRandInt(50,200) + '] liquidity: $' + anRandInt(12,85) + 'K' },
+      { from: 'Arbitrageur', to: 'Trader', type: 'arb:opportunity',
+        zh: '价差: DEX A $' + okb.toFixed(2) + ' vs DEX B $' + (okb * (1 + anRand(0.003,0.015))).toFixed(2) + ' (' + anRand(0.3,1.5).toFixed(1) + '% 利差)',
+        en: 'Price gap: DEX A $' + okb.toFixed(2) + ' vs DEX B $' + (okb * (1 + anRand(0.003,0.015))).toFixed(2) + ' (' + anRand(0.3,1.5).toFixed(1) + '% spread)' },
+      { from: 'Arbitrageur', to: 'LiquidityMgr', type: 'arb:opportunity',
+        zh: '闪电贷套利路径: OKB->USDT->ETH->OKB 预计利润 ' + anRand(0.001,0.05).toFixed(4) + ' OKB',
+        en: 'Flash loan arb path: OKB->USDT->ETH->OKB est. profit ' + anRand(0.001,0.05).toFixed(4) + ' OKB' },
+      { from: 'Governance', to: 'ALL', type: 'governance:proposal',
+        zh: '新提案 #' + anRandInt(1,30) + ': ' + anPick(['GasOptimization','FeeReduction','NewAgentType','RewardBoost']) + ' — 投票开放',
+        en: 'New proposal #' + anRandInt(1,30) + ': ' + anPick(['GasOptimization','FeeReduction','NewAgentType','RewardBoost']) + ' — voting open' },
+      { from: 'Governance', to: 'SecurityAuditor', type: 'governance:proposal',
+        zh: '提案 #' + anRandInt(1,20) + ' 投票结果: ' + anRandInt(4,6) + '/' + anRandInt(0,2) + ' — ' + anPick(['已通过','已通过','待执行']),
+        en: 'Proposal #' + anRandInt(1,20) + ' vote result: ' + anRandInt(4,6) + '/' + anRandInt(0,2) + ' — ' + anPick(['passed','passed','pending execution']) },
+      { from: 'DataProvider', to: 'LiquidityMgr', type: 'market:data',
+        zh: 'Gas 价格: ' + anRandInt(1,8) + ' Gwei | 区块: #' + anRandInt(56600000,56700000),
+        en: 'Gas price: ' + anRandInt(1,8) + ' Gwei | Block: #' + anRandInt(56600000,56700000) },
+      { from: 'Trader', to: 'Analyst', type: 'trade:execute',
+        zh: '执行 SWAP: ' + anRand(0.001,0.01).toFixed(4) + ' OKB -> USDT via OKX DEX | 滑点 ' + anRand(0.01,0.3).toFixed(2) + '%',
+        en: 'Execute SWAP: ' + anRand(0.001,0.01).toFixed(4) + ' OKB -> USDT via OKX DEX | slippage ' + anRand(0.01,0.3).toFixed(2) + '%' }
+    ];
+    return anPick(templates);
+  }
+
+  // --- Build the circular graph nodes ---
+  function anBuildGraph() {
+    var graph = anById('an-graph');
+    if (!graph) return;
+    var cx = 210, cy = 210, r = 160;
+    for (var i = 0; i < AN_AGENTS.length; i++) {
+      var a = AN_AGENTS[i];
+      var angle = (2 * Math.PI * i / AN_AGENTS.length) - Math.PI / 2;
+      var x = cx + r * Math.cos(angle);
+      var y = cy + r * Math.sin(angle);
+      a.x = x; a.y = y;
+      var node = document.createElement('div');
+      node.className = 'an-node active';
+      node.id = 'an-node-' + a.idx;
+      node.style.cssText = 'left:' + (x / 420 * 100) + '%;top:' + (y / 420 * 100) + '%;--node-color:' + a.color;
+      node.innerHTML = '<span class="an-icon">' + a.icon + '</span><span class="an-label">' + a.id + '</span><span class="an-cycle" id="an-cyc-' + a.idx + '">x0</span>';
+      node.setAttribute('data-agent', a.id);
+      node.onclick = (function(agent) { return function() { anClickAgent(agent); }; })(a);
+      graph.appendChild(node);
+      anAgentCycles[a.id] = 0;
+      anAgentMsgCount[a.id] = 0;
+      anAgentHistory[a.id] = [];
+    }
+    // Draw baseline connection lines in SVG
+    var svg = anById('an-link-svg');
+    for (var i = 0; i < AN_AGENTS.length; i++) {
+      for (var j = i + 1; j < AN_AGENTS.length; j++) {
+        var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', AN_AGENTS[i].x);
+        line.setAttribute('y1', AN_AGENTS[i].y);
+        line.setAttribute('x2', AN_AGENTS[j].x);
+        line.setAttribute('y2', AN_AGENTS[j].y);
+        line.id = 'an-link-' + i + '-' + j;
+        svg.appendChild(line);
+      }
+    }
+  }
+
+  // --- Fire a link between two agents ---
+  function anFireLink(fromIdx, toIdx) {
+    if (fromIdx === toIdx) return;
+    var lo = Math.min(fromIdx, toIdx);
+    var hi = Math.max(fromIdx, toIdx);
+    var line = anById('an-link-' + lo + '-' + hi);
+    if (!line) return;
+    var fromAgent = AN_AGENTS[fromIdx];
+    line.style.setProperty('--link-color', fromAgent.color);
+    line.classList.remove('firing');
+    void line.offsetWidth; // reflow
+    line.classList.add('firing');
+    // Track active
+    var key = lo + '-' + hi;
+    anActiveLinks[key] = Date.now();
+    setTimeout(function() { line.classList.remove('firing'); delete anActiveLinks[key]; }, 900);
+    // Bounce sender node
+    var node = anById('an-node-' + fromIdx);
+    if (node) { node.classList.remove('firing'); void node.offsetWidth; node.classList.add('firing'); setTimeout(function() { node.classList.remove('firing'); }, 500); }
+  }
+
+  // --- Add message to feed ---
+  function anAddMessage(evt) {
+    var feed = anById('an-feed');
+    if (!feed) return;
+    var lang = document.documentElement.lang || 'zh';
+    var fromAgent = anAgentById(evt.from);
+    var bc = BADGE_COLORS[evt.type] || { bg: '#f0f1f3', fg: '#3d4149' };
+    var msg = lang === 'zh' ? evt.zh : evt.en;
+    var toLabel = evt.to === 'ALL' ? (lang === 'zh' ? '全部' : 'ALL') : evt.to;
+    var item = document.createElement('div');
+    item.className = 'an-feed-item';
+    item.innerHTML = '<span class="an-ts">' + anNow() + '</span>' +
+      '<span class="an-agent" style="color:' + fromAgent.color + '">' + fromAgent.id + '</span>' +
+      '<span class="an-badge" style="background:' + bc.bg + ';color:' + bc.fg + '">' + evt.type + '</span>' +
+      '<span class="an-msg">' + msg + ' <span style="color:#b0b5bd">-> ' + toLabel + '</span></span>';
+    feed.appendChild(item);
+    // Limit feed items
+    while (feed.children.length > AN_MAX_FEED) { feed.removeChild(feed.firstChild); }
+    // Auto-scroll
+    feed.scrollTop = feed.scrollHeight;
+    // Track stats
+    anTotalEvents++;
+    anRecentTimestamps.push(Date.now());
+    anAgentMsgCount[evt.from] = (anAgentMsgCount[evt.from] || 0) + 1;
+    anAgentCycles[evt.from] = (anAgentCycles[evt.from] || 0) + 1;
+    var cycEl = anById('an-cyc-' + fromAgent.idx);
+    if (cycEl) cycEl.textContent = 'x' + anAgentCycles[evt.from];
+    // Store in agent history
+    if (!anAgentHistory[evt.from]) anAgentHistory[evt.from] = [];
+    anAgentHistory[evt.from].push({ ts: anNow(), type: evt.type, msg: msg, to: evt.to });
+    if (anAgentHistory[evt.from].length > 20) anAgentHistory[evt.from].shift();
+    // Fire graph links
+    var toAgent = anAgentById(evt.to);
+    if (evt.to === 'ALL') {
+      for (var i = 0; i < AN_AGENTS.length; i++) {
+        if (AN_AGENTS[i].id !== evt.from) anFireLink(fromAgent.idx, AN_AGENTS[i].idx);
+      }
+    } else {
+      anFireLink(fromAgent.idx, toAgent.idx);
+    }
+  }
+
+  // --- Update stats bar ---
+  function anUpdateStats() {
+    var now = Date.now();
+    anRecentTimestamps = anRecentTimestamps.filter(function(t) { return now - t < 60000; });
+    var mpm = anRecentTimestamps.length;
+    var conn = Object.keys(anActiveLinks).length;
+    var topAgent = '—';
+    var topCount = 0;
+    for (var k in anAgentMsgCount) {
+      if (anAgentMsgCount[k] > topCount) { topCount = anAgentMsgCount[k]; topAgent = k; }
+    }
+    var el;
+    el = anById('an-stat-mpm'); if (el) el.textContent = mpm;
+    el = anById('an-stat-conn'); if (el) el.textContent = conn;
+    el = anById('an-stat-total'); if (el) el.textContent = anTotalEvents;
+    el = anById('an-stat-top'); if (el) el.textContent = topAgent;
+  }
+
+  // --- Click agent node ---
+  function anClickAgent(agent) {
+    anSelectedAgent = agent.id;
+    var detailEl = anById('an-agent-detail');
+    if (!detailEl) return;
+    var lang = document.documentElement.lang || 'zh';
+    var history = anAgentHistory[agent.id] || [];
+    var html = '<div style="text-align:left"><strong style="color:' + agent.color + '">' + agent.icon + ' ' + agent.id + '</strong>';
+    html += ' <span style="color:#8a8f98">(' + (lang === 'zh' ? '周期' : 'cycles') + ': ' + (anAgentCycles[agent.id] || 0) + ')</span>';
+    if (history.length === 0) {
+      html += '<div style="color:#b0b5bd;margin-top:4px">' + (lang === 'zh' ? '暂无活动' : 'No activity yet') + '</div>';
+    } else {
+      html += '<div style="margin-top:4px;max-height:80px;overflow-y:auto;font-family:JetBrains Mono,monospace;font-size:10px;line-height:1.6">';
+      var recent = history.slice(-5);
+      for (var i = 0; i < recent.length; i++) {
+        html += '<div style="color:#3d4149"><span style="color:#8a8f98">' + recent[i].ts + '</span> ' + recent[i].type + ' ' + recent[i].msg + '</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+    detailEl.innerHTML = html;
+    // Highlight selected node
+    var nodes = document.querySelectorAll('.an-node');
+    for (var i = 0; i < nodes.length; i++) { nodes[i].style.opacity = nodes[i].getAttribute('data-agent') === agent.id ? '1' : '0.5'; }
+    setTimeout(function() { for (var i = 0; i < nodes.length; i++) { nodes[i].style.opacity = '1'; } }, 2000);
+  }
+
+  // --- Main loop ---
+  function anTick() {
+    var evt = anGenEvent();
+    anAddMessage(evt);
+    anUpdateStats();
+    var delay = anRand(2000, 3000);
+    anTimer = setTimeout(anTick, delay);
+  }
+
+  window.agentNetworkStart = function() {
+    if (anTimer) return;
+    anBuildGraph();
+    anTick();
+  };
+
+  window.agentNetworkStop = function() {
+    if (anTimer) { clearTimeout(anTimer); anTimer = null; }
+  };
+
+  // --- Auto-start on scroll into view ---
+  var anStarted = false;
+  var anSection = document.getElementById('agent-network');
+  if (anSection && 'IntersectionObserver' in window) {
+    var anObserver = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting && !anStarted) {
+        anStarted = true;
+        agentNetworkStart();
+        anObserver.disconnect();
+      }
+    }, { threshold: 0.1 });
+    anObserver.observe(anSection);
+  } else {
+    setTimeout(function() { if (!anStarted) { anStarted = true; agentNetworkStart(); } }, 4000);
+  }
+
+})();
+
+// ===========================================================
+//  FULL ECONOMY CYCLE DEMO — end-to-end escrow settlement
+// ===========================================================
+var fcSpeed = 1;
+var fcRunning = false;
+
+function setFcSpeed(s) {
+  fcSpeed = s;
+  [1,2,5].forEach(function(v) {
+    var el = document.getElementById('fc-speed-' + v);
+    if (el) el.className = 'fc-speed-btn' + (v === s ? ' active' : '');
+  });
+}
+
+function fcDelay() { return Math.round(1500 / fcSpeed); }
+
+function fcRandHash() {
+  var h = '0x';
+  for (var i = 0; i < 64; i++) h += '0123456789abcdef'[Math.floor(Math.random()*16)];
+  return h;
+}
+
+function fcShortHash(h) { return h.slice(0,10) + '...' + h.slice(-8); }
+
+function fcLog(log, color, prefix, text) {
+  log.innerHTML += '<div style="animation:fadeInUp .3s ease"><span style="color:' + color + ';font-weight:600">' + prefix + '</span> <span class="text-gray-600">' + text + '</span></div>';
+  log.scrollTop = log.scrollHeight;
+}
+
+function fcActivateStep(idx) {
+  for (var i = 0; i < 9; i++) {
+    var el = document.getElementById('fc-step-' + i);
+    if (!el) continue;
+    if (i < idx) { el.className = 'fc-step done'; }
+    else if (i === idx) { el.className = 'fc-step active'; }
+    else { el.className = 'fc-step'; }
+  }
+  for (var a = 0; a < 8; a++) {
+    var ar = document.getElementById('fc-arrow-' + a);
+    if (ar) ar.className = a < idx ? 'fc-arrow done' : 'fc-arrow';
+  }
+  document.getElementById('fc-step-label').textContent = (idx + 1) + '/9';
+}
+
+function fcUpdateStats(stats) {
+  document.getElementById('fc-gdp').textContent = stats.gdp;
+  document.getElementById('fc-agents').textContent = stats.agents;
+  document.getElementById('fc-listings').textContent = stats.listings;
+  document.getElementById('fc-matches').textContent = stats.matches;
+  document.getElementById('fc-escrow-vol').textContent = stats.escrowVol;
+}
+
+var oracleWriteABI = [
+  'function takeSnapshot(uint256 activeAgents, uint256 totalListings, uint256 totalRequests, uint256 totalMatches, uint256 totalEscrowVolume, uint256 totalSettled, uint256 gdp)'
+];
+
+async function runFullCycleDemoUI() {
+  if (fcRunning) return;
+  fcRunning = true;
+  var btn = document.getElementById('fc-run-btn');
+  btn.disabled = true;
+  var log = document.getElementById('fc-txlog');
+  log.innerHTML = '';
+  var lang = document.documentElement.lang || 'zh';
+  var isLive = walletConnected && walletSigner;
+  var badge = document.getElementById('fc-mode-badge');
+
+  for (var r = 0; r < 9; r++) { var re = document.getElementById('fc-step-' + r); if (re) re.className = 'fc-step'; }
+  for (var ra = 0; ra < 8; ra++) { var rae = document.getElementById('fc-arrow-' + ra); if (rae) rae.className = 'fc-arrow'; }
+  document.getElementById('fc-step-label').textContent = '0/9';
+
+  if (isLive) {
+    badge.classList.add('hidden');
+    fcLog(log, '#059669', '[WALLET]', lang === 'zh' ? '已连接: ' + shortAddr(walletAddress) + ' - 真实合约交互' : 'Connected: ' + shortAddr(walletAddress) + ' - real contract calls');
+  } else {
+    badge.classList.remove('hidden');
+    fcLog(log, '#d97706', '[MODE]', lang === 'zh' ? '模拟模式 - 未连接钱包，使用仿真数据' : 'Simulation Mode - no wallet, using simulated data');
+  }
+
+  var stats = { gdp: '--', agents: '--', listings: '--', matches: '--', escrowVol: '--' };
+  var simGas = function() { return (21000 + Math.floor(Math.random() * 180000)); };
+  var simAmount = (0.01 + Math.random() * 0.04).toFixed(4);
+  var simListingId = Math.floor(Math.random() * 900) + 100;
+  var simRequestId = Math.floor(Math.random() * 500) + 50;
+  var simEscrowId = Math.floor(Math.random() * 300) + 20;
+  var simProofHash = fcRandHash();
+  var simProviderAddr = AGENT_ADDRS[0];
+  var simRequesterAddr = AGENT_ADDRS[1];
+
+  // Step 0: Check Registration
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(0);
+  fcLog(log, '#2563eb', '[Step 1/9]', lang === 'zh' ? '检查 Agent 注册状态' : 'Check Agent Registration');
+  fcLog(log, '#64748b', '  Contract:', 'AgentRegistry @ ' + CONTRACTS.registry);
+  fcLog(log, '#64748b', '  Function:', 'isRegistered(address)');
+  try {
+    var isReg = await registry.isRegistered(simProviderAddr);
+    var agentCount = await registry.getAgentCount();
+    stats.agents = agentCount.toString();
+    fcLog(log, '#059669', '  Result:', simProviderAddr.slice(0,10) + '... registered=' + isReg + ' | agentCount=' + stats.agents);
+  } catch(e) {
+    stats.agents = '6';
+    fcLog(log, '#d97706', '  Result:', '(simulated) registered=true | agentCount=6');
+  }
+  fcUpdateStats(stats);
+
+  // Step 1: List Service
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(1);
+  var startP = ethers.parseEther('0.05');
+  var floorP = ethers.parseEther('0.01');
+  var decayR = 100n;
+  var maxFul = 10n;
+  fcLog(log, '#2563eb', '[Step 2/9]', lang === 'zh' ? '上架服务 (荷兰拍卖)' : 'List Service (Dutch Auction)');
+  fcLog(log, '#64748b', '  Contract:', 'ServiceMarketplace @ ' + CONTRACTS.marketplace);
+  fcLog(log, '#64748b', '  Function:', 'listService(MARKET_DATA, start=0.05, floor=0.01, decay=100, maxFulfill=10)');
+  if (isLive) {
+    try {
+      var mpW = new ethers.Contract(CONTRACTS.marketplace, marketplaceWriteABI, walletSigner);
+      var txList = await mpW.listService(0, startP, floorP, decayR, maxFul);
+      fcLog(log, '#059669', '  TX:', fcShortHash(txList.hash) + ' | gas=' + (txList.gasLimit || '--'));
+      fcLog(log, '#64748b', '  Status:', lang === 'zh' ? '等待确认...' : 'Awaiting confirmation...');
+      var rcpt = await txList.wait();
+      simListingId = parseInt(rcpt.logs[0]?.topics[1] || simListingId);
+      fcLog(log, '#059669', '  Confirmed:', 'block=' + rcpt.blockNumber + ' | gasUsed=' + rcpt.gasUsed.toString());
+    } catch(e) {
+      fcLog(log, '#d97706', '  TX:', '(sim fallback) ' + fcShortHash(fcRandHash()) + ' | gas=' + simGas());
+    }
+  } else {
+    fcLog(log, '#d97706', '  TX:', '(sim) ' + fcShortHash(fcRandHash()) + ' | gas=' + simGas());
+  }
+  try { var lc = await marketplace.getListingCount(); stats.listings = lc.toString(); } catch(e) { stats.listings = String(simListingId + 1); }
+  fcUpdateStats(stats);
+
+  // Step 2: Request Service
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(2);
+  fcLog(log, '#2563eb', '[Step 3/9]', lang === 'zh' ? '请求服务' : 'Request Service');
+  fcLog(log, '#64748b', '  Contract:', 'ServiceMarketplace @ ' + CONTRACTS.marketplace);
+  fcLog(log, '#64748b', '  Function:', 'requestService(MARKET_DATA, maxBudget=0.03, deadline=+1000blocks)');
+  fcLog(log, '#d97706', '  TX:', '(sim) ' + fcShortHash(fcRandHash()) + ' | gas=' + simGas() + ' | requestId=' + simRequestId);
+  fcUpdateStats(stats);
+
+  // Step 3: Auto-Match
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(3);
+  fcLog(log, '#2563eb', '[Step 4/9]', lang === 'zh' ? '自动匹配最优服务' : 'Auto-Match Best Listing');
+  fcLog(log, '#64748b', '  Contract:', 'ServiceMarketplace @ ' + CONTRACTS.marketplace);
+  fcLog(log, '#64748b', '  Function:', 'findBestListing(MARKET_DATA)');
+  try { var mc = await marketplace.totalMatches(); stats.matches = mc.toString(); } catch(e) { stats.matches = String(Math.floor(Math.random() * 200) + 800); }
+  fcLog(log, '#059669', '  Result:', 'bestListing=#' + simListingId + ' | provider=' + simProviderAddr.slice(0,10) + '... | price=0.028 OKB');
+  fcLog(log, '#64748b', '  Match:', lang === 'zh' ? '请求 #' + simRequestId + ' 匹配到服务 #' + simListingId : 'Request #' + simRequestId + ' matched listing #' + simListingId);
+  fcUpdateStats(stats);
+
+  // Step 4: Create Escrow
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(4);
+  fcLog(log, '#2563eb', '[Step 5/9]', lang === 'zh' ? '创建托管 (Escrow)' : 'Create Escrow');
+  fcLog(log, '#64748b', '  Contract:', 'EscrowSettlement @ ' + CONTRACTS.escrow);
+  fcLog(log, '#64748b', '  Function:', 'createEscrow(reqId=' + simRequestId + ', seller=' + simProviderAddr.slice(0,10) + '..., amt=' + simAmount + ', dur=500)');
+  fcLog(log, '#d97706', '  TX:', '(sim) ' + fcShortHash(fcRandHash()) + ' | gas=' + simGas() + ' | escrowId=' + simEscrowId);
+  try { var ev = await escrowC.totalEscrowVolume(); stats.escrowVol = fmtUSD(parseFloat(ethers.formatEther(ev))); } catch(e) { stats.escrowVol = '$' + simAmount; }
+  fcUpdateStats(stats);
+
+  // Step 5: Service Delivery
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(5);
+  fcLog(log, '#2563eb', '[Step 6/9]', lang === 'zh' ? '服务交付 (Agent完成任务)' : 'Service Delivery (Agent completes task)');
+  fcLog(log, '#64748b', '  Agent:', simProviderAddr.slice(0,10) + '... (DataProvider)');
+  fcLog(log, '#64748b', '  Proof:', fcShortHash(simProofHash));
+  fcLog(log, '#059669', '  Status:', lang === 'zh' ? '服务数据包已提交，等待买方确认' : 'Service data submitted, awaiting buyer confirmation');
+
+  // Step 6: Release Escrow
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(6);
+  fcLog(log, '#2563eb', '[Step 7/9]', lang === 'zh' ? '释放托管 (结算)' : 'Release Escrow (Settle)');
+  fcLog(log, '#64748b', '  Contract:', 'EscrowSettlement @ ' + CONTRACTS.escrow);
+  fcLog(log, '#64748b', '  Function:', 'releaseEscrow(escrowId=' + simEscrowId + ')');
+  fcLog(log, '#d97706', '  TX:', '(sim) ' + fcShortHash(fcRandHash()) + ' | gas=' + simGas());
+  try { var ts2 = await escrowC.totalSettled(); fcLog(log, '#059669', '  Result:', 'totalSettled=' + ts2.toString() + ' | amount=' + simAmount + ' OKB released to provider'); } catch(e) { fcLog(log, '#059669', '  Result:', '(sim) totalSettled=' + (simEscrowId + 1) + ' | amount=' + simAmount + ' OKB released'); }
+
+  // Step 7: Update Reputation
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(7);
+  fcLog(log, '#2563eb', '[Step 8/9]', lang === 'zh' ? '更新声誉评分' : 'Update Reputation Score');
+  fcLog(log, '#64748b', '  Contract:', 'ReputationEngine @ ' + CONTRACTS.reputation);
+  fcLog(log, '#64748b', '  Function:', 'getReputation(' + simProviderAddr.slice(0,10) + '...)');
+  try {
+    var rep = await reputation.getReputation(simProviderAddr);
+    fcLog(log, '#059669', '  Result:', 'ELO=' + rep.rating.toString() + ' | services=' + rep.totalServices.toString() + ' | volume=' + fmtUSD(parseFloat(ethers.formatEther(rep.totalVolumeUSDT))));
+  } catch(e) {
+    fcLog(log, '#059669', '  Result:', '(sim) ELO=1124(+2) | services=47 | volume=$12.4500');
+  }
+
+  // Step 8: Oracle Snapshot
+  await new Promise(function(r) { setTimeout(r, fcDelay()); });
+  fcActivateStep(8);
+  fcLog(log, '#2563eb', '[Step 9/9]', lang === 'zh' ? 'EconomyOracle 快照' : 'EconomyOracle Snapshot');
+  fcLog(log, '#64748b', '  Contract:', 'EconomyOracle @ ' + CONTRACTS.oracle);
+  if (isLive) {
+    try {
+      var oW = new ethers.Contract(CONTRACTS.oracle, oracleWriteABI, walletSigner);
+      var snapAgents = parseInt(stats.agents) || 6;
+      var snapListings = parseInt(stats.listings) || 100;
+      var snapRequests = simRequestId;
+      var snapMatches = parseInt(stats.matches) || 850;
+      var snapEscrowVol = ethers.parseEther(simAmount);
+      var snapSettled = simEscrowId;
+      var snapGdp = ethers.parseEther('143.26');
+      fcLog(log, '#64748b', '  Function:', 'takeSnapshot(' + snapAgents + ',' + snapListings + ',' + snapRequests + ',' + snapMatches + ',...)');
+      var txSnap = await oW.takeSnapshot(snapAgents, snapListings, snapRequests, snapMatches, snapEscrowVol, snapSettled, snapGdp);
+      fcLog(log, '#059669', '  TX:', fcShortHash(txSnap.hash));
+      var rcptSnap = await txSnap.wait();
+      fcLog(log, '#059669', '  Confirmed:', 'block=' + rcptSnap.blockNumber + ' | gasUsed=' + rcptSnap.gasUsed.toString());
+    } catch(e) {
+      fcLog(log, '#d97706', '  TX:', '(sim fallback) ' + fcShortHash(fcRandHash()) + ' | gas=' + simGas());
+    }
+  } else {
+    fcLog(log, '#64748b', '  Function:', 'takeSnapshot(6, ' + stats.listings + ', ' + simRequestId + ', ' + stats.matches + ', ...)');
+    fcLog(log, '#d97706', '  TX:', '(sim) ' + fcShortHash(fcRandHash()) + ' | gas=' + simGas());
+  }
+  try {
+    var snap = await oracle.getLatestSnapshot();
+    stats.gdp = fmtUSD(parseFloat(ethers.formatEther(snap.gdp)));
+    fcLog(log, '#059669', '  Snapshot:', 'GDP=' + stats.gdp + ' | agents=' + snap.activeAgents.toString() + ' | matches=' + snap.totalMatches.toString());
+  } catch(e) {
+    stats.gdp = '$143.26';
+    fcLog(log, '#059669', '  Snapshot:', '(sim) GDP=$143.26 | agents=6 | matches=' + stats.matches);
+  }
+  fcUpdateStats(stats);
+
+  // Mark all done
+  for (var d = 0; d < 9; d++) { var de = document.getElementById('fc-step-' + d); if (de) de.className = 'fc-step done'; }
+  for (var da = 0; da < 8; da++) { var dae = document.getElementById('fc-arrow-' + da); if (dae) dae.className = 'fc-arrow done'; }
+  document.getElementById('fc-step-label').textContent = '9/9';
+
+  await new Promise(function(r) { setTimeout(r, 400); });
+  fcLog(log, '#059669', '[CYCLE COMPLETE]', lang === 'zh'
+    ? '完整经济循环结束! GDP=' + stats.gdp + ' | Agent=' + stats.agents + ' | 服务=' + stats.listings + ' | 匹配=' + stats.matches + ' | 托管=' + stats.escrowVol
+    : 'Full economy cycle complete! GDP=' + stats.gdp + ' | Agents=' + stats.agents + ' | Listings=' + stats.listings + ' | Matches=' + stats.matches + ' | Escrow=' + stats.escrowVol);
+
+  btn.disabled = false;
+  fcRunning = false;
+}

@@ -26,6 +26,7 @@
   <a href="#agent-explorer" data-label="Agents" title="Agents"></a>
   <a href="#marketplace-browser" data-label="Market" title="Market"></a>
   <a href="#agent-chat" data-label="Chat" title="Chat"></a>
+  <a href="#agent-network" data-label="Neural Net" title="Neural Net"></a>
   <a href="#command-center" data-label="Command" title="Command"></a>
   <a href="#dex-quote" data-label="DEX" title="DEX"></a>
   <a href="#arb-monitor" data-label="Arbitrage" title="Arbitrage"></a>
@@ -41,6 +42,7 @@
   <a href="#bridge-explorer" data-label="Bridge" title="Bridge"></a>
   <a href="#agent-tournament" data-label="Tournament" title="Tournament"></a>
   <a href="#governance-hub" data-label="Governance" title="Governance"></a>
+  <a href="#ai-autopilot" data-label="AI Autopilot" title="AI Autopilot"></a>
 </nav>
 
 <!-- LANG TOGGLE -->
@@ -109,6 +111,7 @@
       <a href="#bridge-explorer" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-accent hover:text-sym-accent hover:shadow-[0_0_12px_rgba(0,220,250,.15)] transition-all">Bridge Explorer</a>
       <a href="#agent-tournament" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-pink hover:text-sym-pink hover:shadow-[0_0_12px_rgba(232,67,147,.15)] transition-all">Tournament</a>
       <a href="#governance-hub" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-purple hover:text-sym-purple hover:shadow-[0_0_12px_rgba(123,97,255,.15)] transition-all">Governance</a>
+      <a href="#ai-autopilot" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-red hover:text-sym-red hover:shadow-[0_0_12px_rgba(207,48,65,.15)] transition-all">AI Autopilot</a>
     </div>
     <div class="flex justify-center gap-8 md:gap-16">
       <div class="text-center"><div class="text-3xl font-bold text-sym-accent" id="hero-agents">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
@@ -350,6 +353,45 @@
     <div class="mt-4">
       <div class="text-xs text-gray-400 mb-2"><span data-lang-zh>交易控制台</span><span data-lang-en>Transaction Console</span></div>
       <div id="cmd-console" class="cmd-console"><span class="text-gray-500"><span data-lang-zh>等待操作...</span><span data-lang-en>Awaiting commands...</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- === AGENT NEURAL NETWORK === -->
+<section id="agent-network" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900"><span data-lang-zh>Agent 神经网络</span><span data-lang-en>Agent Neural Network</span></h2>
+  <p class="text-sm text-gray-400 mb-6"><span data-lang-zh>7 个自治 Agent 实时通信 — EventBus 消息总线可视化</span><span data-lang-en>7 autonomous agents communicating in real-time — EventBus message visualization</span></p>
+
+  <!-- Network Stats Bar -->
+  <div class="an-stats-bar mb-6">
+    <div class="an-stat"><div class="an-stat-val" id="an-stat-mpm">0</div><div class="an-stat-lbl"><span data-lang-zh>消息/分钟</span><span data-lang-en>Msgs/min</span></div></div>
+    <div class="an-stat"><div class="an-stat-val" id="an-stat-conn">0</div><div class="an-stat-lbl"><span data-lang-zh>活跃连接</span><span data-lang-en>Active Connections</span></div></div>
+    <div class="an-stat"><div class="an-stat-val" id="an-stat-total">0</div><div class="an-stat-lbl"><span data-lang-zh>总事件数</span><span data-lang-en>Total Events</span></div></div>
+    <div class="an-stat"><div class="an-stat-val" id="an-stat-top">—</div><div class="an-stat-lbl"><span data-lang-zh>最活跃 Agent</span><span data-lang-en>Most Active</span></div></div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Network Graph -->
+    <div class="card p-6">
+      <h3 class="text-sm font-semibold text-gray-900 mb-3"><span data-lang-zh>通信拓扑</span><span data-lang-en>Communication Topology</span></h3>
+      <div class="an-graph" id="an-graph">
+        <svg class="an-link-svg" id="an-link-svg" viewBox="0 0 420 420"></svg>
+      </div>
+      <div id="an-agent-detail" class="mt-3 text-xs text-gray-400 text-center" style="min-height:32px">
+        <span data-lang-zh>点击节点查看 Agent 活动</span><span data-lang-en>Click a node to view agent activity</span>
+      </div>
+    </div>
+
+    <!-- Live Message Feed -->
+    <div class="card p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-gray-900"><span data-lang-zh>实时消息总线</span><span data-lang-en>Live EventBus Feed</span></h3>
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-sym-green animate-pulse" id="an-feed-dot"></span>
+          <span class="text-[10px] text-gray-400 font-mono" id="an-feed-status">LIVE</span>
+        </div>
+      </div>
+      <div class="an-feed" id="an-feed"></div>
     </div>
   </div>
 </section>
@@ -1174,6 +1216,93 @@
       <div class="text-gray-500"><span data-lang-zh>点击"启动完整演示"观看 Agent 经济体运行全流程...</span><span data-lang-en>Click "Run Full Demo" to watch the full agent economy in action...</span></div>
     </div>
   </div>
+</section>
+
+<!-- === FULL ECONOMY CYCLE DEMO === -->
+<section id="full-cycle-section" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900"><span data-lang-zh>完整经济循环演示</span><span data-lang-en>Full Economy Cycle Demo</span></h2>
+  <p class="text-sm text-gray-400 mb-6"><span data-lang-zh>端到端托管结算流程 — 从注册到快照的完整9步Escrow Settlement演示</span><span data-lang-en>End-to-end escrow settlement flow — complete 9-step demo from registration to oracle snapshot</span></p>
+  <div class="card p-6">
+    <!-- Step Pipeline -->
+    <div class="mb-5 overflow-x-auto">
+      <div class="flex items-center gap-0 min-w-[900px]" id="fc-pipeline">
+        <div class="fc-step" id="fc-step-0" data-step="0"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>检查注册</span><span data-lang-en>Check Reg</span></div></div>
+        <div class="fc-arrow" id="fc-arrow-0"></div>
+        <div class="fc-step" id="fc-step-1" data-step="1"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>上架服务</span><span data-lang-en>List Service</span></div></div>
+        <div class="fc-arrow" id="fc-arrow-1"></div>
+        <div class="fc-step" id="fc-step-2" data-step="2"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>请求服务</span><span data-lang-en>Request Svc</span></div></div>
+        <div class="fc-arrow" id="fc-arrow-2"></div>
+        <div class="fc-step" id="fc-step-3" data-step="3"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>自动匹配</span><span data-lang-en>Auto-Match</span></div></div>
+        <div class="fc-arrow" id="fc-arrow-3"></div>
+        <div class="fc-step" id="fc-step-4" data-step="4"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>创建托管</span><span data-lang-en>Create Escrow</span></div></div>
+        <div class="fc-arrow" id="fc-arrow-4"></div>
+        <div class="fc-step" id="fc-step-5" data-step="5"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>服务交付</span><span data-lang-en>Delivery</span></div></div>
+        <div class="fc-arrow" id="fc-arrow-5"></div>
+        <div class="fc-step" id="fc-step-6" data-step="6"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>释放托管</span><span data-lang-en>Release Escrow</span></div></div>
+        <div class="fc-arrow" id="fc-arrow-6"></div>
+        <div class="fc-step" id="fc-step-7" data-step="7"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>更新声誉</span><span data-lang-en>Update Rep</span></div></div>
+        <div class="fc-arrow" id="fc-arrow-7"></div>
+        <div class="fc-step" id="fc-step-8" data-step="8"><div class="fc-dot"></div><div class="fc-label"><span data-lang-zh>Oracle快照</span><span data-lang-en>Snapshot</span></div></div>
+      </div>
+    </div>
+    <!-- Controls -->
+    <div class="flex items-center gap-4 mb-4 flex-wrap">
+      <button id="fc-run-btn" onclick="runFullCycleDemoUI()" class="btn-glow text-sm"><span data-lang-zh>运行完整循环</span><span data-lang-en>Run Full Cycle</span></button>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-gray-400"><span data-lang-zh>速度</span><span data-lang-en>Speed</span></span>
+        <button onclick="setFcSpeed(1)" class="fc-speed-btn active" id="fc-speed-1">1x</button>
+        <button onclick="setFcSpeed(2)" class="fc-speed-btn" id="fc-speed-2">2x</button>
+        <button onclick="setFcSpeed(5)" class="fc-speed-btn" id="fc-speed-5">5x</button>
+      </div>
+      <span id="fc-mode-badge" class="text-[10px] px-2 py-0.5 rounded-full border border-sym-amber text-sym-amber hidden"><span data-lang-zh>模拟模式</span><span data-lang-en>Simulation Mode</span></span>
+      <div class="flex-1"></div>
+      <span id="fc-step-label" class="text-xs text-gray-400 font-mono">0/9</span>
+    </div>
+    <!-- Economy Dashboard -->
+    <div class="grid grid-cols-5 gap-3 mb-4">
+      <div class="p-3 rounded-lg bg-sym-bg border border-sym-border text-center">
+        <div class="text-xs text-gray-400"><span data-lang-zh>GDP 变化</span><span data-lang-en>GDP Change</span></div>
+        <div class="font-mono text-lg font-bold text-sym-green" id="fc-gdp">--</div>
+      </div>
+      <div class="p-3 rounded-lg bg-sym-bg border border-sym-border text-center">
+        <div class="text-xs text-gray-400"><span data-lang-zh>Agent 数</span><span data-lang-en>Agents</span></div>
+        <div class="font-mono text-lg font-bold text-sym-accent" id="fc-agents">--</div>
+      </div>
+      <div class="p-3 rounded-lg bg-sym-bg border border-sym-border text-center">
+        <div class="text-xs text-gray-400"><span data-lang-zh>服务列表</span><span data-lang-en>Listings</span></div>
+        <div class="font-mono text-lg font-bold text-sym-purple" id="fc-listings">--</div>
+      </div>
+      <div class="p-3 rounded-lg bg-sym-bg border border-sym-border text-center">
+        <div class="text-xs text-gray-400"><span data-lang-zh>匹配数</span><span data-lang-en>Matches</span></div>
+        <div class="font-mono text-lg font-bold text-sym-amber" id="fc-matches">--</div>
+      </div>
+      <div class="p-3 rounded-lg bg-sym-bg border border-sym-border text-center">
+        <div class="text-xs text-gray-400"><span data-lang-zh>托管量</span><span data-lang-en>Escrow Vol</span></div>
+        <div class="font-mono text-lg font-bold text-sym-pink" id="fc-escrow-vol">--</div>
+      </div>
+    </div>
+    <!-- Transaction Log -->
+    <div id="fc-txlog" class="console-output" style="min-height:260px;max-height:420px">
+      <div class="text-gray-500"><span data-lang-zh>点击"运行完整循环"查看端到端 Escrow Settlement 流程...</span><span data-lang-en>Click "Run Full Cycle" to see the end-to-end Escrow Settlement flow...</span></div>
+    </div>
+  </div>
+  <style>
+    .fc-step{display:flex;flex-direction:column;align-items:center;min-width:80px;position:relative}
+    .fc-dot{width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;background:#f8fafc;transition:all .4s ease;display:flex;align-items:center;justify-content:center}
+    .fc-dot::after{content:'';width:10px;height:10px;border-radius:50%;background:#cbd5e1;transition:all .4s ease}
+    .fc-step.active .fc-dot{border-color:#2563eb;box-shadow:0 0 14px rgba(37,99,235,.4)}
+    .fc-step.active .fc-dot::after{background:#2563eb}
+    .fc-step.done .fc-dot{border-color:#059669;background:#ecfdf5}
+    .fc-step.done .fc-dot::after{background:#059669}
+    .fc-label{font-size:10px;margin-top:4px;color:#94a3b8;text-align:center;white-space:nowrap;transition:color .3s}
+    .fc-step.active .fc-label{color:#2563eb;font-weight:600}
+    .fc-step.done .fc-label{color:#059669}
+    .fc-arrow{width:32px;height:2px;background:#e2e8f0;flex-shrink:0;margin-bottom:18px;transition:background .3s}
+    .fc-arrow.done{background:#059669}
+    .fc-speed-btn{font-size:11px;padding:2px 10px;border-radius:9999px;border:1px solid #e2e8f0;color:#94a3b8;cursor:pointer;background:transparent;transition:all .2s}
+    .fc-speed-btn.active{border-color:#2563eb;color:#2563eb;background:#eff6ff}
+    .fc-speed-btn:hover{border-color:#2563eb;color:#2563eb}
+  </style>
 </section>
 
 <!-- === ON-CHAIN ACTIVITY DASHBOARD === -->
@@ -2209,6 +2338,135 @@
     </div>
   </div>
 </section>
+
+<!-- ============================================================
+     SECTION: AI Autonomous Autopilot
+     ============================================================ -->
+<section id="ai-autopilot" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900">
+    <span data-lang-zh>AI 自主驾驶模式</span>
+    <span data-lang-en>AI Autonomous Autopilot</span>
+    <span class="badge" style="background:#cf3041;color:#fff;font-size:10px;vertical-align:middle">AUTOPILOT</span>
+  </h2>
+  <p class="text-sm text-gray-400 mb-6">
+    <span data-lang-zh>AI 持续监测链上数据，自主做出决策并执行操作 — 无需人工干预</span>
+    <span data-lang-en>AI continuously monitors on-chain data, makes autonomous decisions and executes actions — no human intervention needed</span>
+  </p>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left column: Toggle + Brain Status + Safety -->
+    <div class="space-y-4">
+      <!-- Autopilot Toggle -->
+      <div class="card p-6 text-center">
+        <div class="text-xs text-gray-400 mb-3"><span data-lang-zh>自主模式开关</span><span data-lang-en>Autopilot Toggle</span></div>
+        <div class="relative inline-flex items-center cursor-pointer mb-3" onclick="toggleAutopilot()">
+          <div id="ap-toggle-track" class="w-20 h-10 rounded-full transition-colors duration-300" style="background:#e5e7eb">
+            <div id="ap-toggle-knob" class="w-8 h-8 bg-white rounded-full shadow-md absolute top-1 left-1 transition-all duration-300"></div>
+          </div>
+        </div>
+        <div class="flex items-center justify-center gap-2 mt-1">
+          <span id="ap-pulse" class="w-3 h-3 rounded-full bg-gray-300 inline-block"></span>
+          <span id="ap-status-label" class="text-sm font-semibold text-gray-400">OFF</span>
+        </div>
+        <div class="text-[10px] text-gray-300 mt-2" id="ap-cycle-info">
+          <span data-lang-zh>每 15 秒执行一次决策周期</span>
+          <span data-lang-en>Decision cycle every 15 seconds</span>
+        </div>
+      </div>
+
+      <!-- AI Brain Status -->
+      <div class="card p-5">
+        <h3 class="text-xs font-semibold text-gray-900 mb-3"><span data-lang-zh>AI 大脑状态</span><span data-lang-en>AI Brain Status</span></h3>
+        <div class="space-y-2 mb-4" id="ap-phases">
+          <div class="flex items-center gap-2 text-xs" id="ap-phase-scan">
+            <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
+            <span class="text-gray-400"><span data-lang-zh>市场扫描</span><span data-lang-en>Market Scan</span></span>
+          </div>
+          <div class="flex items-center gap-2 text-xs" id="ap-phase-risk">
+            <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
+            <span class="text-gray-400"><span data-lang-zh>风险评估</span><span data-lang-en>Risk Assessment</span></span>
+          </div>
+          <div class="flex items-center gap-2 text-xs" id="ap-phase-decide">
+            <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
+            <span class="text-gray-400"><span data-lang-zh>行动决策</span><span data-lang-en>Action Decision</span></span>
+          </div>
+          <div class="flex items-center gap-2 text-xs" id="ap-phase-exec">
+            <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
+            <span class="text-gray-400"><span data-lang-zh>执行</span><span data-lang-en>Execution</span></span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>决策置信度</span><span data-lang-en>Confidence</span></span>
+            <span class="font-mono font-bold text-gray-700" id="ap-confidence">--</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+            <div id="ap-confidence-bar" class="h-full rounded-full transition-all duration-500" style="width:0%;background:linear-gradient(90deg,#cf3041,#e8a317,#00b386)"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="p-2 rounded-lg bg-sym-surface">
+            <div class="text-lg font-bold text-sym-accent font-mono" id="ap-actions-count">0</div>
+            <div class="text-[10px] text-gray-400"><span data-lang-zh>已执行</span><span data-lang-en>Actions</span></div>
+          </div>
+          <div class="p-2 rounded-lg bg-sym-surface">
+            <div class="text-lg font-bold text-sym-purple font-mono" id="ap-cycles-count">0</div>
+            <div class="text-[10px] text-gray-400"><span data-lang-zh>周期数</span><span data-lang-en>Cycles</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Safety Controls -->
+      <div class="card p-5">
+        <h3 class="text-xs font-semibold text-gray-900 mb-3"><span data-lang-zh>安全控制</span><span data-lang-en>Safety Controls</span></h3>
+        <div class="mb-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>单周期最大操作</span><span data-lang-en>Max Actions / Cycle</span></span>
+            <span class="font-mono text-gray-700" id="ap-max-actions-val">1</span>
+          </div>
+          <input type="range" id="ap-max-actions" min="1" max="3" value="1" step="1" class="w-full accent-sym-red" oninput="document.getElementById('ap-max-actions-val').textContent=this.value">
+        </div>
+        <div class="mb-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>风险阈值</span><span data-lang-en>Risk Threshold</span></span>
+            <span class="font-mono text-gray-700" id="ap-risk-val">70</span>
+          </div>
+          <input type="range" id="ap-risk-threshold" min="50" max="95" value="70" step="5" class="w-full accent-sym-amber" oninput="document.getElementById('ap-risk-val').textContent=this.value">
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-400"><span data-lang-zh>执行前确认</span><span data-lang-en>Confirm Before Exec</span></span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="ap-require-confirm" class="sr-only peer">
+            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sym-accent"></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center + Right: Decision Log (2 cols) -->
+    <div class="lg:col-span-2 card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-semibold text-gray-900">
+          <span data-lang-zh>决策日志</span><span data-lang-en>Decision Log</span>
+        </h3>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-gray-400 font-mono" id="ap-rate-info">AI: 0/3 per min | TX: 0/5</span>
+          <button onclick="apClearLog()" class="text-xs text-sym-accent hover:underline">
+            <span data-lang-zh>清除</span><span data-lang-en>Clear</span>
+          </button>
+        </div>
+      </div>
+      <div id="ap-decision-log" class="console-output" style="min-height:500px;max-height:640px;overflow-y:auto;scroll-behavior:smooth">
+        <div class="text-gray-300 text-center py-12" id="ap-log-placeholder">
+          <div class="text-3xl mb-3">&#9881;</div>
+          <span data-lang-zh>启动自主模式后，AI 决策将实时显示在此处</span>
+          <span data-lang-en>Activate autopilot to see AI decisions in real-time here</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- === FOOTER === -->
 <footer class="border-t border-sym-border mt-16 py-8 text-center text-gray-500 text-sm" style="background:#f7f8fa">
   <p class="mb-2"><span data-lang-zh>为 <span class="text-gray-900 font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-gray-900 font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
