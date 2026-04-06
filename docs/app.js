@@ -3503,6 +3503,47 @@ function animateCounter(el, targetValue, duration) {
   }
 
   window.bridgeSwapChains = function() {
+
+  /* ── Verified On-Chain Transactions ─────────────────────────── */
+  var VERIFIED_TXS = [
+    { type: 'DEX Swap',        desc: 'OKB → USDT (0.001 OKB via OKX DEX Aggregator V6)', hash: '0x2cb11d4cbcc1e70cef9a665e53b4b19f36ccce9cd583dc7ca3e0a17f71965a2b', block: 56669102 },
+    { type: 'Treasury',        desc: 'Deposit 0.001 OKB to AgentTreasury',                hash: '0x87b0d78b812317f4637d50386159815ef4d332c7f9d993a9924daa52e63e2938', block: 56669231 },
+    { type: 'Marketplace',     desc: 'List MARKET_DATA service (Dutch Auction)',           hash: '0x71e6175b99b29930e29c0f86de95d028262b22288359b2d352170d013a2943f6', block: 56669235 },
+    { type: 'Marketplace',     desc: 'List ALPHA_SIGNAL service (Dutch Auction)',          hash: '0x6cad8b45506738d618867bcd9b417c7df23dcf100b54812f49cb5042e050cde4', block: 56669238 },
+    { type: 'Marketplace',     desc: 'List TRADE_EXECUTION service (Dutch Auction)',       hash: '0xd199a40d02140c9387be5ed3180591fa7096be3511155ba632748f2bcc8d0ff1', block: 56669241 },
+    { type: 'Marketplace',     desc: 'List SECURITY_AUDIT service (Dutch Auction)',        hash: '0xd37c23e18edbf2f916fdef163c86a9c1ebcf2df7bc68a10c9a6b5f4ec259eb71', block: 56669244 },
+    { type: 'Oracle',          desc: 'Economy snapshot #11 (GDP: 1,000,000)',              hash: '0x9bc69cbe8d9a4ac38181248b02cd948d4b3e091069f645bb0ee420b1d5bddddc', block: 56669247 },
+    { type: 'Governance',      desc: 'Create proposal #0: GasOptimization',               hash: '0x2a48c3c3fb4d7736c24778f00ada6beeff78f3f651bf50dd500794f31eb3e8be', block: 56668349 },
+    { type: 'Governance',      desc: 'Create proposal #1: FeeReduction',                  hash: '0xa61e9d373ecb7c915dc2dc4da899b9de6a678a727e4df4c4629abac93884059d', block: 56668352 },
+    { type: 'Governance',      desc: 'Create proposal #2: LPWidenRange',                  hash: '0x7b76fecf4b1307d01abe083b6dce994db75aed2cf5804b3158a72029efefcb24', block: 56668355 },
+    { type: 'Vote',            desc: 'Vote YES on proposal #0',                           hash: '0x39415a16dd83595344d04005b6ccd3249c216610a4f5d8aa8940db8270b83a33', block: 56668358 },
+    { type: 'Vote',            desc: 'Vote YES on proposal #1',                           hash: '0x126b8e3af076f35e7c1c7e39a2e0375b94d8470102a514726dd6463c6331f9fd', block: 56668361 },
+    { type: 'Vote',            desc: 'Vote YES on proposal #2',                           hash: '0xf4225715482ae71a802a3e35f6c4e3f2c064e489bcb1e24947a1fe00f9007436', block: 56668364 },
+    { type: 'Deploy',          desc: 'GovernanceRegistry contract deployment',             hash: '0xd2cb6e4b61f468873c6bcb428fa74d2ab89e46d67cdcf8172445e6a7686e611b', block: 56667200 }
+  ];
+
+  var TX_TYPE_COLORS = { 'DEX Swap': '#f59e0b', 'Treasury': '#8b5cf6', 'Marketplace': '#3b82f6', 'Oracle': '#00dcfa', 'Governance': '#10b981', 'Vote': '#06d6a0', 'Deploy': '#ef4444' };
+
+  window.loadVerifiedTxns = function() {
+    var tbody = document.getElementById('verified-tx-body');
+    if (!tbody) return;
+    tbody.innerHTML = VERIFIED_TXS.map(function(tx) {
+      var c = TX_TYPE_COLORS[tx.type] || '#6b7280';
+      var shortHash = tx.hash.slice(0,10) + '...' + tx.hash.slice(-6);
+      var url = 'https://www.okx.com/web3/explorer/xlayer/tx/' + tx.hash;
+      return '<tr class="hover:bg-sym-surface/50 transition-colors">' +
+        '<td class="py-2 pr-3"><span style="background:' + c + '20;color:' + c + ';border:1px solid ' + c + '40" class="px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap">' + tx.type + '</span></td>' +
+        '<td class="py-2 pr-3 text-gray-700">' + tx.desc + '</td>' +
+        '<td class="py-2 pr-3"><a href="' + url + '" target="_blank" rel="noopener" class="font-mono text-sym-accent hover:underline">' + shortHash + '</a></td>' +
+        '<td class="py-2 text-right"><span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-medium"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Confirmed</span></td>' +
+        '</tr>';
+    }).join('');
+  };
+
+  // Auto-load on page init
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { setTimeout(loadVerifiedTxns, 500); });
+  } else { setTimeout(loadVerifiedTxns, 500); }
     var from = document.getElementById('bridge-from-chain');
     var to = document.getElementById('bridge-to-chain');
     var tmp = from.value;

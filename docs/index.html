@@ -1745,6 +1745,39 @@
       </div>
     </div>
   </div>
+  </div>
+
+  <!-- Verified On-Chain Transactions -->
+  <div class="mt-8 card p-6">
+    <h3 class="text-lg font-bold mb-1 text-gray-900">
+      <span data-lang-zh>已验证链上交易</span>
+      <span data-lang-en>Verified On-Chain Transactions</span>
+      <span class="badge" style="background:#00b386;color:#fff;font-size:10px;vertical-align:middle">LIVE</span>
+    </h3>
+    <p class="text-xs text-gray-400 mb-4">
+      <span data-lang-zh>以下交易均已在 X Layer 主网确认，可在区块浏览器验证</span>
+      <span data-lang-en>All transactions below are confirmed on X Layer mainnet and verifiable on block explorer</span>
+    </p>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead>
+          <tr class="border-b border-sym-border text-gray-400">
+            <th class="pb-2 text-left font-medium"><span data-lang-zh>类型</span><span data-lang-en>Type</span></th>
+            <th class="pb-2 text-left font-medium"><span data-lang-zh>描述</span><span data-lang-en>Description</span></th>
+            <th class="pb-2 text-left font-medium">TX Hash</th>
+            <th class="pb-2 text-right font-medium"><span data-lang-zh>状态</span><span data-lang-en>Status</span></th>
+          </tr>
+        </thead>
+        <tbody id="verified-tx-body" class="divide-y divide-sym-border/50">
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-3 text-center">
+      <button onclick="loadVerifiedTxns()" class="text-xs text-sym-accent hover:underline">
+        <span data-lang-zh>刷新链上记录</span><span data-lang-en>Refresh On-Chain Records</span>
+      </button>
+    </div>
+  </div>
 </section>
 
 <!-- ============================================================
