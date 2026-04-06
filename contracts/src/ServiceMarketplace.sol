@@ -16,6 +16,7 @@ contract ServiceMarketplace is IServiceMarketplace {
     address public escrow;
     address public reputation;
     address public owner;
+    bool public paused;
 
     ServiceListing[] private _listings;
     ServiceRequest[] private _requests;
@@ -51,6 +52,11 @@ contract ServiceMarketplace is IServiceMarketplace {
         _;
     }
 
+    modifier whenNotPaused() {
+        require(!paused, "PAUSED");
+        _;
+    }
+
     constructor(address _registry) {
         registry = IAgentRegistry(_registry);
         owner = msg.sender;
@@ -63,6 +69,19 @@ contract ServiceMarketplace is IServiceMarketplace {
     function setReputation(address _reputation) external onlyOwner {
         reputation = _reputation;
     }
+
+    function pause() external onlyOwner {
+        paused = true;
+        emit Paused(msg.sender);
+    }
+
+    function unpause() external onlyOwner {
+        paused = false;
+        emit Unpaused(msg.sender);
+    }
+
+    event Paused(address indexed account);
+    event Unpaused(address indexed account);
 
     // --- Service Listing ---
 
@@ -78,7 +97,7 @@ contract ServiceMarketplace is IServiceMarketplace {
         uint256 floorPrice,
         uint256 decayRate,
         uint256 maxFulfillments
-    ) external override onlyRegistered returns (uint256) {
+    ) external override onlyRegistered whenNotPaused returns (uint256) {
         require(startPrice >= floorPrice, "START_BELOW_FLOOR");
         require(startPrice > 0, "ZERO_PRICE");
 
@@ -137,7 +156,7 @@ contract ServiceMarketplace is IServiceMarketplace {
         bytes32 serviceType,
         uint256 maxBudget,
         uint256 deadline
-    ) external override onlyRegistered returns (uint256) {
+    ) external override onlyRegistered whenNotPaused returns (uint256) {
         require(maxBudget > 0, "ZERO_BUDGET");
         require(deadline > block.number, "PAST_DEADLINE");
 
@@ -162,7 +181,7 @@ contract ServiceMarketplace is IServiceMarketplace {
     // --- Matching ---
 
     /// @notice Provider accepts a service request using one of their listings
-    function acceptRequest(uint256 requestId, uint256 listingId) external override onlyRegistered {
+    function acceptRequest(uint256 requestId, uint256 listingId) external override onlyRegistered whenNotPaused {
         require(requestId < _requests.length, "INVALID_REQUEST");
         require(listingId < _listings.length, "INVALID_LISTING");
 

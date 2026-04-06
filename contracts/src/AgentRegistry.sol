@@ -16,6 +16,7 @@ contract AgentRegistry is IAgentRegistry {
     uint256 public immutable deployedAt;
     address public owner;
     address public marketplace; // authorized to slash
+    bool public paused;
 
     // --- Modifiers ---
     modifier onlyRegistered() {
@@ -30,6 +31,11 @@ contract AgentRegistry is IAgentRegistry {
 
     modifier onlyAuthorized() {
         require(msg.sender == owner || msg.sender == marketplace, "NOT_AUTHORIZED");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "PAUSED");
         _;
     }
 
@@ -48,8 +54,18 @@ contract AgentRegistry is IAgentRegistry {
         owner = newOwner;
     }
 
+    function pause() external onlyOwner {
+        paused = true;
+        emit Paused(msg.sender);
+    }
+
+    function unpause() external onlyOwner {
+        paused = false;
+        emit Unpaused(msg.sender);
+    }
+
     // --- Core Functions ---
-    function registerAgent(AgentType agentType, string calldata metadataURI) external payable override {
+    function registerAgent(AgentType agentType, string calldata metadataURI) external payable override whenNotPaused {
         require(!_profiles[msg.sender].isActive, "ALREADY_REGISTERED");
         require(msg.value >= MIN_STAKE, "INSUFFICIENT_STAKE");
         require(bytes(metadataURI).length > 0, "EMPTY_URI");

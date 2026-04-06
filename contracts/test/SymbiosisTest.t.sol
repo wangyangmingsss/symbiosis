@@ -856,5 +856,228 @@ contract SymbiosisTest is Test {
         assertLt(score.totalScore, 1000);
     }
 
+    // =====================================================================
+    //  8. PAUSABLE TESTS
+    // =====================================================================
+
+    function test_Registry_PauseUnpause() public {
+        registry.pause();
+        assertTrue(registry.paused());
+
+        vm.prank(agent1);
+        vm.expectRevert("PAUSED");
+        registry.registerAgent{value: STAKE}(IAgentRegistry.AgentType.DataProvider, "ipfs://a1");
+
+        registry.unpause();
+        assertFalse(registry.paused());
+
+        vm.prank(agent1);
+        registry.registerAgent{value: STAKE}(IAgentRegistry.AgentType.DataProvider, "ipfs://a1");
+        assertTrue(registry.isRegistered(agent1));
+    }
+
+    function test_Registry_PauseOnlyOwner() public {
+        vm.prank(agent1);
+        vm.expectRevert("NOT_OWNER");
+        registry.pause();
+    }
+
+    function test_Marketplace_Pause() public {
+        marketplace.pause();
+
+        _registerAgent(agent1, IAgentRegistry.AgentType.DataProvider, "ipfs://a1");
+        vm.prank(agent1);
+        vm.expectRevert("PAUSED");
+        marketplace.listService(MARKET_DATA, 1 ether, 0.1 ether, 0.01 ether, 10);
+
+        marketplace.unpause();
+        vm.prank(agent1);
+        marketplace.listService(MARKET_DATA, 1 ether, 0.1 ether, 0.01 ether, 10);
+        assertEq(marketplace.getListingCount(), 1);
+    }
+
+    function test_Escrow_Pause() public {
+        escrow.pause();
+
+        vm.prank(agent1);
+        vm.expectRevert("PAUSED");
+        escrow.createEscrow{value: 1 ether}(0, agent2, 1 ether, 3600);
+
+        escrow.unpause();
+        vm.prank(agent1);
+        escrow.createEscrow{value: 1 ether}(0, agent2, 1 ether, 3600);
+        assertEq(escrow.getEscrowCount(), 1);
+    }
+
+    // =====================================================================
+    //  9. DISPUTE RESOLUTION TESTS
+    // =====================================================================
+
+    function test_Escrow_ResolveDispute_BuyerWins() public {
+        vm.prank(agent1);
+        escrow.createEscrow{value: 1 ether}(0, agent2, 1 ether, 3600);
+
+        uint256 buyerBal = agent1.balance;
+        uint256 sellerBal = agent2.balance;
+
+        // Owner resolves: 70% to buyer
+        escrow.resolveDispute(0, 70);
+
+        assertEq(agent1.balance, buyerBal + 0.7 ether);
+        assertEq(agent2.balance, sellerBal + 0.3 ether);
+
+        // Seller should have failure recorded (buyer > 50%)
+        IReputationEngine.ReputationScore memory s = reputation.getFullScore(agent2);
+        assertEq(s.failedServices, 1);
+    }
+
+    function test_Escrow_ResolveDispute_SellerWins() public {
+        vm.prank(agent1);
+        escrow.createEscrow{value: 1 ether}(0, agent2, 1 ether, 3600);
+
+        uint256 sellerBal = agent2.balance;
+
+        // Owner resolves: 30% to buyer (seller wins)
+        escrow.resolveDispute(0, 30);
+
+        assertEq(agent2.balance, sellerBal + 0.7 ether);
+
+        // Seller should have completion recorded
+        IReputationEngine.ReputationScore memory s = reputation.getFullScore(agent2);
+        assertEq(s.completedServices, 1);
+    }
+
+    // =====================================================================
+    //  10. GOVERNANCE AGENT TYPE TEST
+    // =====================================================================
+
+    function test_Registry_GovernanceAgentType() public {
+        vm.deal(address(7), 10 ether);
+        vm.prank(address(7));
+        registry.registerAgent{value: STAKE}(IAgentRegistry.AgentType.Governance, "ipfs://governance");
+
+        assertTrue(registry.isRegistered(address(7)));
+
+        IAgentRegistry.AgentProfile memory p = registry.getAgentProfile(address(7));
+        assertEq(uint8(p.agentType), uint8(IAgentRegistry.AgentType.Governance));
+
+        address[] memory govAgents = registry.discoverAgents(IAgentRegistry.AgentType.Governance);
+        assertEq(govAgents.length, 1);
+        assertEq(govAgents[0], address(7));
+    }
+
+    // =====================================================================
+    //  11. EDGE CASE & STRESS TESTS
+    // =====================================================================
+
+    function test_Reputation_MultipleFailures_FloorProtection() public {
+        // Record many failures - score should never go below floor (100)
+        for (uint256 i = 0; i < 20; i++) {
+            reputation.recordFailure(agent1, MARKET_DATA);
+        }
+        uint256 score = reputation.getReputation(agent1);
+        assertGe(score, 100); // ELO floor
+    }
+
+    function test_Marketplace_MaxFulfillments() public {
+        _registerAgent(agent1, IAgentRegistry.AgentType.DataProvider, "ipfs://a1");
+        _registerAgent(agent2, IAgentRegistry.AgentType.Trader, "ipfs://a2");
+
+        // List with max 1 fulfillment
+        vm.prank(agent1);
+        marketplace.listService(MARKET_DATA, 0.5 ether, 0.1 ether, 0.001 ether, 1);
+
+        // First request and accept succeeds
+        vm.prank(agent2);
+        marketplace.requestService(MARKET_DATA, 1 ether, block.number + 100);
+        vm.prank(agent1);
+        marketplace.acceptRequest(0, 0);
+
+        // Second request should fail (max fulfillments reached)
+        vm.prank(agent2);
+        marketplace.requestService(MARKET_DATA, 1 ether, block.number + 100);
+        vm.prank(agent1);
+        vm.expectRevert("MAX_FULFILLED");
+        marketplace.acceptRequest(1, 0);
+    }
+
+    function test_Escrow_DoubleRelease_Reverts() public {
+        vm.prank(agent1);
+        escrow.createEscrow{value: 1 ether}(0, agent2, 1 ether, 3600);
+
+        vm.prank(agent1);
+        escrow.releaseEscrow(0);
+
+        vm.prank(agent1);
+        vm.expectRevert("NOT_FUNDED");
+        escrow.releaseEscrow(0);
+    }
+
+    function test_Treasury_NegativePnL() public {
+        vm.prank(agent1);
+        treasury.deposit{value: 1 ether}();
+
+        treasury.debitSpending(agent1, 2 ether);
+
+        int256 pnl = treasury.getPnL(agent1);
+        assertEq(pnl, -2 ether);
+    }
+
+    function test_Oracle_MultipleSnapshots_GrowthRate() public {
+        oracle.takeSnapshot(5, 10, 8, 3, 1000, 2, 100);
+        oracle.takeSnapshot(6, 12, 10, 5, 2000, 4, 200);
+        oracle.takeSnapshot(7, 15, 12, 8, 3000, 6, 500);
+
+        int256 growth = oracle.getGrowthRate();
+        assertEq(growth, 300); // 500 - 200 (last two snapshots)
+    }
+
+    function test_Integration_SevenAgentEconomy() public {
+        // Register all 7 agent types including Governance
+        _registerDefaultAgents();
+        vm.deal(address(7), 10 ether);
+        vm.prank(address(7));
+        registry.registerAgent{value: STAKE}(IAgentRegistry.AgentType.Governance, "ipfs://governance");
+
+        assertEq(registry.getAgentCount(), 7);
+
+        // DataProvider lists service
+        vm.prank(agent1);
+        marketplace.listService(MARKET_DATA, 0.5 ether, 0.1 ether, 0.001 ether, 10);
+
+        // Analyst lists signal service
+        vm.prank(agent3);
+        marketplace.listService(ALPHA_SIGNAL, 0.3 ether, 0.05 ether, 0.001 ether, 10);
+
+        // Trader requests data
+        vm.prank(agent2);
+        marketplace.requestService(MARKET_DATA, 1 ether, block.number + 100);
+
+        // DataProvider accepts
+        vm.prank(agent1);
+        marketplace.acceptRequest(0, 0);
+
+        // Create escrow
+        vm.prank(agent2);
+        uint256 eid = escrow.createEscrow{value: 0.5 ether}(0, agent1, 0.5 ether, 3600);
+
+        // Complete and release
+        vm.prank(agent1);
+        marketplace.completeService(0, keccak256("data_hash"));
+        vm.prank(agent2);
+        escrow.releaseEscrow(eid);
+
+        // Verify full flow
+        assertEq(marketplace.totalCompletions(), 1);
+        assertEq(escrow.totalSettled(), 1);
+        assertGt(reputation.getReputation(agent1), 1000);
+
+        // Governance takes snapshot
+        vm.prank(address(7));
+        oracle.takeSnapshot(7, 2, 1, 1, 0.5 ether, 1, treasury.getGDP());
+
+        assertEq(oracle.snapshotCount(), 1);
+    }
+
     receive() external payable {}
 }

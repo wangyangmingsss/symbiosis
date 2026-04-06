@@ -47,6 +47,7 @@ export enum AgentType {
   LiquidityManager = 3,
   SecurityAuditor = 4,
   Arbitrageur = 5,
+  Governance = 6,
 }
 
 // ---------------------------------------------------------------------------

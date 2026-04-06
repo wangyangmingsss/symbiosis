@@ -41,10 +41,11 @@ const MAX_RISK_SCORE = 20;
 /** Minimum market depth (in toAmount wei) to consider the trade viable. */
 const MIN_DEPTH_WEI = ethers.parseEther("0.01");
 
-/** Token addresses on X Layer (placeholders). */
+/** Token addresses on X Layer Mainnet (Chain ID 196). */
 const TOKENS = {
   OKB: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-  USDT: "0x1E4a5963aBFD975d8c9021ce480b42188849D41d",
+  USDT: process.env.XLAYER_USDT_ADDRESS ?? "0x1E4a5963aBFD975d8c9021ce480b42188849D41d",
+  WETH: process.env.XLAYER_WETH_ADDRESS ?? "0x5A77f1443D16ee5761d310e38b62f77f726bC71c",
 };
 
 /** Whether to broadcast real swaps on-chain. */

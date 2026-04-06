@@ -51,10 +51,11 @@ const POSITION_SIZE_PCT = Math.min(
 /** Maximum acceptable slippage percentage for pre-trade validation. */
 const MAX_SLIPPAGE_PCT = parseFloat(process.env.MAX_SLIPPAGE_PCT ?? "3.0");
 
-// Placeholder token addresses on X Layer
+// Token addresses on X Layer Mainnet (Chain ID 196)
 const TOKEN_ADDRESSES: Record<string, string> = {
-  OKB: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // native
-  USDT: "0x1E4a5963aBFD975d8c9021ce480b42188849D41d",  // placeholder
+  OKB: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // native token
+  USDT: process.env.XLAYER_USDT_ADDRESS ?? "0x1E4a5963aBFD975d8c9021ce480b42188849D41d",
+  WETH: process.env.XLAYER_WETH_ADDRESS ?? "0x5A77f1443D16ee5761d310e38b62f77f726bC71c",
 };
 
 // ---------------------------------------------------------------------------

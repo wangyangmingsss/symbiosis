@@ -20,6 +20,7 @@ interface IEscrowSettlement {
     event EscrowReleased(uint256 indexed escrowId, address indexed seller, uint256 amount);
     event EscrowRefunded(uint256 indexed escrowId, address indexed buyer, uint256 amount);
     event BatchSettled(uint256[] escrowIds, uint256 totalAmount);
+    event DisputeResolved(uint256 indexed escrowId, uint256 buyerAmount, uint256 sellerAmount);
 
     function createEscrow(uint256 requestId, address seller, uint256 amount, uint256 duration) external payable returns (uint256);
     function releaseEscrow(uint256 escrowId) external;

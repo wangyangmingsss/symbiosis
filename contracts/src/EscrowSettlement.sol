@@ -13,6 +13,7 @@ contract EscrowSettlement is IEscrowSettlement {
     IReputationEngine public reputationEngine;
     address public marketplace;
     address public owner;
+    bool public paused;
 
     // Micro-payment tab system: accumulate small payments, settle in batch
     struct PaymentTab {
@@ -37,6 +38,11 @@ contract EscrowSettlement is IEscrowSettlement {
         _;
     }
 
+    modifier whenNotPaused() {
+        require(!paused, "PAUSED");
+        _;
+    }
+
     modifier onlyMarketplace() {
         require(msg.sender == marketplace || msg.sender == owner, "NOT_MARKETPLACE");
         _;
@@ -51,6 +57,19 @@ contract EscrowSettlement is IEscrowSettlement {
         marketplace = _marketplace;
     }
 
+    function pause() external onlyOwner {
+        paused = true;
+        emit Paused(msg.sender);
+    }
+
+    function unpause() external onlyOwner {
+        paused = false;
+        emit Unpaused(msg.sender);
+    }
+
+    event Paused(address indexed account);
+    event Unpaused(address indexed account);
+
     // --- Escrow Functions ---
 
     /// @notice Create an escrow for a service request (buyer deposits native token)
@@ -59,7 +78,7 @@ contract EscrowSettlement is IEscrowSettlement {
         address seller,
         uint256 amount,
         uint256 duration
-    ) external payable override returns (uint256) {
+    ) external payable override whenNotPaused returns (uint256) {
         require(msg.value >= amount, "INSUFFICIENT_DEPOSIT");
         require(seller != address(0), "ZERO_SELLER");
         require(seller != msg.sender, "SELF_ESCROW");
@@ -143,6 +162,42 @@ contract EscrowSettlement is IEscrowSettlement {
 
         (bool ok, ) = e.buyer.call{value: e.amount}("");
         require(ok, "REFUND_FAILED");
+    }
+
+    /// @notice Resolve a dispute: split escrow between buyer and seller
+    /// @param escrowId The escrow to resolve
+    /// @param buyerPct Percentage (0-100) of funds returned to buyer
+    function resolveDispute(uint256 escrowId, uint256 buyerPct) external onlyOwner {
+        require(escrowId < _escrows.length, "INVALID_ESCROW");
+        Escrow storage e = _escrows[escrowId];
+        require(e.status == EscrowStatus.Funded, "NOT_FUNDED");
+        require(buyerPct <= 100, "INVALID_PCT");
+
+        e.status = EscrowStatus.Released;
+
+        uint256 buyerAmount = (e.amount * buyerPct) / 100;
+        uint256 sellerAmount = e.amount - buyerAmount;
+
+        if (buyerPct < 50) {
+            // Seller wins dispute - record completion
+            reputationEngine.recordCompletion(e.seller, bytes32(e.requestId), block.timestamp - e.createdAt, sellerAmount);
+        } else {
+            // Buyer wins dispute - record failure
+            reputationEngine.recordFailure(e.seller, bytes32(e.requestId));
+        }
+
+        totalSettled++;
+
+        emit DisputeResolved(escrowId, buyerAmount, sellerAmount);
+
+        if (buyerAmount > 0) {
+            (bool ok1, ) = e.buyer.call{value: buyerAmount}("");
+            require(ok1, "BUYER_TRANSFER_FAILED");
+        }
+        if (sellerAmount > 0) {
+            (bool ok2, ) = e.seller.call{value: sellerAmount}("");
+            require(ok2, "SELLER_TRANSFER_FAILED");
+        }
     }
 
     /// @notice Batch settle multiple escrows in one transaction (gas optimization)

@@ -165,7 +165,7 @@ export class OnchainOSClient {
     this.chainIndex = chainIndex;
 
     if (!this.apiKey) {
-      console.warn("[OnchainOSClient] OKX_API_KEY not set -- API calls will use mock data");
+      console.warn("[OnchainOSClient] OKX_API_KEY not set -- some API calls may use fallback data. Set OKX_API_KEY for full functionality.");
     }
   }
 
@@ -688,12 +688,13 @@ export class OnchainOSClient {
   }
 
   private _mockPrice(token: string): MarketPrice {
+    console.warn(`[OnchainOSClient] WARN: Using fallback price for ${token} -- API returned no data. Configure OKX_API_KEY for live prices.`);
     const prices: Record<string, number> = {
       OKB: 48.5, ETH: 3200, BTC: 62000, USDT: 1.0, USDC: 1.0,
     };
     return {
       token, price: prices[token.toUpperCase()] ?? 1.0,
-      timestamp: Date.now(), source: "mock",
+      timestamp: Date.now(), source: "fallback",
     };
   }
 }

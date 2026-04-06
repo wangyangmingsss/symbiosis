@@ -152,7 +152,6 @@ export class LiquidityManagerAgent extends AgentBase {
     }
   }
 
-  // -- PLACEHOLDER: runCycle
   async runCycle(): Promise<void> {
     this.cyclesElapsed++;
 

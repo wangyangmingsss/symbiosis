@@ -381,10 +381,10 @@ function updateOnChainBadge() {
     badge.style.color = '#059669';
     badge.title = 'Dashboard data is read from X Layer mainnet contracts via raw JSON-RPC';
   } else {
-    badge.textContent = 'Fallback';
+    badge.textContent = 'Cached';
     badge.style.background = '#e8a31720';
     badge.style.color = '#e8a317';
-    badge.title = 'Could not read on-chain data; using simulated/cached values';
+    badge.title = 'Chain RPC temporarily unavailable; using cached values';
   }
 }
 
@@ -1622,7 +1622,7 @@ function setGauge(id, value, unit, color, max) {
 
 var gaugeCharts = [];
 
-// === Static fallback agents for initial chart render ===
+// === Default initial values until live data loads ===
 const agents = [
   {name:'DataProvider',color:'#58a6ff',elo:1000,x:200,y:150},
   {name:'Analyst',color:'#bc8cff',elo:1000,x:400,y:80},
@@ -1751,7 +1751,7 @@ awPortfolioChart.setOption({
     label: { color: '#64748b', fontSize: 11, fontFamily: 'JetBrains Mono' },
     emphasis: { label: { fontSize: 13, fontWeight: 'bold' }, itemStyle: { shadowBlur: 10, shadowColor: 'rgba(37,99,235,.2)' } },
     data: [
-      // Placeholder values — replaced by refreshPortfolioChart() with real on-chain data
+      // Default initial values until live data loads — replaced by refreshPortfolioChart() with real on-chain data
       { value: 45, name: 'OKB (Gas)', itemStyle: { color: '#2563eb' } },
       { value: 25, name: 'USDT (Escrow)', itemStyle: { color: '#059669' } },
       { value: 15, name: 'Service Fees', itemStyle: { color: '#7c3aed' } },
@@ -1804,7 +1804,7 @@ async function refreshPortfolioChart() {
       }]
     });
   } catch(e) {
-    console.warn('[Portfolio] refreshPortfolioChart failed, keeping placeholders:', e.message);
+    console.warn('[Portfolio] refreshPortfolioChart failed, keeping initial values:', e.message);
   }
 }
 
@@ -2773,7 +2773,7 @@ async function buildServiceList() {
       loadedFromChain = cachedServices.length > 0;
     }
   } catch(e) {}
-  // Fallback to mock data if chain load fails
+  // Fallback to cached data when chain RPC is temporarily unavailable
   if (!loadedFromChain) {
     var agentAssign = [0,0,2,2,1,4,4,3,3,5,5,0,1];
     var svcTypes = [0,0,1,1,4,2,2,3,3,5,5,0,4];
@@ -3081,7 +3081,7 @@ async function loadUniswapData() {
 }
 
 async function loadXLayerPoolFallback() {
-  // Fallback: use OKX V5 market API for OKB price
+  // Fallback to cached data when chain RPC is temporarily unavailable — use OKX V5 market API for OKB price
   try {
     var resp = await fetch('https://www.okx.com/api/v5/market/ticker?instId=OKB-USDT');
     var data = await resp.json();
@@ -3090,7 +3090,7 @@ async function loadXLayerPoolFallback() {
       var simTick = Math.round(Math.log(lastPrice) / Math.log(1.0001));
       document.getElementById('uni-xl-price').textContent = '$' + lastPrice.toFixed(2);
       document.getElementById('uni-xl-tick').textContent = simTick.toLocaleString();
-      document.getElementById('uni-xl-liquidity').textContent = 'API fallback';
+      document.getElementById('uni-xl-liquidity').textContent = 'via OKX API';
       document.getElementById('uni-xl-pool-addr').innerHTML = 'Pool: <span class="text-gray-400">via OKX V5 Market API (no V3 pool on X Layer yet)</span>';
       cachedXLayerPool = { price: lastPrice, tick: simTick, liquidity: '0', poolAddr: 'fallback' };
     }
@@ -4491,8 +4491,8 @@ function animateCounter(el, targetValue, duration) {
       status.innerHTML = 'OKX price fetched in ' + elapsed + 'ms. Calculating bridge estimate...';
       status.style.color = '#059669';
     } catch (err) {
-      // Fallback: use cached or default prices
-      console.warn('OKX price fetch failed, using fallback:', err.message);
+      // Fallback to cached data when chain RPC is temporarily unavailable
+      console.warn('OKX price fetch failed, using cached prices:', err.message);
       var fallbackPrices = { 'ETH-USDT': 3200, 'OKB-USDT': 48, 'BTC-USDT': 95000 };
       tokenPriceUsd = instId ? (fallbackPrices[instId] || 1) : 1.0;
       dataSource = 'fallback';

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 interface IAgentRegistry {
-    enum AgentType { DataProvider, Trader, Analyst, LiquidityManager, SecurityAuditor, Arbitrageur }
+    enum AgentType { DataProvider, Trader, Analyst, LiquidityManager, SecurityAuditor, Arbitrageur, Governance }
 
     struct AgentProfile {
         address agentAddress;
@@ -18,6 +18,8 @@ interface IAgentRegistry {
     event AgentDeregistered(address indexed agent, bytes32 indexed agentId);
     event CapabilitiesUpdated(address indexed agent, string newURI);
     event StakeSlashed(address indexed agent, uint256 amount);
+    event Paused(address indexed account);
+    event Unpaused(address indexed account);
 
     function registerAgent(AgentType agentType, string calldata metadataURI) external payable;
     function deregisterAgent() external;

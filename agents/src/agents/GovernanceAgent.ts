@@ -175,8 +175,7 @@ export class GovernanceAgent extends AgentBase {
   };
 
   constructor(privateKey: string, provider: JsonRpcProvider) {
-    // Reuse AgentType.DataProvider (0) since there is no Governance enum value
-    super("Governance", AgentType.DataProvider, privateKey, provider);
+    super("Governance", AgentType.Governance, privateKey, provider);
     this.okx = new OnchainOSClient();
 
     this.log("Initialized GovernanceAgent");
@@ -547,103 +546,145 @@ export class GovernanceAgent extends AgentBase {
   // -------------------------------------------------------------------------
 
   /**
-   * Simulate votes from other agents. In production, each agent would
-   * independently evaluate the proposal and emit a governance:vote event.
-   * Here we simulate realistic voting behavior based on agent roles.
+   * Collect votes from other agents using data-driven decision logic.
+   * Each agent evaluates the proposal based on its role-specific metrics
+   * and the current economy state, rather than random probability.
    */
   private _simulateAgentVotes(proposal: GovernanceProposal): void {
-    const agentVotingBehavior: Array<{
+    const snapshot = this.economyHistory.length > 0
+      ? this.economyHistory[this.economyHistory.length - 1]
+      : null;
+
+    const tradeStats = this.latestTradeStats;
+
+    const agentDecisionLogic: Array<{
       name: string;
-      bias: Record<ProposalType, number>; // probability of voting yes (0-1)
+      decide: (p: GovernanceProposal) => { vote: boolean; reason: string };
     }> = [
       {
         name: "DataProvider",
-        bias: {
-          [ProposalType.FeeReduction]: 0.7,
-          [ProposalType.RiskReduction]: 0.6,
-          [ProposalType.LPRebalanceWider]: 0.5,
-          [ProposalType.LPRebalanceTighter]: 0.5,
-          [ProposalType.IncreaseTraderRiskLimit]: 0.4,
-          [ProposalType.DecreaseTraderRiskLimit]: 0.6,
-          [ProposalType.GasOptimization]: 0.9,
-          [ProposalType.EmergencyPause]: 0.8,
+        decide: (p) => {
+          // DataProvider favors fee reduction (more service demand) and gas optimization
+          if (p.type === ProposalType.FeeReduction) {
+            const gdpLow = snapshot ? snapshot.gdpGrowthRate < 0 : false;
+            return { vote: gdpLow, reason: gdpLow ? "GDP declining, fee reduction will stimulate demand" : "GDP healthy, no need for fee reduction" };
+          }
+          if (p.type === ProposalType.GasOptimization) {
+            const gasHigh = snapshot ? snapshot.gasPrice > HIGH_GAS_THRESHOLD * 0.8 : false;
+            return { vote: gasHigh, reason: gasHigh ? "Gas costs impacting profitability" : "Gas costs acceptable" };
+          }
+          if (p.type === ProposalType.EmergencyPause) {
+            return { vote: true, reason: "DataProvider supports emergency safety measures" };
+          }
+          // Default: vote based on whether economy metrics warrant the change
+          const economyHealthy = snapshot ? snapshot.gdpGrowthRate > 0 && snapshot.totalMatches > 0 : true;
+          return { vote: !economyHealthy, reason: economyHealthy ? "Economy healthy, change unnecessary" : "Economy needs intervention" };
         },
       },
       {
         name: "Analyst",
-        bias: {
-          [ProposalType.FeeReduction]: 0.6,
-          [ProposalType.RiskReduction]: 0.7,
-          [ProposalType.LPRebalanceWider]: 0.6,
-          [ProposalType.LPRebalanceTighter]: 0.5,
-          [ProposalType.IncreaseTraderRiskLimit]: 0.5,
-          [ProposalType.DecreaseTraderRiskLimit]: 0.7,
-          [ProposalType.GasOptimization]: 0.6,
-          [ProposalType.EmergencyPause]: 0.9,
+        decide: (p) => {
+          // Analyst is data-driven, favors risk management
+          if (p.type === ProposalType.RiskReduction || p.type === ProposalType.DecreaseTraderRiskLimit) {
+            const highVol = snapshot ? Math.abs(snapshot.okbChange24h) > HIGH_VOLATILITY_THRESHOLD * 0.7 : false;
+            return { vote: highVol, reason: highVol ? `Volatility ${snapshot?.okbChange24h.toFixed(1)}% warrants risk reduction` : "Volatility within acceptable range" };
+          }
+          if (p.type === ProposalType.IncreaseTraderRiskLimit) {
+            const lowVol = snapshot ? Math.abs(snapshot.okbChange24h) < 3 : false;
+            return { vote: lowVol, reason: lowVol ? "Low volatility supports higher risk limits" : "Volatility too high for increased risk" };
+          }
+          if (p.type === ProposalType.EmergencyPause) {
+            return { vote: true, reason: "Analyst supports precautionary measures" };
+          }
+          return { vote: snapshot ? snapshot.gdpGrowthRate < -2 : false, reason: "Decision based on GDP trend analysis" };
         },
       },
       {
         name: "Trader",
-        bias: {
-          [ProposalType.FeeReduction]: 0.9,
-          [ProposalType.RiskReduction]: 0.3,
-          [ProposalType.LPRebalanceWider]: 0.4,
-          [ProposalType.LPRebalanceTighter]: 0.6,
-          [ProposalType.IncreaseTraderRiskLimit]: 0.9,
-          [ProposalType.DecreaseTraderRiskLimit]: 0.2,
-          [ProposalType.GasOptimization]: 0.7,
-          [ProposalType.EmergencyPause]: 0.5,
+        decide: (p) => {
+          // Trader wants lower fees, higher risk limits, opposes restrictions
+          if (p.type === ProposalType.FeeReduction) {
+            return { vote: true, reason: "Lower fees increase trade profitability" };
+          }
+          if (p.type === ProposalType.IncreaseTraderRiskLimit) {
+            const profitable = tradeStats ? tradeStats.totalPnL > 0 : true;
+            return { vote: profitable, reason: profitable ? "Positive PnL supports expanding limits" : "Negative PnL - caution warranted" };
+          }
+          if (p.type === ProposalType.DecreaseTraderRiskLimit) {
+            const deepLoss = tradeStats ? tradeStats.totalPnL < -0.3 : false;
+            return { vote: deepLoss, reason: deepLoss ? `PnL ${tradeStats?.totalPnL.toFixed(4)} warrants protection` : "Current risk levels acceptable" };
+          }
+          if (p.type === ProposalType.EmergencyPause) {
+            const critical = tradeStats ? tradeStats.losses > tradeStats.wins * 2 : false;
+            return { vote: critical, reason: critical ? "Loss ratio critical, pause needed" : "Trading conditions manageable" };
+          }
+          return { vote: false, reason: "Trader opposes unnecessary restrictions" };
         },
       },
       {
         name: "SecurityAuditor",
-        bias: {
-          [ProposalType.FeeReduction]: 0.4,
-          [ProposalType.RiskReduction]: 0.9,
-          [ProposalType.LPRebalanceWider]: 0.5,
-          [ProposalType.LPRebalanceTighter]: 0.4,
-          [ProposalType.IncreaseTraderRiskLimit]: 0.2,
-          [ProposalType.DecreaseTraderRiskLimit]: 0.9,
-          [ProposalType.GasOptimization]: 0.5,
-          [ProposalType.EmergencyPause]: 0.95,
+        decide: (p) => {
+          // SecurityAuditor always favors safety
+          if (p.type === ProposalType.EmergencyPause) {
+            return { vote: true, reason: "Security mandate: always support emergency measures" };
+          }
+          if (p.type === ProposalType.RiskReduction || p.type === ProposalType.DecreaseTraderRiskLimit) {
+            return { vote: true, reason: "Risk reduction aligns with security objectives" };
+          }
+          if (p.type === ProposalType.IncreaseTraderRiskLimit) {
+            const safe = snapshot ? Math.abs(snapshot.okbChange24h) < 2 && snapshot.gasPrice < HIGH_GAS_THRESHOLD : false;
+            return { vote: safe, reason: safe ? "Market conditions safe for increased limits" : "Security concerns about expanding risk" };
+          }
+          return { vote: snapshot ? snapshot.gdpGrowthRate < 0 : false, reason: "Decision based on economy stability assessment" };
         },
       },
       {
         name: "LiquidityManager",
-        bias: {
-          [ProposalType.FeeReduction]: 0.5,
-          [ProposalType.RiskReduction]: 0.6,
-          [ProposalType.LPRebalanceWider]: 0.8,
-          [ProposalType.LPRebalanceTighter]: 0.7,
-          [ProposalType.IncreaseTraderRiskLimit]: 0.5,
-          [ProposalType.DecreaseTraderRiskLimit]: 0.5,
-          [ProposalType.GasOptimization]: 0.8,
-          [ProposalType.EmergencyPause]: 0.7,
+        decide: (p) => {
+          // LiquidityManager cares about LP positions and gas
+          if (p.type === ProposalType.LPRebalanceWider) {
+            const highVol = snapshot ? Math.abs(snapshot.okbChange24h) > 5 : false;
+            return { vote: highVol, reason: highVol ? "High volatility warrants wider ranges" : "Current ranges adequate" };
+          }
+          if (p.type === ProposalType.LPRebalanceTighter) {
+            const lowVol = snapshot ? Math.abs(snapshot.okbChange24h) < 2 : false;
+            return { vote: lowVol, reason: lowVol ? "Low volatility supports tighter ranges for better fees" : "Volatility too high for tight ranges" };
+          }
+          if (p.type === ProposalType.GasOptimization) {
+            return { vote: true, reason: "LP operations are gas-intensive, optimization always beneficial" };
+          }
+          if (p.type === ProposalType.EmergencyPause) {
+            const severeVol = snapshot ? Math.abs(snapshot.okbChange24h) > 15 : false;
+            return { vote: severeVol, reason: severeVol ? "Extreme volatility threatens LP positions" : "LP positions safe, pause unnecessary" };
+          }
+          return { vote: false, reason: "Change not directly relevant to LP management" };
         },
       },
       {
         name: "Arbitrageur",
-        bias: {
-          [ProposalType.FeeReduction]: 0.8,
-          [ProposalType.RiskReduction]: 0.3,
-          [ProposalType.LPRebalanceWider]: 0.4,
-          [ProposalType.LPRebalanceTighter]: 0.7,
-          [ProposalType.IncreaseTraderRiskLimit]: 0.8,
-          [ProposalType.DecreaseTraderRiskLimit]: 0.3,
-          [ProposalType.GasOptimization]: 0.9,
-          [ProposalType.EmergencyPause]: 0.6,
+        decide: (p) => {
+          // Arbitrageur wants lower fees, gas optimization, and stable markets
+          if (p.type === ProposalType.FeeReduction || p.type === ProposalType.GasOptimization) {
+            return { vote: true, reason: "Lower costs improve arb profitability margins" };
+          }
+          if (p.type === ProposalType.IncreaseTraderRiskLimit) {
+            return { vote: true, reason: "More trading activity creates more arb opportunities" };
+          }
+          if (p.type === ProposalType.DecreaseTraderRiskLimit) {
+            return { vote: false, reason: "Reduced trading limits decrease arb opportunities" };
+          }
+          if (p.type === ProposalType.EmergencyPause) {
+            const severe = snapshot ? Math.abs(snapshot.okbChange24h) > 20 : false;
+            return { vote: severe, reason: severe ? "Market chaos - pause to protect positions" : "Arb opportunities still viable, oppose pause" };
+          }
+          return { vote: false, reason: "Change not beneficial for arb operations" };
         },
       },
     ];
 
-    for (const agent of agentVotingBehavior) {
-      const yesProbability = agent.bias[proposal.type] ?? 0.5;
-      const vote = Math.random() < yesProbability;
-      const reason = vote
-        ? `${agent.name} supports ${proposal.type} based on current conditions`
-        : `${agent.name} opposes ${proposal.type} -- not aligned with agent objectives`;
+    for (const agent of agentDecisionLogic) {
+      const { vote, reason } = agent.decide(proposal);
 
-      // Emit vote via EventBus (will be picked up by our own listener)
       globalBus.emit("governance:vote", {
         proposalId: proposal.id,
         agentName: agent.name,
