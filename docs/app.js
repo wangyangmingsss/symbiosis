@@ -145,6 +145,29 @@ const escrowWriteABI = [
   'function releaseEscrow(uint256 escrowId)'
 ];
 
+// === Governance ABI (read + write for MetaMask interactions) ===
+const GOV_ABI = [
+  'function createProposal(uint8 proposalType, string description) external returns (uint256)',
+  'function vote(uint256 proposalId, bool support) external',
+  'function finalizeProposal(uint256 proposalId) external',
+  'function getProposalCount() external view returns (uint256)',
+  'function getProposal(uint256 proposalId) external view returns (tuple(uint256 id, address proposer, uint8 proposalType, string description, uint256 createdAtBlock, uint256 votingEndsAtBlock, uint256 yesVotes, uint256 noVotes, uint8 status, bool executed))',
+  'function isProposalActive(uint256 proposalId) external view returns (bool)',
+  'function hasVoted(uint256 proposalId, address voter) external view returns (bool)'
+];
+
+// === X Layer Chain Config ===
+const X_LAYER_CHAIN = {
+  chainId: '0xC4',
+  chainName: 'X Layer Mainnet',
+  nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 },
+  rpcUrls: ['https://rpc.xlayer.tech'],
+  blockExplorerUrls: ['https://www.okx.com/web3/explorer/xlayer']
+};
+
+// === Wallet-connected agent registration status ===
+let walletIsRegisteredAgent = false;
+
 async function initContracts() {
   provider = new ethers.JsonRpcProvider(RPC_URL);
   registry = new ethers.Contract(CONTRACTS.registry, registryABI, provider);
@@ -1020,13 +1043,6 @@ async function updateGDPChart(snapCount) {
 }
 
 // === SECTION: Wallet Connect ===
-const XLAYER_TESTNET = {
-  chainId: '0xC4',
-  chainName: 'X Layer Mainnet',
-  rpcUrls: ['https://rpc.xlayer.tech'],
-  nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 },
-  blockExplorerUrls: ['https://www.okx.com/web3/explorer/xlayer']
-};
 
 async function connectWallet() {
   if (walletConnected) { disconnectWalletUI(); return; }
@@ -1045,21 +1061,24 @@ async function connectWallet() {
         await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xC4' }] });
       } catch (switchErr) {
         if (switchErr.code === 4902) {
-          await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [XLAYER_TESTNET] });
+          await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [X_LAYER_CHAIN] });
         } else { throw switchErr; }
       }
     }
     walletConnected = true;
     updateWalletUI();
     updateCmdWalletStatus();
+    updateGovWalletUI();
+    walletCheckRegistered(walletAddress);
+    window.dispatchEvent(new CustomEvent('walletConnected', { detail: { address: walletAddress } }));
     window.ethereum.on('accountsChanged', function(accts) {
       if (accts.length === 0) { disconnectWalletUI(); }
-      else { walletAddress = accts[0]; updateWalletUI(); }
+      else { walletAddress = accts[0]; updateWalletUI(); updateGovWalletUI(); walletCheckRegistered(accts[0]); }
     });
     window.ethereum.on('chainChanged', function() { window.location.reload(); });
   } catch (err) {
     console.error('Wallet connect error:', err);
-    cmdLog('text-sym-red', '[ERROR] ' + (err.message || 'Wallet connection failed'));
+    showToast(err.message || 'Wallet connection failed', 'error');
   }
 }
 
@@ -1072,14 +1091,26 @@ async function updateWalletUI() {
     const okbBal = parseFloat(ethers.formatEther(bal)).toFixed(4);
     label.innerHTML = shortAddr(walletAddress) + ' <span class="text-sym-green">' + okbBal + ' OKB</span>';
   } catch(e) { label.textContent = shortAddr(walletAddress); }
+  // Show wallet status bar
+  var wsBar = document.getElementById('wallet-status-bar');
+  var wsAddr = document.getElementById('wallet-status-addr');
+  if (wsBar && wsAddr) {
+    wsBar.classList.remove('hidden');
+    wsAddr.textContent = shortAddr(walletAddress);
+  }
 }
 
 function disconnectWalletUI() {
   walletConnected = false; walletAddress = null; walletSigner = null; walletProvider = null;
+  walletIsRegisteredAgent = false;
   const btn = document.getElementById('wallet-btn');
   btn.classList.remove('connected');
   document.getElementById('wallet-label').innerHTML = '<span data-lang-zh>\u8FDE\u63A5\u94B1\u5305</span><span data-lang-en>Connect Wallet</span>';
   updateCmdWalletStatus();
+  updateGovWalletUI();
+  // Hide wallet status bar
+  var wsBar = document.getElementById('wallet-status-bar');
+  if (wsBar) wsBar.classList.add('hidden');
 }
 
 function updateCmdWalletStatus() {
@@ -1091,6 +1122,132 @@ function updateCmdWalletStatus() {
   } else {
     dot.className = 'w-2 h-2 rounded-full bg-sym-red';
     txt.innerHTML = '<span data-lang-zh>\u94B1\u5305\u672A\u8FDE\u63A5 - \u8BF7\u5148\u8FDE\u63A5 MetaMask</span><span data-lang-en>Wallet not connected - please connect MetaMask first</span>';
+  }
+}
+
+// === Wallet Signer Helper ===
+function walletGetSigner() {
+  if (!walletConnected || !walletSigner) { throw new Error('Wallet not connected'); }
+  return walletSigner;
+}
+
+// === Check if address is registered agent ===
+async function walletCheckRegistered(address) {
+  walletIsRegisteredAgent = false;
+  try {
+    var regContract = new ethers.Contract(CONTRACTS.registry, registryABI, provider);
+    var isReg = await regContract.isRegistered(address);
+    walletIsRegisteredAgent = isReg;
+    var badge = document.getElementById('wallet-status-agent-badge');
+    if (badge) { if (isReg) badge.classList.remove('hidden'); else badge.classList.add('hidden'); }
+    var govAgentStatus = document.getElementById('gov-agent-status');
+    if (govAgentStatus) {
+      govAgentStatus.classList.remove('hidden');
+      if (isReg) {
+        govAgentStatus.className = 'text-[10px] px-2 py-0.5 rounded-full border border-green-200 text-green-600';
+        govAgentStatus.innerHTML = '<span data-lang-zh>\u5df2\u6ce8\u518c Agent</span><span data-lang-en>Registered Agent</span>';
+      } else {
+        govAgentStatus.className = 'text-[10px] px-2 py-0.5 rounded-full border border-amber-200 text-amber-600';
+        govAgentStatus.innerHTML = '<span data-lang-zh>\u672a\u6ce8\u518c Agent</span><span data-lang-en>Not Registered Agent</span>';
+        showToast(document.documentElement.lang === 'zh'
+          ? '\u6b64\u94b1\u5305\u672a\u6ce8\u518c\u4e3a Agent \u2014 \u4ec5\u6ce8\u518c Agent \u53ef\u521b\u5efa\u63d0\u6848/\u6295\u7968'
+          : 'This wallet is not a registered agent \u2014 only registered agents can create proposals/vote', 'info');
+      }
+    }
+    updateGovWalletUI();
+  } catch (err) { console.warn('Agent registration check failed:', err); }
+}
+
+// === Update Governance Section Wallet UI ===
+function updateGovWalletUI() {
+  var dot = document.getElementById('gov-wallet-dot');
+  var info = document.getElementById('gov-wallet-info');
+  var connectBtn = document.getElementById('gov-connect-btn');
+  var submitLabel = document.getElementById('gov-submit-label');
+  var modeHint = document.getElementById('gov-mode-hint');
+  if (walletConnected && walletAddress) {
+    if (dot) dot.style.background = '#00b386';
+    if (info) info.innerHTML = '<span class="text-sym-green font-mono">' + shortAddr(walletAddress) + '</span> <span class="text-gray-400">| X Layer Mainnet (Chain 196)</span>';
+    if (connectBtn) { connectBtn.textContent = shortAddr(walletAddress); connectBtn.onclick = function() { disconnectWalletUI(); }; }
+    if (submitLabel) submitLabel.innerHTML = '<span data-lang-zh>\u63d0\u4ea4\u94fe\u4e0a\u63d0\u6848</span><span data-lang-en>Submit On-Chain</span>';
+    if (modeHint) modeHint.innerHTML = '<span class="text-sym-green">&#10003;</span> <span data-lang-zh>\u94fe\u4e0a\u6a21\u5f0f \u2014 \u4ea4\u6613\u5c06\u901a\u8fc7 MetaMask \u7b7e\u540d\u5e76\u53d1\u9001\u81f3 X Layer \u4e3b\u7f51</span><span data-lang-en>On-chain mode \u2014 transactions will be signed via MetaMask and sent to X Layer Mainnet</span>';
+  } else {
+    if (dot) dot.style.background = '#cf3041';
+    if (info) info.innerHTML = '<span data-lang-zh>\u94b1\u5305\u672a\u8fde\u63a5 \u2014 \u6cbb\u7406\u64cd\u4f5c\u4e3a\u6a21\u62df\u6a21\u5f0f</span><span data-lang-en>Wallet not connected \u2014 governance actions are simulated</span>';
+    if (connectBtn) { connectBtn.innerHTML = '<span data-lang-zh>\u8fde\u63a5\u94b1\u5305\u53c2\u4e0e\u6cbb\u7406</span><span data-lang-en>Connect Wallet to Govern</span>'; connectBtn.onclick = function() { connectWallet(); }; }
+    if (submitLabel) submitLabel.innerHTML = '<span data-lang-zh>\u6a21\u62df\u63d0\u4ea4\u63d0\u6848</span><span data-lang-en>Simulate Proposal</span>';
+    if (modeHint) modeHint.innerHTML = '<span data-lang-zh>\u6a21\u62df\u6a21\u5f0f \u2014 \u8fde\u63a5\u94b1\u5305\u4ee5\u63d0\u4ea4\u94fe\u4e0a\u63d0\u6848</span><span data-lang-en>Simulation mode \u2014 connect wallet to submit on-chain proposals</span>';
+    var govAgentStatus = document.getElementById('gov-agent-status');
+    if (govAgentStatus) govAgentStatus.classList.add('hidden');
+    var txResult = document.getElementById('gov-tx-result');
+    if (txResult) txResult.classList.add('hidden');
+  }
+}
+
+// === On-Chain Governance: Create Proposal via MetaMask ===
+async function govCreateProposalOnChain(proposalType, description) {
+  if (!walletConnected || !walletSigner) { showToast('Please connect your wallet first', 'error'); return null; }
+  var spinner = document.getElementById('gov-submit-spinner');
+  var submitBtn = document.getElementById('gov-submit-btn');
+  var txResult = document.getElementById('gov-tx-result');
+  var txLink = document.getElementById('gov-tx-link');
+  try {
+    if (spinner) spinner.classList.remove('hidden');
+    if (submitBtn) submitBtn.disabled = true;
+    showToast(document.documentElement.lang === 'zh' ? '\u8bf7\u5728\u94b1\u5305\u4e2d\u786e\u8ba4\u4ea4\u6613...' : 'Please confirm the transaction in your wallet...', 'info');
+    var govContract = new ethers.Contract(CONTRACTS.governance, GOV_ABI, walletSigner);
+    var tx = await govContract.createProposal(proposalType, description);
+    showToast(document.documentElement.lang === 'zh' ? '\u4ea4\u6613\u5df2\u63d0\u4ea4\uff0c\u7b49\u5f85\u786e\u8ba4...' : 'Transaction submitted, waiting for confirmation...', 'info');
+    var receipt = await tx.wait();
+    var txHash = receipt.hash;
+    var explorerUrl = EXPLORER_BASE + '/tx/' + txHash;
+    if (txResult && txLink) { txResult.classList.remove('hidden'); txLink.href = explorerUrl; txLink.textContent = txHash; }
+    showToast(document.documentElement.lang === 'zh'
+      ? '\u63d0\u6848\u5df2\u6210\u529f\u63d0\u4ea4\u81f3\u94fe\u4e0a! TX: ' + shortAddr(txHash)
+      : 'Proposal submitted on-chain! TX: ' + shortAddr(txHash), 'success');
+    if (typeof govLoadProposals === 'function') setTimeout(govLoadProposals, 2000);
+    return txHash;
+  } catch (err) {
+    console.error('Create proposal on-chain error:', err);
+    var msg = err.reason || err.message || 'Transaction failed';
+    if (msg.includes('user rejected')) msg = document.documentElement.lang === 'zh' ? '\u7528\u6237\u53d6\u6d88\u4e86\u4ea4\u6613' : 'User rejected the transaction';
+    showToast(msg, 'error');
+    return null;
+  } finally {
+    if (spinner) spinner.classList.add('hidden');
+    if (submitBtn) submitBtn.disabled = false;
+  }
+}
+
+// === On-Chain Governance: Vote via MetaMask ===
+async function govVoteOnChain(proposalId, support) {
+  if (!walletConnected || !walletSigner) { showToast('Please connect your wallet first', 'error'); return null; }
+  var voteLabel = support ? 'YES' : 'NO';
+  try {
+    showToast(document.documentElement.lang === 'zh' ? '\u8bf7\u5728\u94b1\u5305\u4e2d\u786e\u8ba4\u6295\u7968...' : 'Please confirm the vote in your wallet...', 'info');
+    var govContract = new ethers.Contract(CONTRACTS.governance, GOV_ABI, walletSigner);
+    try {
+      var alreadyVoted = await govContract.hasVoted(proposalId, walletAddress);
+      if (alreadyVoted) {
+        showToast(document.documentElement.lang === 'zh' ? '\u60a8\u5df2\u7ecf\u5bf9\u6b64\u63d0\u6848\u6295\u8fc7\u7968' : 'You have already voted on this proposal', 'error');
+        return null;
+      }
+    } catch(e) { /* proceed */ }
+    var tx = await govContract.vote(proposalId, support);
+    showToast(document.documentElement.lang === 'zh' ? '\u6295\u7968\u4ea4\u6613\u5df2\u63d0\u4ea4...' : 'Vote transaction submitted...', 'info');
+    var receipt = await tx.wait();
+    var txHash = receipt.hash;
+    showToast(document.documentElement.lang === 'zh'
+      ? '\u6295\u7968 ' + voteLabel + ' \u5df2\u8bb0\u5f55! TX: ' + shortAddr(txHash)
+      : 'Vote ' + voteLabel + ' recorded on-chain! TX: ' + shortAddr(txHash), 'success');
+    if (typeof govLoadProposals === 'function') setTimeout(govLoadProposals, 2000);
+    return txHash;
+  } catch (err) {
+    console.error('Vote on-chain error:', err);
+    var msg = err.reason || err.message || 'Vote failed';
+    if (msg.includes('user rejected')) msg = document.documentElement.lang === 'zh' ? '\u7528\u6237\u53d6\u6d88\u4e86\u4ea4\u6613' : 'User rejected the transaction';
+    showToast(msg, 'error');
+    return null;
   }
 }
 
@@ -2947,6 +3104,9 @@ function animateCounter(el, targetValue, duration) {
   var stratPnlChart = null;
   var stratScatterChart = null;
   var stratRadarChart = null;
+  var stratHistogramChart = null;
+  var AGENT_REGISTRY_ADDR = '0x33dB9d89F2f4E13470469bB4ccf7f708d8333987';
+  var AGENT_REGISTRY_ABI = ['function updateCapabilities(string newMetadataURI) external'];
 
   // Render agent selector grid
   var grid = document.getElementById('strat-agent-grid');
@@ -2986,11 +3146,15 @@ function animateCounter(el, targetValue, duration) {
     var position = parseInt(document.getElementById('strat-position').value);
     var confidence = parseInt(document.getElementById('strat-confidence').value) / 100;
     var cycle = parseInt(document.getElementById('strat-cycle').value);
+    var gasEl = document.getElementById('strat-gas');
+    var gas = gasEl ? parseInt(gasEl.value) : 300;
 
     document.getElementById('strat-risk-val').textContent = risk;
     document.getElementById('strat-position-val').textContent = position + '%';
     document.getElementById('strat-confidence-val').textContent = confidence.toFixed(2);
     document.getElementById('strat-cycle-val').textContent = cycle + 's';
+    var gasValEl = document.getElementById('strat-gas-val');
+    if (gasValEl) gasValEl.textContent = gas + 'k';
 
     // Compute predicted metrics
     var agentBase = liveAgents && liveAgents[stratSelectedAgent] ? liveAgents[stratSelectedAgent] : {};
@@ -3007,6 +3171,22 @@ function animateCounter(el, targetValue, duration) {
     document.getElementById('strat-max-dd').textContent = '-' + maxDD + '%';
     document.getElementById('strat-sharpe').textContent = sharpe;
     document.getElementById('strat-trades-day').textContent = tradesDay;
+
+    // Configuration Score (0-100)
+    var riskScore = risk <= 50 ? (risk / 50) * 30 : 30 - ((risk - 50) / 50) * 15;
+    var confScore = confidence * 25;
+    var posScore = position <= 20 ? (position / 20) * 20 : 20 - ((position - 20) / 30) * 10;
+    var cycleScore = cycle <= 60 ? 15 : 15 - ((cycle - 60) / 60) * 10;
+    var gasScore = gas >= 200 && gas <= 500 ? 10 : 5;
+    var configScore = Math.round(Math.max(0, Math.min(100, riskScore + confScore + posScore + cycleScore + gasScore)));
+    var scoreEl = document.getElementById('strat-config-score');
+    var barEl = document.getElementById('strat-score-bar');
+    if (scoreEl) {
+      scoreEl.textContent = configScore;
+      var scoreColor = configScore >= 70 ? '#00b386' : (configScore >= 40 ? '#e8a317' : '#cf3041');
+      scoreEl.style.color = scoreColor;
+      if (barEl) { barEl.style.width = configScore + '%'; barEl.style.background = scoreColor; }
+    }
 
     // Update charts
     updateStratCharts(risk, position, confidence, cycle, estReturn, maxDD);
@@ -3110,19 +3290,134 @@ function animateCounter(el, targetValue, duration) {
     }
   }
 
-  // Deploy strategy
-  window.stratDeploy = function() {
+  // Helper: read current strategy params
+  function getStratParams() {
+    var risk = parseInt(document.getElementById('strat-risk').value);
+    var position = parseInt(document.getElementById('strat-position').value);
+    var confidence = parseInt(document.getElementById('strat-confidence').value) / 100;
+    var cycle = parseInt(document.getElementById('strat-cycle').value);
+    var gasEl = document.getElementById('strat-gas');
+    var gas = gasEl ? parseInt(gasEl.value) : 300;
+    return { risk: risk, position: position, confidence: confidence, cycle: cycle, gas: gas, agent: stratSelectedAgent, agentName: AGENT_TYPES[stratSelectedAgent] };
+  }
+
+  // Monte Carlo simulation engine
+  function runMonteCarlo(params, runs) {
+    var results = [], wins = 0, maxDD = 0, allReturns = [];
+    var dailyReturn = (params.risk * 0.2 + params.position * 0.3 - (1 - params.confidence) * 10 + (120 - params.cycle) * 0.05) / 30;
+    var dailyVol = (params.risk * 0.15 + params.position * 0.2 + (1 - params.confidence) * 5) / 10;
+    for (var r = 0; r < runs; r++) {
+      var cum = 0, peak = 0, runDD = 0;
+      for (var d = 0; d < 30; d++) {
+        cum += dailyReturn + (Math.random() - 0.5) * dailyVol * 2 + (Math.random() - 0.3) * dailyVol * 0.5;
+        if (cum > peak) peak = cum;
+        var dd = peak - cum; if (dd > runDD) runDD = dd;
+      }
+      results.push(parseFloat(cum.toFixed(2))); allReturns.push(cum);
+      if (cum > 0) wins++; if (runDD > maxDD) maxDD = runDD;
+    }
+    var mean = allReturns.reduce(function(a, b) { return a + b; }, 0) / runs;
+    var variance = allReturns.reduce(function(a, b) { return a + (b - mean) * (b - mean); }, 0) / runs;
+    var stdDev = Math.sqrt(variance);
+    var sharpe = stdDev > 0 ? (mean / stdDev) : 0;
+    return { results: results, winRate: (wins / runs * 100).toFixed(1), maxDrawdown: maxDD.toFixed(2), sharpe: sharpe.toFixed(2), expectedPnl: mean.toFixed(2) };
+  }
+
+  // Simulate button handler (Monte Carlo)
+  window.stratSimulate = function() {
+    var simBtn = document.getElementById('strat-sim-btn');
+    if (simBtn) { simBtn.disabled = true; simBtn.textContent = 'Running...'; }
+    setTimeout(function() {
+      var params = getStratParams();
+      var sim = runMonteCarlo(params, 100);
+      var panel = document.getElementById('strat-sim-panel');
+      if (panel) panel.classList.remove('hidden');
+      var el;
+      el = document.getElementById('strat-sim-sharpe'); if (el) el.textContent = sim.sharpe;
+      el = document.getElementById('strat-sim-dd'); if (el) el.textContent = '-' + sim.maxDrawdown + '%';
+      el = document.getElementById('strat-sim-winrate'); if (el) el.textContent = sim.winRate + '%';
+      el = document.getElementById('strat-sim-pnl'); if (el) { el.textContent = (parseFloat(sim.expectedPnl) >= 0 ? '+' : '') + sim.expectedPnl + '%'; el.style.color = parseFloat(sim.expectedPnl) >= 0 ? '#00b386' : '#cf3041'; }
+      // Histogram
+      if (!stratHistogramChart) { var hEl = document.getElementById('strat-histogram-chart'); if (hEl) stratHistogramChart = echarts.init(hEl); }
+      if (stratHistogramChart) {
+        var minV = Math.min.apply(null, sim.results), maxV = Math.max.apply(null, sim.results);
+        var rng = maxV - minV || 1, bc = 15, bs = rng / bc, buckets = [], labels = [];
+        for (var b = 0; b < bc; b++) { buckets.push(0); labels.push((minV + b * bs).toFixed(1)); }
+        for (var i = 0; i < sim.results.length; i++) { var idx = Math.min(bc - 1, Math.floor((sim.results[i] - minV) / bs)); buckets[idx]++; }
+        var barColors = labels.map(function(l) { return parseFloat(l) >= 0 ? '#00b386' : '#cf3041'; });
+        stratHistogramChart.setOption({
+          grid: { left: 40, right: 15, top: 10, bottom: 30 },
+          xAxis: { type: 'category', data: labels, axisLabel: { color: '#94a3b8', fontSize: 9, rotate: 30, formatter: function(v) { return v + '%'; } }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+          yAxis: { type: 'value', axisLabel: { color: '#94a3b8', fontSize: 10 }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+          tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontSize: 11 }, formatter: function(p) { return 'PnL ' + p[0].name + '%: ' + p[0].value + ' runs'; } },
+          series: [{ type: 'bar', data: buckets, itemStyle: { color: function(p) { return barColors[p.dataIndex]; }, borderRadius: [3, 3, 0, 0] } }]
+        });
+      }
+      if (simBtn) { simBtn.disabled = false; simBtn.innerHTML = '<span data-lang-zh>&#9654; \u6A21\u62DF</span><span data-lang-en>&#9654; Simulate</span>'; }
+      showToast('Monte Carlo simulation complete: ' + sim.winRate + '% win rate, Sharpe ' + sim.sharpe, 'success');
+    }, 150);
+  };
+
+  // Deploy strategy (full implementation)
+  window.stratDeploy = async function() {
     var btn = document.getElementById('strat-deploy-btn');
+    var params = getStratParams();
+    var deployPanel = document.getElementById('strat-deploy-panel');
+    var deployContent = document.getElementById('strat-deploy-content');
+
     if (typeof walletConnected === 'undefined' || !walletConnected) {
-      alert('Please connect your wallet to deploy strategy changes on-chain.');
+      // -- Wallet NOT connected: detailed simulation preview --
+      if (deployPanel) deployPanel.classList.remove('hidden');
+      var sim = runMonteCarlo(params, 100);
+      var configScore = document.getElementById('strat-config-score') ? document.getElementById('strat-config-score').textContent : '??';
+      var dp = { risk: 50, position: 10, confidence: 0.5, cycle: 30, gas: 300 };
+      var dSim = runMonteCarlo(dp, 50);
+      var h = '<div class="mb-4 p-3 rounded-lg bg-sym-surface">';
+      h += '<div class="text-xs font-bold text-gray-600 mb-2"><span data-lang-zh>\u5F53\u524D vs \u63D0\u8BAE\u914D\u7F6E\u5BF9\u6BD4</span><span data-lang-en>Current vs Proposed Config Comparison</span></div>';
+      h += '<table class="w-full text-xs"><thead><tr class="text-gray-400 border-b border-sym-border">';
+      h += '<th class="text-left py-1">Parameter</th><th class="text-center py-1">Default</th><th class="text-center py-1">Proposed</th><th class="text-center py-1">Delta</th></tr></thead><tbody>';
+      var rows = [['Risk Tolerance', dp.risk, params.risk], ['Position Size', dp.position + '%', params.position + '%'], ['Confidence', dp.confidence.toFixed(2), params.confidence.toFixed(2)], ['Cycle', dp.cycle + 's', params.cycle + 's'], ['Gas Limit', dp.gas + 'k', params.gas + 'k'], ['Exp. PnL', dSim.expectedPnl + '%', sim.expectedPnl + '%'], ['Win Rate', dSim.winRate + '%', sim.winRate + '%'], ['Sharpe', dSim.sharpe, sim.sharpe]];
+      for (var i = 0; i < rows.length; i++) {
+        var rw = rows[i], pN = parseFloat(String(rw[2]).replace(/[^0-9.\-]/g, '')), dN = parseFloat(String(rw[1]).replace(/[^0-9.\-]/g, ''));
+        var delta = (pN - dN).toFixed(1), dC = parseFloat(delta) > 0 ? '#00b386' : (parseFloat(delta) < 0 ? '#cf3041' : '#94a3b8');
+        h += '<tr class="border-b border-sym-border"><td class="py-1 text-gray-600">' + rw[0] + '</td><td class="py-1 text-center text-gray-500">' + rw[1] + '</td><td class="py-1 text-center font-medium text-gray-700">' + rw[2] + '</td><td class="py-1 text-center font-mono" style="color:' + dC + '">' + (parseFloat(delta) > 0 ? '+' : '') + delta + '</td></tr>';
+      }
+      h += '</tbody></table></div>';
+      h += '<div class="grid grid-cols-3 gap-3 mb-3">';
+      h += '<div class="p-2 rounded-lg border border-sym-border text-center"><div class="text-xs text-gray-400">Config Score</div><div class="text-lg font-bold" style="color:#7b61ff">' + configScore + '/100</div></div>';
+      h += '<div class="p-2 rounded-lg border border-sym-border text-center"><div class="text-xs text-gray-400">Risk Level</div><div class="text-lg font-bold" style="color:' + (params.risk > 60 ? '#cf3041' : '#00b386') + '">' + (params.risk > 70 ? 'HIGH' : (params.risk > 40 ? 'MED' : 'LOW')) + '</div></div>';
+      h += '<div class="p-2 rounded-lg border border-sym-border text-center"><div class="text-xs text-gray-400">Projected Sharpe</div><div class="text-lg font-bold" style="color:#7b61ff">' + sim.sharpe + '</div></div></div>';
+      h += '<div class="text-xs text-gray-400 text-center p-2 rounded-lg bg-yellow-50 border border-yellow-200"><span data-lang-zh>&#9888; \u8FDE\u63A5\u94B1\u5305\u4EE5\u90E8\u7F72\u4E0A\u94FE</span><span data-lang-en>&#9888; Connect wallet to deploy on-chain</span></div>';
+      if (deployContent) deployContent.innerHTML = h;
+      showToast('Connect wallet to deploy on-chain', 'info');
       return;
     }
-    var agentName = AGENT_TYPES[stratSelectedAgent];
-    var risk = document.getElementById('strat-risk').value;
-    var position = document.getElementById('strat-position').value;
-    var confidence = (parseInt(document.getElementById('strat-confidence').value) / 100).toFixed(2);
-    var cycle = document.getElementById('strat-cycle').value;
-    alert('Deploy ' + agentName + ' strategy:\nRisk=' + risk + ', Position=' + position + '%, Confidence=' + confidence + ', Cycle=' + cycle + 's\n\nThis would call the agent config contract on X Layer.');
+
+    // -- Wallet IS connected: on-chain deployment --
+    btn.disabled = true; btn.textContent = 'Deploying...';
+    try {
+      var metadata = JSON.stringify({ agent: params.agentName, agentIndex: params.agent, risk: params.risk, positionSize: params.position, confidence: params.confidence, cycleInterval: params.cycle, gasLimit: params.gas, timestamp: Date.now(), version: '2.0' });
+      var metadataURI = 'data:application/json;base64,' + btoa(metadata);
+      var contract = new ethers.Contract(AGENT_REGISTRY_ADDR, AGENT_REGISTRY_ABI, walletSigner);
+      if (deployPanel) deployPanel.classList.remove('hidden');
+      if (deployContent) deployContent.innerHTML = '<div class="text-sm text-gray-500"><span class="animate-pulse">&#9679;</span> <span data-lang-zh>\u7B49\u5F85\u4EA4\u6613\u786E\u8BA4...</span><span data-lang-en>Awaiting transaction confirmation...</span></div>';
+      var tx = await contract.updateCapabilities(metadataURI);
+      if (deployContent) deployContent.innerHTML = '<div class="text-sm text-gray-600 mb-2"><span data-lang-zh>\u4EA4\u6613\u5DF2\u63D0\u4EA4</span><span data-lang-en>Transaction submitted</span></div><div class="p-2 rounded bg-sym-surface text-xs font-mono break-all mb-2">TX: ' + tx.hash + '</div><div class="text-xs text-gray-400"><span class="animate-pulse">&#9679;</span> <span data-lang-zh>\u7B49\u5F85\u533A\u5757\u786E\u8BA4...</span><span data-lang-en>Waiting for block confirmation...</span></div>';
+      var receipt = await tx.wait();
+      var explorerUrl = 'https://www.okx.com/explorer/xlayer/tx/' + receipt.hash;
+      if (deployContent) deployContent.innerHTML = '<div class="text-sm font-medium" style="color:#00b386">&#10003; <span data-lang-zh>\u7B56\u7565\u5DF2\u6210\u529F\u90E8\u7F72\u4E0A\u94FE!</span><span data-lang-en>Strategy deployed on-chain successfully!</span></div><div class="p-2 rounded bg-sym-surface text-xs font-mono break-all mt-2 mb-2">TX: ' + receipt.hash + '</div><div class="text-xs text-gray-500 mb-2">Block: ' + receipt.blockNumber + ' | Gas: ' + (receipt.gasUsed ? receipt.gasUsed.toString() : 'N/A') + '</div><a href="' + explorerUrl + '" target="_blank" class="text-xs text-sym-accent hover:underline">View on X Layer Explorer &#8599;</a><div class="mt-3 p-2 rounded bg-green-50 border border-green-200 text-xs text-green-700"><span data-lang-zh>Agent: ' + params.agentName + ' | \u98CE\u9669: ' + params.risk + ' | \u4ED3\u4F4D: ' + params.position + '% | \u7F6E\u4FE1\u5EA6: ' + params.confidence.toFixed(2) + ' | \u5468\u671F: ' + params.cycle + 's</span><span data-lang-en>Agent: ' + params.agentName + ' | Risk: ' + params.risk + ' | Position: ' + params.position + '% | Confidence: ' + params.confidence.toFixed(2) + ' | Cycle: ' + params.cycle + 's</span></div>';
+      showToast('Strategy deployed! TX: ' + receipt.hash.substring(0, 16) + '...', 'success');
+    } catch (err) {
+      console.error('Strategy deploy error:', err);
+      var errMsg = err.reason || err.message || 'Unknown error';
+      if (errMsg.length > 120) errMsg = errMsg.substring(0, 120) + '...';
+      if (deployPanel) deployPanel.classList.remove('hidden');
+      if (deployContent) deployContent.innerHTML = '<div class="text-sm font-medium" style="color:#cf3041">&#10007; <span data-lang-zh>\u90E8\u7F72\u5931\u8D25</span><span data-lang-en>Deploy failed</span></div><div class="text-xs text-gray-500 mt-1">' + errMsg + '</div>';
+      showToast('Deploy failed: ' + errMsg.substring(0, 60), 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span data-lang-zh>\u90E8\u7F72\u7B56\u7565</span><span data-lang-en>Deploy Strategy</span>';
+    }
   };
 
   // Init on load
@@ -3805,6 +4100,14 @@ function animateCounter(el, targetValue, duration) {
       showToast('Please enter a proposal description', 'error');
       return;
     }
+    // If wallet connected, submit on-chain
+    if (walletConnected && walletSigner) {
+      govCreateProposalOnChain(proposalType, description).then(function(txHash) {
+        if (txHash) descEl.value = '';
+      });
+      return;
+    }
+    // Fallback: simulation mode
     govSimId++;
     var newProposal = {
       id: govSimId,
@@ -3819,10 +4122,16 @@ function animateCounter(el, targetValue, duration) {
     govRenderProposals(govProposals);
     govUpdateStats(govProposals);
     descEl.value = '';
-    showToast('Proposal submitted to simulation \u2014 real on-chain creation requires registered agent wallet', 'success');
+    showToast('Proposal submitted to simulation \u2014 connect wallet to submit on-chain', 'success');
   };
 
   window.govVote = function(proposalId, support) {
+    // If wallet connected, vote on-chain
+    if (walletConnected && walletSigner) {
+      govVoteOnChain(proposalId, support);
+      return;
+    }
+    // Fallback: simulation mode
     var proposal = null;
     for (var i = 0; i < govProposals.length; i++) {
       if (govProposals[i].id === proposalId) { proposal = govProposals[i]; break; }
