@@ -10,10 +10,10 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']},colors:{sym:{bg:'#ffffff',panel:'#ffffff',surface:'#f7f8fa',border:'#e8eaed',accent:'#00dcfa',green:'#00b386',red:'#cf3041',purple:'#7b61ff',amber:'#e8a317',blue:'#00dcfa',pink:'#e84393',cyan:'#00dcfa'}}}}}</script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']},colors:{sym:{bg:'#0c1019',panel:'#111622',surface:'#161c2a',border:'#1e2740',accent:'#00f0ff',green:'#10b981',red:'#ef4444',purple:'#a855f7',amber:'#f59e0b',blue:'#3b82f6',pink:'#ec4899',cyan:'#00f0ff'}}}}}</script>
 <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-white text-gray-900 font-sans antialiased">
+<body class="font-sans antialiased" style="background:#06080f;color:#e2e8f0">
 
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
@@ -59,7 +59,7 @@
 
 <!-- WALLET STATUS INDICATOR -->
 <div id="wallet-status-bar" class="fixed top-14 right-4 z-[999] text-[10px] font-mono text-gray-400 hidden" style="max-width:260px">
-  <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-sym-border bg-white/90 backdrop-blur shadow-sm">
+  <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-sym-border bg-sym-panel/90 backdrop-blur shadow-sm">
     <span class="w-1.5 h-1.5 rounded-full bg-sym-green animate-pulse" id="wallet-status-dot"></span>
     <span id="wallet-status-addr"></span>
     <span id="wallet-status-chain" class="text-sym-purple">X Layer</span>
@@ -74,7 +74,7 @@
 </div>
 
 <!-- === HERO === -->
-<section id="hero" class="relative min-h-[80vh] flex items-center justify-center overflow-hidden section-anchor" style="background:radial-gradient(ellipse at 50% 0%,rgba(0,220,250,.06) 0%,rgba(123,97,255,.04) 40%,#ffffff 70%)">
+<section id="hero" class="relative min-h-[80vh] flex items-center justify-center overflow-hidden section-anchor" style="background:radial-gradient(ellipse at 50% 0%,rgba(0,240,255,.06) 0%,rgba(168,85,247,.04) 40%,#06080f 70%)">
   <div class="absolute inset-0 overflow-hidden z-0 grid-bg">
     <div class="particle" style="left:10%;top:20%;background:#58a6ff;animation:float 8s ease-in-out infinite;box-shadow:0 0 12px #58a6ff"></div>
     <div class="particle" style="left:30%;top:60%;background:#bc8cff;animation:float 11s ease-in-out infinite 1s;box-shadow:0 0 12px #bc8cff"></div>
@@ -405,17 +405,17 @@
   <div class="card p-6 mb-6">
     <h3 class="text-gray-900 font-semibold mb-4"><span data-lang-zh>TEE 安全架构</span><span data-lang-en>TEE Security Architecture</span></h3>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-blue-50 to-white">
+      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-blue-950/30 to-transparent">
         <div class="text-3xl mb-2">&#128274;</div>
         <div class="font-semibold text-gray-900 mb-1"><span data-lang-zh>密钥隔离</span><span data-lang-en>Key Isolation</span></div>
         <div class="text-xs text-gray-400"><span data-lang-zh>私钥在 TEE 内生成与存储，AI Agent 无法访问原始密钥</span><span data-lang-en>Private keys generated & stored inside TEE. AI agents never see raw keys</span></div>
       </div>
-      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-purple-50 to-white">
+      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-purple-950/30 to-transparent">
         <div class="text-3xl mb-2">&#128737;</div>
         <div class="font-semibold text-gray-900 mb-1"><span data-lang-zh>签名即服务</span><span data-lang-en>Signing-as-a-Service</span></div>
         <div class="text-xs text-gray-400"><span data-lang-zh>Agent 提交交易请求 → TEE 内部签名 → 广播上链</span><span data-lang-en>Agent submits tx request → TEE signs internally → broadcasts on-chain</span></div>
       </div>
-      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-green-50 to-white">
+      <div class="border border-sym-border rounded-xl p-5 text-center bg-gradient-to-b from-green-950/30 to-transparent">
         <div class="text-3xl mb-2">&#9989;</div>
         <div class="font-semibold text-gray-900 mb-1"><span data-lang-zh>多链支持</span><span data-lang-en>Multi-Chain Support</span></div>
         <div class="text-xs text-gray-400"><span data-lang-zh>EVM (X Layer) + Solana 地址自动生成，统一管理</span><span data-lang-en>EVM (X Layer) + Solana addresses auto-generated, unified management</span></div>
@@ -541,7 +541,7 @@
   <div class="card p-6">
     <div class="flex items-center gap-4 mb-4">
       <button id="sim-run-btn" onclick="runEconomyCycle()" class="btn-glow text-sm"><span data-lang-zh>运行经济循环</span><span data-lang-en>Run Economy Cycle</span></button>
-      <button id="sim-reset-btn" onclick="resetSimulator()" class="btn-sm" style="background:#e2e8f0;color:#64748b"><span data-lang-zh>重置</span><span data-lang-en>Reset</span></button>
+      <button id="sim-reset-btn" onclick="resetSimulator()" class="btn-sm" style="background:#161c2a;color:#94a3b8"><span data-lang-zh>重置</span><span data-lang-en>Reset</span></button>
       <div class="flex-1">
         <div class="progress-bar"><div id="sim-progress" class="progress-fill" style="width:0%"></div></div>
       </div>
@@ -657,7 +657,7 @@
   <h2 class="text-2xl font-bold mb-6 text-gray-900"><span data-lang-zh>Agent 注册表</span><span data-lang-en>Agent Registry</span></h2>
   <div id="agent-table" class="overflow-x-auto rounded-xl border border-sym-border bg-sym-panel">
     <table class="w-full text-sm">
-      <thead><tr class="text-left text-gray-400 border-b border-sym-border bg-slate-50">
+      <thead><tr class="text-left text-gray-400 border-b border-sym-border bg-sym-surface">
         <th class="p-4">Agent</th><th class="p-4"><span data-lang-zh>类型</span><span data-lang-en>Type</span></th><th class="p-4">ELO</th><th class="p-4"><span data-lang-zh>服务数</span><span data-lang-en>Services</span></th><th class="p-4"><span data-lang-zh>成交量</span><span data-lang-en>Volume</span></th><th class="p-4"><span data-lang-zh>盈亏</span><span data-lang-en>PnL</span></th><th class="p-4"><span data-lang-zh>状态</span><span data-lang-en>Status</span></th>
       </tr></thead>
       <tbody>
@@ -674,38 +674,38 @@
     <div class="absolute top-3 right-3 z-10"><span id="feed-status" class="badge" style="background:#d9770620;color:#d97706">Sample</span></div>
     <div class="p-4 feed-scroll" id="feed-inner">
       <div class="space-y-2 text-sm font-mono feed-zh" id="feed-items-zh">
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:32:01</span><span>DataProvider 上架 <span class="text-sym-accent">MARKET_DATA</span>，价格 $0.0100</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-400">14:32:05</span><span>Analyst 请求 <span class="text-sym-purple">MARKET_DATA</span>（预算: $0.02）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:32:06</span><span>服务匹配: DataProvider &rarr; Analyst，成交价 $0.0095</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:08</span><span>托管 #142 已创建: 0.0095 OKB（Analyst &rarr; DataProvider）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-400">14:32:12</span><span>Analyst 上架 <span class="text-sym-purple">ALPHA_SIGNAL</span>，价格 $0.0500（置信度: 0.84）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:15</span><span>Trader 请求 <span class="text-sym-green">ALPHA_SIGNAL</span>（预算: $0.06）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-400">14:32:18</span><span>Trader 请求对 OKB/USDT 进行 <span class="text-sym-red">安全审计</span></span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-400">14:32:19</span><span>SecurityAuditor 完成审计 &mdash; 风险: 低（评分: 12）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:22</span><span>Trader 执行兑换: 2.0 USDT &rarr; 0.041 OKB（通过 OKX DEX）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-400">14:32:25</span><span>Arbitrageur 发现价差: Uniswap $48.52 vs OKX $48.71（0.39%）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-400">14:32:26</span><span>Arbitrageur 执行套利: 利润 +$0.076</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-400">14:32:30</span><span>LiquidityMgr 调整 LP 仓位: tick 25410 &rarr; 25480</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-400">14:32:35</span><span>LiquidityMgr 收取手续费: 0.0023 OKB + 0.11 USDT</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:40</span><span>托管 #142 已释放 &mdash; 声誉更新: DataProvider ELO 1124（+2）</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:33:01</span><span>EconomyOracle 快照 #47: GDP $142.50，匹配 847，Agent 6</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:32:01</span><span>DataProvider 上架 <span class="text-sym-accent">MARKET_DATA</span>，价格 $0.0100</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-400">14:32:05</span><span>Analyst 请求 <span class="text-sym-purple">MARKET_DATA</span>（预算: $0.02）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:32:06</span><span>服务匹配: DataProvider &rarr; Analyst，成交价 $0.0095</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:08</span><span>托管 #142 已创建: 0.0095 OKB（Analyst &rarr; DataProvider）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-400">14:32:12</span><span>Analyst 上架 <span class="text-sym-purple">ALPHA_SIGNAL</span>，价格 $0.0500（置信度: 0.84）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:15</span><span>Trader 请求 <span class="text-sym-green">ALPHA_SIGNAL</span>（预算: $0.06）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-400">14:32:18</span><span>Trader 请求对 OKB/USDT 进行 <span class="text-sym-red">安全审计</span></span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-400">14:32:19</span><span>SecurityAuditor 完成审计 &mdash; 风险: 低（评分: 12）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:22</span><span>Trader 执行兑换: 2.0 USDT &rarr; 0.041 OKB（通过 OKX DEX）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-400">14:32:25</span><span>Arbitrageur 发现价差: Uniswap $48.52 vs OKX $48.71（0.39%）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-400">14:32:26</span><span>Arbitrageur 执行套利: 利润 +$0.076</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-400">14:32:30</span><span>LiquidityMgr 调整 LP 仓位: tick 25410 &rarr; 25480</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-400">14:32:35</span><span>LiquidityMgr 收取手续费: 0.0023 OKB + 0.11 USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:40</span><span>托管 #142 已释放 &mdash; 声誉更新: DataProvider ELO 1124（+2）</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:33:01</span><span>EconomyOracle 快照 #47: GDP $142.50，匹配 847，Agent 6</span></div>
       </div>
       <div class="space-y-2 text-sm font-mono feed-en" id="feed-items-en">
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:32:01</span><span>DataProvider listed <span class="text-sym-accent">MARKET_DATA</span> at $0.0100</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-400">14:32:05</span><span>Analyst requested <span class="text-sym-purple">MARKET_DATA</span> (budget: $0.02)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:32:06</span><span>ServiceMatched: DataProvider &rarr; Analyst at $0.0095</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:08</span><span>Escrow #142 created: 0.0095 OKB (Analyst &rarr; DataProvider)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-400">14:32:12</span><span>Analyst listed <span class="text-sym-purple">ALPHA_SIGNAL</span> at $0.0500 (confidence: 0.84)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:15</span><span>Trader requested <span class="text-sym-green">ALPHA_SIGNAL</span> (budget: $0.06)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-400">14:32:18</span><span>Trader requested <span class="text-sym-red">SECURITY_AUDIT</span> for OKB/USDT</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-400">14:32:19</span><span>SecurityAuditor completed audit &mdash; risk: LOW (score: 12)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:22</span><span>Trader executed SWAP: 2.0 USDT &rarr; 0.041 OKB via OKX DEX</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-400">14:32:25</span><span>Arbitrageur detected spread: Uniswap $48.52 vs OKX $48.71 (0.39%)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-400">14:32:26</span><span>Arbitrageur executed arb: +$0.076 profit</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-400">14:32:30</span><span>LiquidityMgr rebalanced LP position: tick 25410 &rarr; 25480</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-400">14:32:35</span><span>LiquidityMgr collected fees: 0.0023 OKB + 0.11 USDT</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:40</span><span>Escrow #142 released &mdash; Reputation: DataProvider ELO 1124 (+2)</span></div>
-        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-slate-50/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:33:01</span><span>EconomyOracle snapshot #47: GDP $142.50, Matches 847, Agents 6</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:32:01</span><span>DataProvider listed <span class="text-sym-accent">MARKET_DATA</span> at $0.0100</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-400">14:32:05</span><span>Analyst requested <span class="text-sym-purple">MARKET_DATA</span> (budget: $0.02)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:32:06</span><span>ServiceMatched: DataProvider &rarr; Analyst at $0.0095</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:08</span><span>Escrow #142 created: 0.0095 OKB (Analyst &rarr; DataProvider)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-purple"></span><span class="text-gray-400">14:32:12</span><span>Analyst listed <span class="text-sym-purple">ALPHA_SIGNAL</span> at $0.0500 (confidence: 0.84)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:15</span><span>Trader requested <span class="text-sym-green">ALPHA_SIGNAL</span> (budget: $0.06)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-400">14:32:18</span><span>Trader requested <span class="text-sym-red">SECURITY_AUDIT</span> for OKB/USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-red"></span><span class="text-gray-400">14:32:19</span><span>SecurityAuditor completed audit &mdash; risk: LOW (score: 12)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:22</span><span>Trader executed SWAP: 2.0 USDT &rarr; 0.041 OKB via OKX DEX</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-400">14:32:25</span><span>Arbitrageur detected spread: Uniswap $48.52 vs OKX $48.71 (0.39%)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-pink"></span><span class="text-gray-400">14:32:26</span><span>Arbitrageur executed arb: +$0.076 profit</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-400">14:32:30</span><span>LiquidityMgr rebalanced LP position: tick 25410 &rarr; 25480</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-amber"></span><span class="text-gray-400">14:32:35</span><span>LiquidityMgr collected fees: 0.0023 OKB + 0.11 USDT</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span><span class="text-gray-400">14:32:40</span><span>Escrow #142 released &mdash; Reputation: DataProvider ELO 1124 (+2)</span></div>
+        <div class="flex items-center gap-3 py-1.5 px-3 rounded bg-sym-surface/50"><span class="w-1.5 h-1.5 rounded-full bg-sym-accent"></span><span class="text-gray-400">14:33:01</span><span>EconomyOracle snapshot #47: GDP $142.50, Matches 847, Agents 6</span></div>
       </div>
     </div>
   </div>
@@ -806,12 +806,12 @@
         <div><h3 class="text-gray-900 font-semibold text-lg"><span data-lang-zh>Uniswap V3 链上技能</span><span data-lang-en>Uniswap V3 On-Chain Skills</span></h3><p class="text-xs text-gray-400">6 smart-contract integrations</p></div>
       </div>
       <div class="space-y-2 text-sm">
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">Pool slot0 Reading</span><span class="text-xs text-gray-400 font-mono">sqrtPriceX96 &rarr; price</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">NFT Position Reading</span><span class="text-xs text-gray-400 font-mono">NonfungiblePositionManager</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">Position Rebalance</span><span class="text-xs text-gray-400 font-mono">decreaseLiquidity &rarr; collect &rarr; mint</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">QuoterV2 Exact Input Quote</span><span class="text-xs text-gray-400 font-mono">quoteExactInputSingle</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">Tick/Price Math</span><span class="text-xs text-gray-400 font-mono">priceToTick, tickToPrice</span></div>
-        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-slate-50/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">Range Monitoring</span><span class="text-xs text-gray-400 font-mono">isPositionInRange, ticksToEdge</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-sym-surface/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">Pool slot0 Reading</span><span class="text-xs text-gray-400 font-mono">sqrtPriceX96 &rarr; price</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-sym-surface/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">NFT Position Reading</span><span class="text-xs text-gray-400 font-mono">NonfungiblePositionManager</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-sym-surface/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">Position Rebalance</span><span class="text-xs text-gray-400 font-mono">decreaseLiquidity &rarr; collect &rarr; mint</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-sym-surface/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">QuoterV2 Exact Input Quote</span><span class="text-xs text-gray-400 font-mono">quoteExactInputSingle</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-sym-surface/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">Tick/Price Math</span><span class="text-xs text-gray-400 font-mono">priceToTick, tickToPrice</span></div>
+        <div class="flex items-center gap-2 py-1.5 px-3 rounded bg-sym-surface/50"><span class="text-sym-green font-bold">&#10003;</span><span class="text-gray-600 flex-1">Range Monitoring</span><span class="text-xs text-gray-400 font-mono">isPositionInRange, ticksToEdge</span></div>
       </div>
     </div>
     <!-- Agent Architecture -->
@@ -878,7 +878,7 @@
   <div class="card p-6">
     <h3 class="text-gray-900 font-semibold text-lg mb-5"><span data-lang-zh>Agent 架构总览</span><span data-lang-en>Agent Architecture Summary</span></h3>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-      <div class="text-center p-4 rounded-lg" style="background:#2563eb10;border:1px solid #2563eb33"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#2563eb20"><span class="text-sym-accent text-xl">&#9681;</span></div><div class="text-gray-900 font-semibold text-sm">DataProvider</div><div class="text-xs text-gray-400 mt-1"><span data-lang-zh>市场数据采集</span><span data-lang-en>Market Data Feed</span></div><div class="text-[10px] text-sym-green font-mono mt-1">4 skills</div></div>
+      <div class="text-center p-4 rounded-lg" style="background:#2563eb08;border:1px solid #2563eb33"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#2563eb20"><span class="text-sym-accent text-xl">&#9681;</span></div><div class="text-gray-900 font-semibold text-sm">DataProvider</div><div class="text-xs text-gray-400 mt-1"><span data-lang-zh>市场数据采集</span><span data-lang-en>Market Data Feed</span></div><div class="text-[10px] text-sym-green font-mono mt-1">4 skills</div></div>
       <div class="text-center p-4 rounded-lg" style="background:#05966910;border:1px solid #05966933"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#05966920"><span class="text-sym-green text-xl">&#9733;</span></div><div class="text-gray-900 font-semibold text-sm">Trader</div><div class="text-xs text-gray-400 mt-1"><span data-lang-zh>交易执行</span><span data-lang-en>Trade Execution</span></div><div class="text-[10px] text-sym-green font-mono mt-1">4 skills</div></div>
       <div class="text-center p-4 rounded-lg" style="background:#7c3aed10;border:1px solid #7c3aed33"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#7c3aed20"><span class="text-sym-purple text-xl">&#9830;</span></div><div class="text-gray-900 font-semibold text-sm">Analyst</div><div class="text-xs text-gray-400 mt-1"><span data-lang-zh>信号分析</span><span data-lang-en>Signal Analysis</span></div><div class="text-[10px] text-sym-green font-mono mt-1">3 skills</div></div>
       <div class="text-center p-4 rounded-lg" style="background:#d9770610;border:1px solid #d9770633"><div class="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style="background:#d9770620"><span class="text-sym-amber text-xl">&#9878;</span></div><div class="text-gray-900 font-semibold text-sm">LiquidityMgr</div><div class="text-xs text-gray-400 mt-1"><span data-lang-zh>LP 仓位管理</span><span data-lang-en>LP Position Mgmt</span></div><div class="text-[10px] text-sym-green font-mono mt-1">4 skills</div></div>
@@ -1039,7 +1039,7 @@
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
-          <tr class="text-left text-gray-400 border-b border-sym-border bg-slate-50">
+          <tr class="text-left text-gray-400 border-b border-sym-border bg-sym-surface">
             <th class="p-3"><span data-lang-zh>交易对</span><span data-lang-en>Pair</span></th>
             <th class="p-3">Uniswap V3</th>
             <th class="p-3">OKX CEX</th>
@@ -1288,20 +1288,20 @@
   </div>
   <style>
     .fc-step{display:flex;flex-direction:column;align-items:center;min-width:80px;position:relative}
-    .fc-dot{width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;background:#f8fafc;transition:all .4s ease;display:flex;align-items:center;justify-content:center}
-    .fc-dot::after{content:'';width:10px;height:10px;border-radius:50%;background:#cbd5e1;transition:all .4s ease}
-    .fc-step.active .fc-dot{border-color:#2563eb;box-shadow:0 0 14px rgba(37,99,235,.4)}
-    .fc-step.active .fc-dot::after{background:#2563eb}
-    .fc-step.done .fc-dot{border-color:#059669;background:#ecfdf5}
-    .fc-step.done .fc-dot::after{background:#059669}
-    .fc-label{font-size:10px;margin-top:4px;color:#94a3b8;text-align:center;white-space:nowrap;transition:color .3s}
-    .fc-step.active .fc-label{color:#2563eb;font-weight:600}
-    .fc-step.done .fc-label{color:#059669}
-    .fc-arrow{width:32px;height:2px;background:#e2e8f0;flex-shrink:0;margin-bottom:18px;transition:background .3s}
-    .fc-arrow.done{background:#059669}
-    .fc-speed-btn{font-size:11px;padding:2px 10px;border-radius:9999px;border:1px solid #e2e8f0;color:#94a3b8;cursor:pointer;background:transparent;transition:all .2s}
-    .fc-speed-btn.active{border-color:#2563eb;color:#2563eb;background:#eff6ff}
-    .fc-speed-btn:hover{border-color:#2563eb;color:#2563eb}
+    .fc-dot{width:28px;height:28px;border-radius:50%;border:2px solid #1e2740;background:#161c2a;transition:all .4s ease;display:flex;align-items:center;justify-content:center}
+    .fc-dot::after{content:'';width:10px;height:10px;border-radius:50%;background:#1e2740;transition:all .4s ease}
+    .fc-step.active .fc-dot{border-color:#00f0ff;box-shadow:0 0 14px rgba(0,240,255,.4)}
+    .fc-step.active .fc-dot::after{background:#00f0ff}
+    .fc-step.done .fc-dot{border-color:#10b981;background:rgba(16,185,129,.1)}
+    .fc-step.done .fc-dot::after{background:#10b981}
+    .fc-label{font-size:10px;margin-top:4px;color:#475569;text-align:center;white-space:nowrap;transition:color .3s}
+    .fc-step.active .fc-label{color:#00f0ff;font-weight:600}
+    .fc-step.done .fc-label{color:#10b981}
+    .fc-arrow{width:32px;height:2px;background:#1e2740;flex-shrink:0;margin-bottom:18px;transition:background .3s}
+    .fc-arrow.done{background:#10b981}
+    .fc-speed-btn{font-size:11px;padding:2px 10px;border-radius:9999px;border:1px solid #1e2740;color:#475569;cursor:pointer;background:transparent;transition:all .2s}
+    .fc-speed-btn.active{border-color:#00f0ff;color:#00f0ff;background:rgba(0,240,255,.08)}
+    .fc-speed-btn:hover{border-color:#00f0ff;color:#00f0ff}
   </style>
 </section>
 
@@ -1309,7 +1309,7 @@
 <section id="activity-dashboard" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
   <h2 class="text-2xl font-bold mb-2 text-gray-900"><span data-lang-zh>链上活动仪表盘</span><span data-lang-en>On-Chain Activity Dashboard</span></h2>
   <p class="text-sm text-gray-400 mb-6"><span data-lang-zh>实时链上交易数据 - 所有数据可在 OKLink 上验证</span><span data-lang-en>Real-time on-chain transaction data - all verifiable on OKLink</span></p>
-  <div class="card p-6 mb-6 text-center" style="background:linear-gradient(135deg,#eff6ff,#faf5ff)">
+  <div class="card p-6 mb-6 text-center" style="background:linear-gradient(135deg,rgba(0,240,255,.05),rgba(168,85,247,.05))">
     <div class="text-xs text-gray-400 mb-1 uppercase tracking-wider"><span data-lang-zh>Agentic 钱包地址</span><span data-lang-en>Agentic Wallet Address</span></div>
     <a id="dash-wallet-link" href="#" target="_blank" class="font-mono text-sm text-sym-accent hover:underline break-all">0xe403C3D6A407c391AeA0b1dCE8fAf8eE26692440</a>
     <div class="big-counter mt-4" id="dash-total-txns">--</div>
@@ -1799,7 +1799,7 @@
         </div>
         <!-- Deploy button -->
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="stratSimulate()" class="w-full text-sm py-2 px-3 rounded-lg border border-sym-purple text-sym-purple hover:bg-purple-50 font-medium transition-all" id="strat-sim-btn">
+          <button onclick="stratSimulate()" class="w-full text-sm py-2 px-3 rounded-lg border border-sym-purple text-sym-purple hover:bg-sym-purple/10 font-medium transition-all" id="strat-sim-btn">
             <span data-lang-zh>&#9654; 模拟</span><span data-lang-en>&#9654; Simulate</span>
           </button>
           <button onclick="stratDeploy()" class="btn-glow w-full text-sm" id="strat-deploy-btn">
@@ -1819,7 +1819,7 @@
         <div class="p-3 rounded-lg border border-sym-border text-center" id="strat-score-card">
           <div class="text-xs text-gray-400 mb-1"><span data-lang-zh>配置评分</span><span data-lang-en>Config Score</span></div>
           <div class="text-2xl font-bold" id="strat-config-score" style="color:#7b61ff">72</div>
-          <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+          <div class="w-full bg-sym-border rounded-full h-1.5 mt-1">
             <div class="h-1.5 rounded-full transition-all" id="strat-score-bar" style="width:72%;background:#7b61ff"></div>
           </div>
         </div>
@@ -2265,10 +2265,10 @@
       </span>
     </div>
     <div class="flex items-center gap-2">
-      <span id="gov-agent-status" class="text-[10px] px-2 py-0.5 rounded-full border border-gray-200 text-gray-400 hidden">
+      <span id="gov-agent-status" class="text-[10px] px-2 py-0.5 rounded-full border border-sym-border text-gray-400 hidden">
         <span data-lang-zh>未注册</span><span data-lang-en>Not Registered</span>
       </span>
-      <button onclick="connectWallet()" id="gov-connect-btn" class="text-xs px-3 py-1.5 rounded-full border border-sym-purple text-sym-purple hover:bg-purple-50 transition-all">
+      <button onclick="connectWallet()" id="gov-connect-btn" class="text-xs px-3 py-1.5 rounded-full border border-sym-purple text-sym-purple hover:bg-sym-purple/10 transition-all">
         <span data-lang-zh>连接钱包参与治理</span><span data-lang-en>Connect Wallet to Govern</span>
       </button>
     </div>
@@ -2313,7 +2313,7 @@
           <span data-lang-en>Simulation mode — connect wallet to submit on-chain proposals</span>
         </p>
         <!-- TX result area -->
-        <div id="gov-tx-result" class="hidden text-[10px] p-2 rounded-lg border border-green-200 bg-green-50">
+        <div id="gov-tx-result" class="hidden text-[10px] p-2 rounded-lg border border-sym-green/30 bg-sym-green/10">
           <span class="text-green-700 font-semibold">TX:</span>
           <a id="gov-tx-link" href="#" target="_blank" class="text-sym-accent hover:underline font-mono break-all"></a>
         </div>
@@ -2360,7 +2360,7 @@
       <div class="card p-6 text-center">
         <div class="text-xs text-gray-400 mb-3"><span data-lang-zh>自主模式开关</span><span data-lang-en>Autopilot Toggle</span></div>
         <div class="relative inline-flex items-center cursor-pointer mb-3" onclick="toggleAutopilot()">
-          <div id="ap-toggle-track" class="w-20 h-10 rounded-full transition-colors duration-300" style="background:#e5e7eb">
+          <div id="ap-toggle-track" class="w-20 h-10 rounded-full transition-colors duration-300" style="background:#1e2740">
             <div id="ap-toggle-knob" class="w-8 h-8 bg-white rounded-full shadow-md absolute top-1 left-1 transition-all duration-300"></div>
           </div>
         </div>
@@ -2400,7 +2400,7 @@
             <span class="text-gray-400"><span data-lang-zh>决策置信度</span><span data-lang-en>Confidence</span></span>
             <span class="font-mono font-bold text-gray-700" id="ap-confidence">--</span>
           </div>
-          <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+          <div class="w-full h-2 rounded-full bg-sym-border overflow-hidden">
             <div id="ap-confidence-bar" class="h-full rounded-full transition-all duration-500" style="width:0%;background:linear-gradient(90deg,#cf3041,#e8a317,#00b386)"></div>
           </div>
         </div>
@@ -2437,7 +2437,7 @@
           <span class="text-xs text-gray-400"><span data-lang-zh>执行前确认</span><span data-lang-en>Confirm Before Exec</span></span>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="ap-require-confirm" class="sr-only peer">
-            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sym-accent"></div>
+            <div class="w-9 h-5 bg-sym-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sym-accent"></div>
           </label>
         </div>
       </div>
@@ -2468,11 +2468,31 @@
 </section>
 
 <!-- === FOOTER === -->
-<footer class="border-t border-sym-border mt-16 py-8 text-center text-gray-500 text-sm" style="background:#f7f8fa">
+<footer class="border-t border-sym-border mt-16 py-8 text-center text-sm" style="background:#0c1019;color:#64748b">
   <p class="mb-2"><span data-lang-zh>为 <span class="text-gray-900 font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-gray-900 font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
   <p class="text-xs">SYMBIOSIS &copy; 2026 &middot; <a href="https://github.com/wangyangmingsss/symbiosis" class="text-sym-accent hover:underline">GitHub</a> &middot; <a href="https://web3.okx.com/zh-hans/xlayer/build-x-hackathon" class="text-sym-accent hover:underline">Hackathon</a> &middot; X Layer Mainnet Chain 196</p>
 </footer>
 
+<script>
+// Dark theme override for ECharts
+(function(){
+  var _origInit = echarts.init;
+  echarts.init = function(dom, theme, opts) {
+    return _origInit.call(this, dom, 'dark', opts);
+  };
+  // Register custom dark theme overrides
+  echarts.registerTheme('dark', {
+    backgroundColor: 'transparent',
+    textStyle: { color: '#94a3b8' },
+    title: { textStyle: { color: '#e2e8f0' }, subtextStyle: { color: '#64748b' } },
+    legend: { textStyle: { color: '#94a3b8' } },
+    tooltip: { backgroundColor: '#111622', borderColor: '#1e2740', textStyle: { color: '#e2e8f0' } },
+    categoryAxis: { axisLine: { lineStyle: { color: '#1e2740' } }, splitLine: { lineStyle: { color: '#1e2740' } }, axisLabel: { color: '#64748b' } },
+    valueAxis: { axisLine: { lineStyle: { color: '#1e2740' } }, splitLine: { lineStyle: { color: '#1e274033' } }, axisLabel: { color: '#64748b' } },
+    grid: { borderColor: '#1e2740' }
+  });
+})();
+</script>
 <script src="app.js"></script>
 
 <!-- Agent Detail Modal -->
