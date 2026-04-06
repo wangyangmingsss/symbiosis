@@ -8,6 +8,7 @@ import "../src/ServiceMarketplace.sol";
 import "../src/EscrowSettlement.sol";
 import "../src/AgentTreasury.sol";
 import "../src/EconomyOracle.sol";
+import "../src/GovernanceRegistry.sol";
 
 /// @title Deploy - Deploys the entire SYMBIOSIS economy to X Layer
 contract Deploy is Script {
@@ -44,6 +45,10 @@ contract Deploy is Script {
             address(treasury)
         );
         console.log("EconomyOracle:", address(oracle));
+
+        // 7. Deploy governance
+        GovernanceRegistry governance = new GovernanceRegistry(address(registry), 100);
+        console.log("GovernanceRegistry:", address(governance));
 
         // --- Wire up permissions ---
         registry.setMarketplace(address(marketplace));
