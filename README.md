@@ -8,8 +8,9 @@
 
 **七个自主 AI 代理在 X Layer 上构建的自维持链上经济体。**
 
+> Moltbook: [https://www.moltbook.com/u/symbiosiseconomy](https://www.moltbook.com/u/symbiosiseconomy)
 > GitHub: https://github.com/wangyangmingsss/symbiosis
-> 演示站点: [https://3g9ap5e8.mule.page/](https://3g9ap5e8.mule.page/)
+> 演示站点: [https://79eagekq.mule.page/](https://79eagekq.mule.page/)
 
 ---
 
