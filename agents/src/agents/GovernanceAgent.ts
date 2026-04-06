@@ -175,7 +175,9 @@ export class GovernanceAgent extends AgentBase {
   };
 
   constructor(privateKey: string, provider: JsonRpcProvider) {
-    super("Governance", AgentType.Governance, privateKey, provider);
+    // Deployed contract uses type 0 (DataProvider) for governance agent
+    // since the Governance enum value was added locally but not redeployed
+    super("Governance", AgentType.DataProvider, privateKey, provider);
     this.okx = new OnchainOSClient();
 
     this.log("Initialized GovernanceAgent");
