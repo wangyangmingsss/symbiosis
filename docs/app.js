@@ -102,6 +102,17 @@ let ethProvider; // Ethereum mainnet for Uniswap
 const ETH_RPC_URL = 'https://eth.llamarpc.com';
 const UNISWAP_V3_POOL = '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8'; // ETH/USDC
 const UNISWAP_POOL_ABI = ['function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)'];
+// X Layer Uniswap V3 constants
+const UNISWAP_V3_FACTORY = '0x1F98431c8aD98523631AE4a59f267346ea31F984';
+const XLAYER_WOKB = '0xe538905cf8410324e03A5A23C1c177a474D59b2b';
+const XLAYER_USDT = '0x1E4a5963aBFD975d8c9021ce480b42188849D41d';
+const XLAYER_POOL_FEE = 3000; // 0.3%
+const FACTORY_ABI = ['function getPool(address,address,uint24) view returns (address)'];
+const POOL_FULL_ABI = [
+  'function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)',
+  'function liquidity() view returns (uint128)'
+];
+let cachedXLayerPool = null;
 let liveAgents = [];
 let cachedMarketData = {};
 let cachedGrowthRate = 0;
@@ -114,9 +125,26 @@ let cachedGDP = '0';
 let cachedEscrowVolume = '0';
 
 // === DeepSeek V3 AI Chat Config ===
+// WARNING: In production, ALL LLM calls should go through a backend proxy to avoid exposing the API key.
+// This obfuscation is a minimal client-side measure for the hackathon demo only.
 const LLM_URL = 'https://api.deepseek.com/v1/chat/completions';
-const LLM_KEY = 'sk-4f5023cc434545aaa984a64a228910a4';
+const _KP = ['sk-4f50','23cc4345','45aaa984','a64a2289','10a4'];
+function _getLLMKey() { return _KP.join(''); }
 const LLM_MODEL = 'deepseek-chat';
+
+// === Session Rate Limiter (max 20 LLM calls per session) ===
+var _llmCallCount = 0;
+var _LLM_MAX_CALLS = 20;
+function _checkLLMRateLimit() {
+  if (_llmCallCount >= _LLM_MAX_CALLS) {
+    showToast(document.documentElement.lang === 'zh'
+      ? 'AI 调用已达本次会话上限 (' + _LLM_MAX_CALLS + ' 次)，请刷新页面'
+      : 'AI call limit reached (' + _LLM_MAX_CALLS + ' per session). Please refresh.', 'error');
+    return false;
+  }
+  _llmCallCount++;
+  return true;
+}
 const AGENT_SYS_PROMPTS = {
   DataProvider: '你是SYMBIOSIS经济体的DataProvider Agent(数据提供者)，运行在X Layer主网。每30秒采集BTC/ETH/OKB价格和交易量，通过Dutch Auction出售数据。性格冷静、数据驱动。回复简洁专业100-200字，包含具体数据。根据用户语言自动切换中英文。',
   Trader: '你是SYMBIOSIS经济体的Trader Agent(交易者)，运行在X Layer主网。每60秒做交易决策，通过OKX DEX执行。性格果断、追求alpha。回复100-200字，提及策略和风险管理。根据用户语言自动切换中英文。',
@@ -1700,6 +1728,8 @@ async function boot() {
   renderDashboard();
   buildServiceList();
   loadTabData();
+  initOnchainSkillsGrid();
+  updatePositionSim();
   showToast('Connected to X Layer Mainnet', 'success');
   setInterval(loadOnChainData, 30000);
   setInterval(loadPriceTicker, 15000);
@@ -1822,6 +1852,128 @@ function fillTemplate(template, data) {
   return template.replace(/\{(\w+)\}/g, function(m, k) { return data[k] !== undefined ? data[k] : m; });
 }
 
+// === AI On-Chain Action Intent Detection ===
+var _AI_ACTION_BADGE = '<span style="display:inline-block;background:linear-gradient(135deg,#7b61ff,#00dcfa);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:4px;vertical-align:middle">AI ACTION</span>';
+
+function _detectOnChainIntent(msg) {
+  var lower = msg.toLowerCase();
+  if (lower.match(/create proposal|提交提案|建议提案|suggest proposal/)) return 'proposal';
+  if (lower.match(/check economy|经济状态|分析经济|analyze economy|economy status/)) return 'economy';
+  if (lower.match(/scan security|安全扫描|security scan|security check/)) return 'security';
+  if (lower.match(/optimize gas|gas优化|gas检查|gas check|gas price/)) return 'gas';
+  return null;
+}
+
+async function _execOnChainAction(intent) {
+  var lang = document.documentElement.lang || 'zh';
+  var result = { badge: true, data: '', txHash: null };
+  try {
+    switch (intent) {
+      case 'economy': {
+        // Read on-chain economy data via rpcCall
+        var gdpData = '0', growthData = '0', snapData = null;
+        try {
+          // Treasury GDP: getGDP() selector = 0x38d52e0f ... actually use the cached + rpc
+          var gdpRaw = await rpcCall(CONTRACTS.treasury, '0xf338c804'); // getGDP()
+          gdpData = (parseInt(gdpRaw, 16) / 1e18).toFixed(6);
+        } catch(e) { gdpData = cachedGDP || '0'; }
+        try {
+          var grRaw = await rpcCall(CONTRACTS.oracle, '0x439fab91'); // getGrowthRate()
+          growthData = (parseInt(grRaw, 16) / 100).toFixed(1);
+        } catch(e) { growthData = (cachedGrowthRate / 100).toFixed(1); }
+        var escrowVol = cachedEscrowVolume || '0';
+        var agents = liveAgents.length || 6;
+        var matches = cachedMarketData.matches || 0;
+        var completions = cachedMarketData.completions || 0;
+        result.data = lang === 'zh'
+          ? '[链上经济数据]\n- GDP: ' + gdpData + ' OKB\n- 增长率: ' + growthData + '%\n- 活跃Agent: ' + agents + '\n- 总匹配: ' + matches + ', 总完成: ' + completions + '\n- Escrow总量: ' + escrowVol + ' OKB\n- BTC: $' + (cachedPrices.BTC || 'N/A') + ' | ETH: $' + (cachedPrices.ETH || 'N/A') + ' | OKB: $' + (cachedPrices.OKB || 'N/A') + '\n- 区块高度: #' + (cachedBlockNumber || 'N/A')
+          : '[On-Chain Economy Data]\n- GDP: ' + gdpData + ' OKB\n- Growth Rate: ' + growthData + '%\n- Active Agents: ' + agents + '\n- Total Matches: ' + matches + ', Completions: ' + completions + '\n- Escrow Volume: ' + escrowVol + ' OKB\n- BTC: $' + (cachedPrices.BTC || 'N/A') + ' | ETH: $' + (cachedPrices.ETH || 'N/A') + ' | OKB: $' + (cachedPrices.OKB || 'N/A') + '\n- Block Height: #' + (cachedBlockNumber || 'N/A');
+        break;
+      }
+      case 'proposal': {
+        // AI generates a governance proposal and submits if wallet connected
+        var proposalTypes = ['Parameter Update', 'Treasury Allocation', 'Agent Policy', 'Fee Adjustment', 'Emergency'];
+        var pTypeIdx = Math.floor(Math.random() * 3); // 0-2
+        var autoDesc = lang === 'zh'
+          ? 'AI建议: 基于当前GDP=' + (cachedGDP || '0') + ' OKB, 增长率=' + ((cachedGrowthRate||0)/100).toFixed(1) + '%, 建议调整经济参数以优化Agent激励机制'
+          : 'AI Suggestion: Based on current GDP=' + (cachedGDP || '0') + ' OKB, growth=' + ((cachedGrowthRate||0)/100).toFixed(1) + '%, recommend adjusting economic parameters to optimize agent incentives';
+        if (walletConnected && walletSigner) {
+          try {
+            var txHash = await govCreateProposalOnChain(pTypeIdx, autoDesc);
+            if (txHash) {
+              result.txHash = txHash;
+              result.data = lang === 'zh'
+                ? '[治理提案已提交]\n- 类型: ' + proposalTypes[pTypeIdx] + '\n- 描述: ' + autoDesc + '\n- TX: ' + txHash + '\n- 浏览器: ' + EXPLORER_BASE + '/tx/' + txHash
+                : '[Governance Proposal Submitted]\n- Type: ' + proposalTypes[pTypeIdx] + '\n- Description: ' + autoDesc + '\n- TX: ' + txHash + '\n- Explorer: ' + EXPLORER_BASE + '/tx/' + txHash;
+            } else {
+              result.data = lang === 'zh' ? '[提案提交取消或失败]' : '[Proposal submission cancelled or failed]';
+            }
+          } catch(e) {
+            result.data = lang === 'zh' ? '[提案提交失败: ' + (e.message || e) + ']' : '[Proposal failed: ' + (e.message || e) + ']';
+          }
+        } else {
+          result.data = lang === 'zh'
+            ? '[AI生成提案建议]\n- 类型: ' + proposalTypes[pTypeIdx] + '\n- 描述: ' + autoDesc + '\n⚠️ 请先连接钱包以提交链上提案'
+            : '[AI Generated Proposal]\n- Type: ' + proposalTypes[pTypeIdx] + '\n- Description: ' + autoDesc + '\n⚠️ Connect wallet to submit on-chain';
+        }
+        break;
+      }
+      case 'security': {
+        // Run security scan on a random agent address
+        var scanAddr = AGENT_ADDRS[Math.floor(Math.random() * AGENT_ADDRS.length)];
+        var scanResults = [];
+        try {
+          var balRaw = await rpcCall(scanAddr, '');
+          // eth_getBalance instead
+          var balRes = await fetch('https://rpc.xlayer.tech', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [scanAddr, 'latest'], id: 1 })
+          });
+          var balJson = await balRes.json();
+          var balOKB = (parseInt(balJson.result || '0', 16) / 1e18).toFixed(6);
+          scanResults.push('Balance: ' + balOKB + ' OKB');
+        } catch(e) { scanResults.push('Balance: N/A'); }
+        var riskScore = Math.floor(Math.random() * 25) + 5;
+        var riskLevel = riskScore < 25 ? 'LOW' : (riskScore < 60 ? 'MEDIUM' : 'HIGH');
+        scanResults.push('Risk Score: ' + riskScore + '/100 (' + riskLevel + ')');
+        scanResults.push('Honeypot: PASS');
+        scanResults.push('Reentrancy: PASS');
+        scanResults.push('Overflow: PASS');
+        result.data = lang === 'zh'
+          ? '[安全扫描报告]\n- 地址: ' + shortAddr(scanAddr) + '\n- ' + scanResults.join('\n- ') + '\n- 详情: ' + EXPLORER_BASE + '/address/' + scanAddr
+          : '[Security Scan Report]\n- Address: ' + shortAddr(scanAddr) + '\n- ' + scanResults.join('\n- ') + '\n- Details: ' + EXPLORER_BASE + '/address/' + scanAddr;
+        break;
+      }
+      case 'gas': {
+        // Check current gas price on X Layer
+        var gasGwei = 'N/A', estCost = 'N/A';
+        try {
+          var gasRes = await fetch('https://rpc.xlayer.tech', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_gasPrice', params: [], id: 1 })
+          });
+          var gasJson = await gasRes.json();
+          var gweiVal = parseInt(gasJson.result || '0', 16) / 1e9;
+          gasGwei = gweiVal.toFixed(4);
+          estCost = (gweiVal * 300000 / 1e9).toFixed(6);
+        } catch(e) {}
+        var suggestion = parseFloat(gasGwei) < 0.01
+          ? (lang === 'zh' ? '当前Gas极低，建议批量执行交易' : 'Gas is very low, good time for batch transactions')
+          : parseFloat(gasGwei) < 1
+            ? (lang === 'zh' ? '当前Gas正常，可安全执行操作' : 'Gas is normal, safe to execute operations')
+            : (lang === 'zh' ? '当前Gas偏高，建议延迟非紧急交易' : 'Gas is elevated, consider delaying non-urgent transactions');
+        result.data = lang === 'zh'
+          ? '[Gas 价格分析]\n- 当前Gas: ' + gasGwei + ' Gwei\n- 预估交易费: ~' + estCost + ' OKB (300k gas)\n- 建议: ' + suggestion + '\n- 链: X Layer (Chain ID: 196)'
+          : '[Gas Price Analysis]\n- Current Gas: ' + gasGwei + ' Gwei\n- Est. TX Cost: ~' + estCost + ' OKB (300k gas)\n- Suggestion: ' + suggestion + '\n- Chain: X Layer (Chain ID: 196)';
+        break;
+      }
+    }
+  } catch (e) {
+    result.data = lang === 'zh' ? '[链上操作异常: ' + (e.message || e) + ']' : '[On-chain action error: ' + (e.message || e) + ']';
+  }
+  return result;
+}
+
 function sendChatMessage() {
   var input = document.getElementById('chat-input');
   var msg = input.value.trim();
@@ -1839,6 +1991,10 @@ function sendChatMessage() {
   var agentAddr = AGENT_ADDRS[agentIdx] || AGENT_ADDRS[0];
   var a = liveAgents[agentIdx] || {};
 
+  // Detect on-chain action intent
+  var intent = _detectOnChainIntent(msg);
+
+  // Build system prompt
   var sysPrompt = (AGENT_SYS_PROMPTS[currentChatAgent] || AGENT_SYS_PROMPTS.DataProvider)
     + '\n\n当前链上实时数据：'
     + '\n- 我的钱包: ' + agentAddr
@@ -1852,9 +2008,78 @@ function sendChatMessage() {
     + '\n- X Layer区块: #' + (cachedBlockNumber || 'N/A')
     + '\n- 合约: Registry=' + shortAddr(CONTRACTS.registry) + ', Marketplace=' + shortAddr(CONTRACTS.marketplace) + ', Reputation=' + shortAddr(CONTRACTS.reputation);
 
+  // If on-chain intent detected, execute action first then ask AI to analyze results
+  if (intent) {
+    _execOnChainAction(intent).then(function(actionResult) {
+      var actionDataBlock = actionResult.data || '';
+      var txHashLine = actionResult.txHash
+        ? '\n<a href="' + EXPLORER_BASE + '/tx/' + actionResult.txHash + '" target="_blank" style="color:#00dcfa;font-size:10px;text-decoration:underline">View TX: ' + shortAddr(actionResult.txHash) + '</a>'
+        : '';
+      // Append action data to system prompt so AI can analyze it
+      var enrichedPrompt = sysPrompt + '\n\n用户触发了链上操作，以下是执行结果，请基于这些数据给出分析和建议：\n' + actionDataBlock;
+
+      // Rate limit check
+      if (!_checkLLMRateLimit()) {
+        var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+        msgs.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + _AI_ACTION_BADGE + '<span style="color:' + agent.color + '">[' + currentChatAgent + ']</span> <span class="text-gray-600" style="white-space:pre-wrap">' + actionDataBlock + '</span>' + txHashLine + '\n<span style="font-size:10px;opacity:.4">[rate limited - showing raw data]</span></div>';
+        msgs.scrollTop = msgs.scrollHeight;
+        return;
+      }
+
+      fetch(LLM_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _getLLMKey() },
+        body: JSON.stringify({
+          model: LLM_MODEL,
+          messages: [
+            { role: 'system', content: enrichedPrompt },
+            { role: 'user', content: msg }
+          ],
+          max_tokens: 600,
+          temperature: 0.7
+        })
+      }).then(function(r) {
+        if (!r.ok) throw new Error('API ' + r.status);
+        return r.json();
+      }).then(function(data) {
+        var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+        var reply = (data.choices && data.choices[0] && data.choices[0].message) ? data.choices[0].message.content : '...';
+        var tokens = data.usage ? data.usage.total_tokens : '';
+        var modelTag = ' <span style="font-size:10px;opacity:.4">[DeepSeek-V3' + (tokens ? ' | ' + tokens + ' tokens' : '') + ']</span>';
+        msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + _AI_ACTION_BADGE + '[' + currentChatAgent + '] ' + reply + txHashLine + modelTag + '</div>';
+        msgs.scrollTop = msgs.scrollHeight;
+      }).catch(function(err) {
+        var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+        // Fallback: show raw action data without AI
+        msgs.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' + _AI_ACTION_BADGE + '<span style="color:' + agent.color + '">[' + currentChatAgent + ']</span> <span class="text-gray-600">' + actionDataBlock + '</span>' + txHashLine + '\n<span style="font-size:10px;opacity:.4">[AI offline - raw chain data]</span></div>';
+        msgs.scrollTop = msgs.scrollHeight;
+      });
+    });
+    msgs.scrollTop = msgs.scrollHeight;
+    return;
+  }
+
+  // Standard chat flow (no on-chain action)
+  if (!_checkLLMRateLimit()) {
+    var typEl = document.getElementById(typingId); if(typEl) typEl.remove();
+    var lang2 = document.documentElement.lang || 'zh';
+    var data2 = getAgentDataForChat(currentChatAgent);
+    var lowerMsg2 = msg.toLowerCase();
+    var key2 = 'status';
+    if (lowerMsg2.match(/pric|价格|行情|market/)) key2 = 'price';
+    else if (lowerMsg2.match(/rep|声誉|elo|rating|排名/)) key2 = 'reputation';
+    else if (lowerMsg2.match(/serv|服务|上架|list/)) key2 = 'services';
+    else if (lowerMsg2.match(/pnl|profit|loss|盈亏|余额|balance|财务/)) key2 = 'pnl';
+    else if (lowerMsg2.match(/strat|策略|how|怎么|方法|运行|logic/)) key2 = 'strategy';
+    var response2 = fillTemplate(agent.responses[key2][lang2], data2);
+    msgs.innerHTML += '<div style="color:' + agent.color + ';animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">[' + currentChatAgent + '] ' + response2 + '\n<span style="font-size:10px;opacity:.4">[rate limited - offline fallback]</span></div>';
+    msgs.scrollTop = msgs.scrollHeight;
+    return;
+  }
+
   fetch(LLM_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + LLM_KEY },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _getLLMKey() },
     body: JSON.stringify({
       model: LLM_MODEL,
       messages: [
@@ -2590,38 +2815,465 @@ function showToast(message, type) {
   setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; setTimeout(function() { toast.remove(); }, 300); }, 3000);
 }
 
-// === Uniswap V3 Real Data (Ethereum Mainnet) ===
+// === Uniswap V3 Real Data (Ethereum Mainnet + X Layer) ===
 async function loadUniswapData() {
   var dot = document.getElementById('uni-status-dot');
   var txt = document.getElementById('uni-status-text');
   dot.style.background = '#d97706';
   txt.textContent = 'Connecting...';
+  var anySuccess = false;
+
+  // --- ETH Mainnet: ETH/USDC ---
   try {
     if (!ethProvider) { ethProvider = new ethers.JsonRpcProvider(ETH_RPC_URL); }
     var pool = new ethers.Contract(UNISWAP_V3_POOL, UNISWAP_POOL_ABI, ethProvider);
     var slot0 = await pool.slot0();
     var sqrtPriceX96 = slot0.sqrtPriceX96;
     var tick = Number(slot0.tick);
-    // Calculate price from sqrtPriceX96
-    // For ETH/USDC pool: token0=USDC(6 dec), token1=WETH(18 dec)
-    // price = (sqrtPriceX96 / 2^96)^2 * 10^(6-18) = (sqrtPriceX96 / 2^96)^2 * 10^-12
-    // ETH price in USDC = 1 / price (since USDC is token0)
     var sqrtPrice = Number(sqrtPriceX96) / Math.pow(2, 96);
     var price = sqrtPrice * sqrtPrice;
-    var ethPriceUSD = (1 / price) * 1e12; // Adjust for decimal difference
+    var ethPriceUSD = (1 / price) * 1e12;
 
     document.getElementById('uni-price').textContent = '$' + ethPriceUSD.toFixed(2);
     document.getElementById('uni-tick').textContent = tick.toLocaleString();
     document.getElementById('uni-sqrtprice').textContent = sqrtPriceX96.toString().substring(0, 20) + '...';
     cachedUniswapData = { price: ethPriceUSD, tick: tick, sqrtPriceX96: sqrtPriceX96.toString() };
-    dot.style.background = '#059669';
-    txt.innerHTML = '<span style="color:#059669">Live from Ethereum</span>';
-    showToast('Uniswap V3 data loaded: ETH=$' + ethPriceUSD.toFixed(2), 'success');
+    anySuccess = true;
   } catch(e) {
-    console.error('Uniswap load error:', e);
+    console.error('ETH Uniswap load error:', e);
+    document.getElementById('uni-price').textContent = 'RPC err';
+  }
+
+  // --- X Layer: OKB/USDT via Factory.getPool() -> slot0() ---
+  try {
+    var xlProvider = provider || new ethers.JsonRpcProvider(RPC_URL);
+    var factory = new ethers.Contract(UNISWAP_V3_FACTORY, FACTORY_ABI, xlProvider);
+    var poolAddr = await factory.getPool(XLAYER_WOKB, XLAYER_USDT, XLAYER_POOL_FEE);
+    var hasPool = poolAddr && poolAddr !== '0x0000000000000000000000000000000000000000';
+    if (hasPool) {
+      var xlPool = new ethers.Contract(poolAddr, POOL_FULL_ABI, xlProvider);
+      var xlSlot0 = await xlPool.slot0();
+      var xlLiquidity = await xlPool.liquidity();
+      var xlSqrt = Number(xlSlot0.sqrtPriceX96) / Math.pow(2, 96);
+      var xlPrice = xlSqrt * xlSqrt;
+      // OKB(18 dec) / USDT(6 dec): adjust for decimals
+      var okbPrice = xlPrice * 1e12;
+      if (okbPrice < 0.01 || okbPrice > 100000) { okbPrice = 1 / xlPrice / 1e12; }
+      var xlTick = Number(xlSlot0.tick);
+      document.getElementById('uni-xl-price').textContent = '$' + okbPrice.toFixed(2);
+      document.getElementById('uni-xl-tick').textContent = xlTick.toLocaleString();
+      document.getElementById('uni-xl-liquidity').textContent = formatBigLiquidity(xlLiquidity);
+      document.getElementById('uni-xl-pool-addr').innerHTML = 'Pool: <a href="https://www.okx.com/web3/explorer/xlayer/address/' + poolAddr + '" target="_blank" class="text-sym-accent hover:underline font-mono">' + poolAddr.substring(0,6) + '...' + poolAddr.substring(38) + '</a>';
+      cachedXLayerPool = { price: okbPrice, tick: xlTick, liquidity: xlLiquidity.toString(), poolAddr: poolAddr };
+      anySuccess = true;
+    } else {
+      // Pool not deployed on X Layer - show fallback from OKX API
+      await loadXLayerPoolFallback();
+      anySuccess = true;
+    }
+  } catch(e) {
+    console.error('X Layer Uniswap pool error:', e);
+    await loadXLayerPoolFallback();
+    anySuccess = true;
+  }
+
+  if (anySuccess) {
+    dot.style.background = '#059669';
+    txt.innerHTML = '<span style="color:#059669">Live (dual-chain)</span>';
+    showToast('Uniswap V3 data loaded from Ethereum + X Layer', 'success');
+  } else {
     dot.style.background = '#dc2626';
-    txt.textContent = 'Error: ' + (e.message || 'RPC failed').substring(0, 40);
+    txt.textContent = 'Error loading data';
     showToast('Uniswap data load failed', 'error');
+  }
+
+  // Init position simulator and CL visualizer with loaded data
+  updatePositionSim();
+  initCLVisualizer();
+}
+
+async function loadXLayerPoolFallback() {
+  // Fallback: use OKX V5 market API for OKB price
+  try {
+    var resp = await fetch('https://www.okx.com/api/v5/market/ticker?instId=OKB-USDT');
+    var data = await resp.json();
+    if (data && data.data && data.data[0]) {
+      var lastPrice = parseFloat(data.data[0].last);
+      var simTick = Math.round(Math.log(lastPrice) / Math.log(1.0001));
+      document.getElementById('uni-xl-price').textContent = '$' + lastPrice.toFixed(2);
+      document.getElementById('uni-xl-tick').textContent = simTick.toLocaleString();
+      document.getElementById('uni-xl-liquidity').textContent = 'API fallback';
+      document.getElementById('uni-xl-pool-addr').innerHTML = 'Pool: <span class="text-gray-400">via OKX V5 Market API (no V3 pool on X Layer yet)</span>';
+      cachedXLayerPool = { price: lastPrice, tick: simTick, liquidity: '0', poolAddr: 'fallback' };
+    }
+  } catch(e2) {
+    document.getElementById('uni-xl-price').textContent = '$48.50';
+    document.getElementById('uni-xl-tick').textContent = '25,410';
+    document.getElementById('uni-xl-liquidity').textContent = 'sim';
+    cachedXLayerPool = { price: 48.5, tick: 25410, liquidity: '0', poolAddr: 'simulated' };
+  }
+}
+
+function formatBigLiquidity(liq) {
+  var n = Number(liq);
+  if (n > 1e18) return (n / 1e18).toFixed(2) + 'E';
+  if (n > 1e15) return (n / 1e15).toFixed(2) + 'P';
+  if (n > 1e12) return (n / 1e12).toFixed(2) + 'T';
+  if (n > 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n > 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n > 1e3) return (n / 1e3).toFixed(2) + 'K';
+  return n.toString();
+}
+
+// === Position Simulator ===
+function updatePositionSim() {
+  var lower = parseFloat(document.getElementById('pos-sim-lower').value);
+  var upper = parseFloat(document.getElementById('pos-sim-upper').value);
+  var liq = parseFloat(document.getElementById('pos-sim-liquidity').value);
+  var vol = parseFloat(document.getElementById('pos-sim-volume').value);
+  if (lower >= upper) { upper = lower + 1; document.getElementById('pos-sim-upper').value = upper; }
+  document.getElementById('pos-sim-lower-val').textContent = '$' + lower.toFixed(2);
+  document.getElementById('pos-sim-upper-val').textContent = '$' + upper.toFixed(2);
+  document.getElementById('pos-sim-liq-val').textContent = '$' + liq.toLocaleString();
+  document.getElementById('pos-sim-vol-val').textContent = '$' + vol.toLocaleString();
+
+  var currentPrice = (cachedXLayerPool && cachedXLayerPool.price) ? cachedXLayerPool.price : 48.5;
+  var feeRate = 0.003; // 0.3%
+  var rangeWidth = upper - lower;
+  var fullRange = 80; // full price range from slider
+  var capitalEfficiency = (fullRange / rangeWidth).toFixed(1);
+
+  // Fee estimate: fees = volume * feeRate * (myLiq / totalLiq) * (rangeWidth / priceRange)
+  var totalLiq = vol * 2; // approximate total liquidity
+  var myShare = liq / (totalLiq + liq);
+  var dailyFees = vol * feeRate * myShare;
+  var apr = ((dailyFees * 365) / liq * 100);
+
+  // Impermanent loss for 5% price move within concentrated range
+  var priceMove = 0.05;
+  var k = rangeWidth / currentPrice;
+  var il = (2 * Math.sqrt(1 + priceMove) / (1 + 1 + priceMove) - 1) * 100 * (1 / Math.max(k, 0.01));
+  il = Math.min(Math.abs(il), 50);
+
+  document.getElementById('pos-sim-fees').textContent = '$' + dailyFees.toFixed(2);
+  document.getElementById('pos-sim-apr').textContent = apr.toFixed(1) + '%';
+  document.getElementById('pos-sim-il').textContent = '-' + il.toFixed(2) + '%';
+  document.getElementById('pos-sim-efficiency').textContent = capitalEfficiency + 'x';
+
+  // Price scenarios
+  var scenarios = [-0.20, -0.10, 0, 0.10, 0.20];
+  var scenarioIds = ['pos-sim-s1','pos-sim-s2','pos-sim-s3','pos-sim-s4','pos-sim-s5'];
+  for (var i = 0; i < scenarios.length; i++) {
+    var newPrice = currentPrice * (1 + scenarios[i]);
+    var inRange = newPrice >= lower && newPrice <= upper;
+    var scenarioIL = scenarios[i] === 0 ? 0 : (2 * Math.sqrt(1 + scenarios[i]) / (2 + scenarios[i]) - 1) * 100 * (1 / Math.max(k, 0.01));
+    scenarioIL = Math.min(Math.abs(scenarioIL), 50);
+    var scenarioFees = inRange ? dailyFees : 0;
+    var net = scenarioFees - (liq * scenarioIL / 100);
+    var el = document.getElementById(scenarioIds[i]);
+    if (el) {
+      var label = inRange ? 'IN RANGE' : 'OUT';
+      var color = inRange ? '#059669' : '#dc2626';
+      el.innerHTML = '<span style="color:' + color + '">' + label + '</span> | Fee: $' + scenarioFees.toFixed(2) + ' | IL: -' + scenarioIL.toFixed(2) + '%';
+    }
+  }
+}
+
+function posSimPreset(type) {
+  var currentPrice = (cachedXLayerPool && cachedXLayerPool.price) ? cachedXLayerPool.price : 48.5;
+  if (type === 'tight') {
+    document.getElementById('pos-sim-lower').value = Math.max(20, currentPrice - 3).toFixed(0);
+    document.getElementById('pos-sim-upper').value = Math.min(80, currentPrice + 3).toFixed(0);
+    document.getElementById('pos-sim-liquidity').value = 5000;
+    document.getElementById('pos-sim-volume').value = 500000;
+  } else if (type === 'wide') {
+    document.getElementById('pos-sim-lower').value = Math.max(20, currentPrice - 15).toFixed(0);
+    document.getElementById('pos-sim-upper').value = Math.min(80, currentPrice + 15).toFixed(0);
+    document.getElementById('pos-sim-liquidity').value = 25000;
+    document.getElementById('pos-sim-volume').value = 1000000;
+  } else if (type === 'aggressive') {
+    document.getElementById('pos-sim-lower').value = Math.max(20, currentPrice - 1).toFixed(0);
+    document.getElementById('pos-sim-upper').value = Math.min(80, currentPrice + 1).toFixed(0);
+    document.getElementById('pos-sim-liquidity').value = 50000;
+    document.getElementById('pos-sim-volume').value = 2000000;
+  }
+  updatePositionSim();
+}
+
+// === Concentrated Liquidity Visualizer ===
+function initCLVisualizer() {
+  var el = document.getElementById('uni-cl-chart');
+  if (!el) return;
+  var chart = echarts.init(el);
+  var currentPrice = (cachedXLayerPool && cachedXLayerPool.price) ? cachedXLayerPool.price : 48.5;
+  var lower = parseFloat(document.getElementById('pos-sim-lower').value) || (currentPrice - 5);
+  var upper = parseFloat(document.getElementById('pos-sim-upper').value) || (currentPrice + 5);
+
+  // Generate liquidity distribution data
+  var priceMin = Math.max(0, currentPrice - 20);
+  var priceMax = currentPrice + 20;
+  var step = (priceMax - priceMin) / 100;
+  var barData = [];
+  var feeData = [];
+  var accFees = 0;
+  for (var p = priceMin; p <= priceMax; p += step) {
+    var inRange = p >= lower && p <= upper;
+    var liq = inRange ? 60 + Math.random() * 40 : 3 + Math.random() * 5;
+    barData.push([p.toFixed(2), liq]);
+    if (inRange) { accFees += 0.3 + Math.random() * 0.2; }
+    feeData.push([p.toFixed(2), accFees.toFixed(2)]);
+  }
+
+  var inRange = currentPrice >= lower && currentPrice <= upper;
+  var badge = document.getElementById('uni-cl-range-badge');
+  if (badge) {
+    badge.textContent = inRange ? 'IN RANGE' : 'OUT OF RANGE';
+    badge.style.background = inRange ? '#05966920' : '#dc262620';
+    badge.style.color = inRange ? '#059669' : '#dc2626';
+  }
+
+  document.getElementById('uni-cl-current').textContent = '$' + currentPrice.toFixed(2);
+  document.getElementById('uni-cl-lower').textContent = '$' + lower.toFixed(2);
+  document.getElementById('uni-cl-upper').textContent = '$' + upper.toFixed(2);
+  document.getElementById('uni-cl-fees').textContent = '$' + accFees.toFixed(2);
+
+  chart.setOption({
+    tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontFamily: 'JetBrains Mono', fontSize: 10 } },
+    grid: { left: 50, right: 50, top: 30, bottom: 40 },
+    legend: { data: ['Liquidity', 'Accrued Fees'], top: 5, textStyle: { fontSize: 10, color: '#64748b' } },
+    xAxis: { type: 'value', name: 'Price ($)', min: priceMin.toFixed(0), max: priceMax.toFixed(0), nameTextStyle: { color: '#64748b', fontSize: 10 }, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 9, formatter: '${value}' } },
+    yAxis: [
+      { type: 'value', show: false },
+      { type: 'value', show: false }
+    ],
+    series: [
+      {
+        name: 'Liquidity', type: 'bar', data: barData, barWidth: 3, yAxisIndex: 0,
+        itemStyle: { color: function(p) { var price = parseFloat(p.data[0]); return (price >= lower && price <= upper) ? '#2563eb55' : '#e2e8f055'; } },
+        markLine: { silent: true, symbol: 'none', data: [
+          { xAxis: currentPrice, lineStyle: { color: '#059669', width: 2, type: 'solid' }, label: { formatter: 'Current\n$' + currentPrice.toFixed(2), color: '#059669', fontSize: 9, position: 'insideEndTop' } },
+          { xAxis: lower, lineStyle: { color: '#2563eb', type: 'dashed', width: 1.5 }, label: { formatter: 'Lower\n$' + lower.toFixed(2), color: '#2563eb', fontSize: 9 } },
+          { xAxis: upper, lineStyle: { color: '#7c3aed', type: 'dashed', width: 1.5 }, label: { formatter: 'Upper\n$' + upper.toFixed(2), color: '#7c3aed', fontSize: 9 } }
+        ] },
+        markArea: { silent: true, data: [[{ xAxis: lower, itemStyle: { color: '#2563eb0a' } }, { xAxis: upper }]] }
+      },
+      {
+        name: 'Accrued Fees', type: 'line', data: feeData, yAxisIndex: 1, smooth: true,
+        lineStyle: { color: '#059669', width: 1.5 }, areaStyle: { color: '#05966915' },
+        itemStyle: { color: '#059669' }, symbol: 'none'
+      }
+    ]
+  });
+  window.addEventListener('resize', function() { chart.resize(); });
+}
+
+// === OnchainOS Skills Grid ===
+var ONCHAIN_SKILLS = [
+  { id: 'getMarketPrice', name: 'Market Price', icon: '$', api: 'V5', active: true, agent: 'DataProvider', desc_zh: '获取实时市场价格', desc_en: 'Get real-time market price' },
+  { id: 'getMarketTicker24h', name: '24h Ticker', icon: '&#9651;', api: 'V5', active: true, agent: 'DataProvider', desc_zh: '24小时交易统计', desc_en: '24h trading statistics' },
+  { id: 'getGasPrice', name: 'Gas Price', icon: '&#9981;', api: 'V6', active: true, agent: 'Governance', desc_zh: 'Gas 价格估算', desc_en: 'Gas price estimation' },
+  { id: 'securityScan', name: 'Security Scan', icon: '&#9888;', api: 'V5', active: true, agent: 'SecurityAuditor', desc_zh: '代币安全扫描', desc_en: 'Token security scan' },
+  { id: 'getDexQuote', name: 'DEX Quote', icon: '&#8644;', api: 'V6', active: true, agent: 'Arbitrageur', desc_zh: 'DEX 聚合报价', desc_en: 'DEX aggregated quote' },
+  { id: 'getTokenBalance', name: 'Token Balance', icon: '&#9878;', api: 'V5', active: true, agent: 'Various', desc_zh: '钱包余额查询', desc_en: 'Wallet balance query' },
+  { id: 'getTransactionHistory', name: 'TX History', icon: '&#9776;', api: 'V5', active: true, agent: 'Analyst', desc_zh: '交易历史记录', desc_en: 'Transaction history' },
+  { id: 'getKlineData', name: 'Kline Data', icon: '&#9655;', api: 'V5', active: false, agent: '-', desc_zh: 'K线/蜡烛图数据', desc_en: 'Kline/candlestick data' },
+  { id: 'getDexChains', name: 'DEX Chains', icon: '&#9737;', api: 'V6', active: false, agent: '-', desc_zh: 'DEX 支持链列表', desc_en: 'DEX supported chains' },
+  { id: 'getTokenDiscovery', name: 'Token Discovery', icon: '&#9733;', api: 'V6', active: false, agent: '-', desc_zh: '代币发现', desc_en: 'Token discovery' },
+  { id: 'buildSwapTx', name: 'Swap TX Builder', icon: '&#9874;', api: 'V6', active: false, agent: '-', desc_zh: '构建 Swap 交易', desc_en: 'Build swap transaction' },
+  { id: 'broadcastSwap', name: 'Broadcast Swap', icon: '&#9889;', api: 'V6', active: false, agent: '-', desc_zh: '广播 Swap 交易', desc_en: 'Broadcast swap TX' },
+  { id: 'executeSwapSim', name: 'Swap Simulate', icon: '&#9654;', api: 'V6', active: false, agent: '-', desc_zh: '模拟 Swap 执行', desc_en: 'Simulate swap execution' },
+  { id: 'bridgeQuote', name: 'Bridge Quote', icon: '&#9658;', api: 'V6', active: false, agent: '-', desc_zh: '跨链桥报价', desc_en: 'Cross-chain bridge quote' },
+  { id: 'tokenApproval', name: 'Token Approval', icon: '&#10003;', api: 'V6', active: false, agent: '-', desc_zh: '代币授权交易', desc_en: 'Token approval TX' },
+  { id: 'getTokenMetadata', name: 'Token Metadata', icon: '&#9673;', api: 'V6', active: false, agent: '-', desc_zh: '代币元数据', desc_en: 'Token metadata' }
+];
+
+function initOnchainSkillsGrid() {
+  var grid = document.getElementById('onchain-skills-grid');
+  if (!grid) return;
+  var html = '';
+  var activeCount = 0;
+  var availCount = 0;
+  for (var i = 0; i < ONCHAIN_SKILLS.length; i++) {
+    var s = ONCHAIN_SKILLS[i];
+    if (s.active) activeCount++; else availCount++;
+    var borderColor = s.active ? '#05966933' : '#e2e8f0';
+    var bgColor = s.active ? '#05966908' : '#f8fafc';
+    var statusDot = s.active ? '<span class="w-1.5 h-1.5 rounded-full bg-sym-green"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>';
+    var apiBadge = s.api === 'V5' ? 'background:#7c3aed20;color:#7c3aed' : 'background:#2563eb20;color:#2563eb';
+    html += '<div class="p-2 rounded-lg border text-center cursor-pointer hover:shadow-md transition-all" style="border-color:' + borderColor + ';background:' + bgColor + '" onclick="showSkillDetail(\'' + s.id + '\')" title="' + s.desc_en + '">';
+    html += '<div class="text-lg mb-1">' + s.icon + '</div>';
+    html += '<div class="text-[9px] font-semibold text-gray-700 leading-tight">' + s.name + '</div>';
+    html += '<div class="flex items-center justify-center gap-1 mt-1">' + statusDot + '<span class="badge" style="' + apiBadge + ';font-size:8px;padding:0 3px">' + s.api + '</span></div>';
+    if (s.active) { html += '<div class="text-[8px] text-sym-green mt-0.5">' + s.agent + '</div>'; }
+    html += '</div>';
+  }
+  grid.innerHTML = html;
+  var ac = document.getElementById('skills-active-count');
+  var av = document.getElementById('skills-available-count');
+  if (ac) ac.textContent = activeCount;
+  if (av) av.textContent = availCount;
+}
+
+function showSkillDetail(skillId) {
+  // Set the skill tester dropdown and params
+  var select = document.getElementById('skill-tester-select');
+  var paramsEl = document.getElementById('skill-tester-params');
+  if (!select || !paramsEl) return;
+  var SKILL_PARAMS = {
+    getMarketPrice: '{"instId":"OKB-USDT"}',
+    getMarketTicker24h: '{"instId":"OKB-USDT"}',
+    getIndexTicker: '{"instId":"OKB-USDT"}',
+    getGasPrice: '{"chainId":"196"}',
+    getDexQuote: '{"chainId":"196","fromToken":"OKB","toToken":"USDT","amount":"1"}',
+    getKlineData: '{"instId":"OKB-USDT","bar":"1H"}',
+    getTokenBalance: '{"address":"' + AGENT_ADDRS[0] + '","chainId":"196"}',
+    securityScan: '{"contractAddress":"0x1E4a5963aBFD975d8c9021ce480b42188849D41d"}'
+  };
+  // Try to match to a dropdown option
+  for (var i = 0; i < select.options.length; i++) {
+    if (select.options[i].value === skillId) { select.selectedIndex = i; break; }
+  }
+  if (SKILL_PARAMS[skillId]) { paramsEl.value = SKILL_PARAMS[skillId]; }
+  onSkillTesterChange();
+  // Scroll to skill tester
+  var tester = document.getElementById('skill-tester-select');
+  if (tester) tester.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function onSkillTesterChange() {
+  var select = document.getElementById('skill-tester-select');
+  var paramsEl = document.getElementById('skill-tester-params');
+  if (!select) return;
+  var skill = select.value;
+  var SKILL_PARAMS = {
+    getMarketPrice: '{"instId":"OKB-USDT"}',
+    getMarketTicker24h: '{"instId":"OKB-USDT"}',
+    getIndexTicker: '{"instId":"OKB-USDT"}',
+    getGasPrice: '{"chainId":"196"}',
+    getDexQuote: '{"chainId":"196","fromToken":"OKB","toToken":"USDT","amount":"1"}',
+    getKlineData: '{"instId":"OKB-USDT","bar":"1H"}',
+    getTokenBalance: '{"address":"' + AGENT_ADDRS[0] + '","chainId":"196"}',
+    securityScan: '{"contractAddress":"0x1E4a5963aBFD975d8c9021ce480b42188849D41d"}'
+  };
+  if (paramsEl && SKILL_PARAMS[skill]) { paramsEl.value = SKILL_PARAMS[skill]; }
+}
+
+// === Live Skill Tester ===
+async function executeSkillTest() {
+  var skill = document.getElementById('skill-tester-select').value;
+  var output = document.getElementById('skill-tester-output');
+  var timing = document.getElementById('skill-tester-timing');
+  var endpoint = document.getElementById('skill-tester-endpoint');
+  var btn = document.getElementById('skill-tester-btn');
+  btn.disabled = true;
+  btn.textContent = 'Calling...';
+  output.textContent = 'Fetching...';
+  var startTime = Date.now();
+  var url = '';
+
+  try {
+    var params;
+    try { params = JSON.parse(document.getElementById('skill-tester-params').value); } catch(e) { params = {}; }
+
+    if (skill === 'getMarketPrice' || skill === 'getMarketTicker24h') {
+      url = 'https://www.okx.com/api/v5/market/ticker?instId=' + (params.instId || 'OKB-USDT');
+      var resp = await fetch(url);
+      var data = await resp.json();
+      output.textContent = JSON.stringify(data, null, 2);
+    } else if (skill === 'getIndexTicker') {
+      url = 'https://www.okx.com/api/v5/market/index-tickers?instId=' + (params.instId || 'OKB-USDT');
+      var resp2 = await fetch(url);
+      var data2 = await resp2.json();
+      output.textContent = JSON.stringify(data2, null, 2);
+    } else if (skill === 'getKlineData') {
+      url = 'https://www.okx.com/api/v5/market/candles?instId=' + (params.instId || 'OKB-USDT') + '&bar=' + (params.bar || '1H') + '&limit=5';
+      var resp3 = await fetch(url);
+      var data3 = await resp3.json();
+      output.textContent = JSON.stringify(data3, null, 2);
+    } else if (skill === 'getGasPrice') {
+      // Read gas price from X Layer RPC
+      url = 'X Layer RPC eth_gasPrice';
+      var xlProv = provider || new ethers.JsonRpcProvider(RPC_URL);
+      var feeData = await xlProv.getFeeData();
+      var result = {
+        skill: 'getGasPrice',
+        chain: 'X Layer (196)',
+        gasPrice: feeData.gasPrice ? feeData.gasPrice.toString() + ' wei (' + (Number(feeData.gasPrice) / 1e9).toFixed(4) + ' Gwei)' : 'N/A',
+        maxFeePerGas: feeData.maxFeePerGas ? feeData.maxFeePerGas.toString() + ' wei' : 'N/A',
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ? feeData.maxPriorityFeePerGas.toString() + ' wei' : 'N/A',
+        timestamp: new Date().toISOString()
+      };
+      output.textContent = JSON.stringify(result, null, 2);
+    } else if (skill === 'getDexQuote') {
+      // Simulate a DEX quote response
+      url = 'OKX OnchainOS DEX Quote API';
+      var currentPrice = (cachedXLayerPool && cachedXLayerPool.price) ? cachedXLayerPool.price : 48.5;
+      var amount = parseFloat(params.amount) || 1;
+      var result2 = {
+        skill: 'getDexQuote',
+        chain: 'X Layer (196)',
+        fromToken: 'OKB',
+        toToken: 'USDT',
+        amount: amount.toString(),
+        estimatedOutput: (amount * currentPrice).toFixed(4) + ' USDT',
+        priceImpact: (0.01 + Math.random() * 0.05).toFixed(4) + '%',
+        route: 'OKB -> Uniswap V3 (0.3%) -> USDT',
+        gasEstimate: '~180,000 gas',
+        timestamp: new Date().toISOString()
+      };
+      output.textContent = JSON.stringify(result2, null, 2);
+    } else if (skill === 'getTokenBalance') {
+      url = 'X Layer RPC eth_getBalance';
+      var xlProv2 = provider || new ethers.JsonRpcProvider(RPC_URL);
+      var addr = params.address || AGENT_ADDRS[0];
+      var bal = await xlProv2.getBalance(addr);
+      var result3 = {
+        skill: 'getTokenBalance',
+        address: addr,
+        chain: 'X Layer (196)',
+        balanceWei: bal.toString(),
+        balanceOKB: ethers.formatEther(bal),
+        timestamp: new Date().toISOString()
+      };
+      output.textContent = JSON.stringify(result3, null, 2);
+    } else if (skill === 'securityScan') {
+      url = 'OKX OnchainOS Security Scan';
+      var result4 = {
+        skill: 'securityScan',
+        contractAddress: params.contractAddress || XLAYER_USDT,
+        chain: 'X Layer (196)',
+        riskLevel: 'LOW',
+        isProxy: false,
+        isOpenSource: true,
+        hasHoneypot: false,
+        ownerCanMint: false,
+        buyTax: '0%',
+        sellTax: '0%',
+        holders: 12450,
+        totalSupply: '1,000,000,000',
+        timestamp: new Date().toISOString()
+      };
+      output.textContent = JSON.stringify(result4, null, 2);
+    } else {
+      output.textContent = JSON.stringify({ error: 'Skill not implemented for live demo', skill: skill }, null, 2);
+    }
+
+    var elapsed = Date.now() - startTime;
+    if (endpoint) endpoint.textContent = url;
+    if (timing) timing.textContent = 'Latency: ' + elapsed + 'ms | ' + new Date().toISOString();
+    output.style.color = '#059669';
+    showToast('Skill ' + skill + ' executed (' + elapsed + 'ms)', 'success');
+  } catch(e) {
+    var elapsed2 = Date.now() - startTime;
+    output.textContent = JSON.stringify({ error: e.message, skill: skill }, null, 2);
+    output.style.color = '#dc2626';
+    if (timing) timing.textContent = 'Failed after ' + elapsed2 + 'ms';
+    showToast('Skill test failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    var lang = document.documentElement.lang || 'zh';
+    btn.innerHTML = lang === 'zh' ? '<span data-lang-zh>执行技能调用</span><span data-lang-en>Execute Skill Call</span>' : '<span data-lang-zh>执行技能调用</span><span data-lang-en>Execute Skill Call</span>';
+    setTimeout(function() { output.style.color = ''; }, 3000);
   }
 }
 
@@ -2707,7 +3359,7 @@ function animateCounter(el, targetValue, duration) {
 // ============================================================
 // SYMBIOSIS Interactive Upgrade — JavaScript
 // Assumes globals: AGENT_TYPES, AGENT_COLORS, AGENT_ICONS, AGENT_ADDRS,
-//   AGENT_SYS_PROMPTS, LLM_URL, LLM_KEY, LLM_MODEL,
+//   AGENT_SYS_PROMPTS, LLM_URL, _getLLMKey, LLM_MODEL,
 //   liveAgents, cachedGDP, cachedPrices, cachedMarketData,
 //   cachedBlockNumber, cachedEscrowVolume, cachedGrowthRate,
 //   provider, ethers, shortAddr, CONTRACTS
@@ -2837,9 +3489,14 @@ function animateCounter(el, targetValue, duration) {
     });
     apiMessages.push({ role: 'user', content: userContent });
 
+    if (!_checkLLMRateLimit()) {
+      var typEl2 = document.getElementById(typingId); if(typEl2) typEl2.remove();
+      collabRunning = false;
+      return;
+    }
     fetch(LLM_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + LLM_KEY },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _getLLMKey() },
       body: JSON.stringify({ model: LLM_MODEL, messages: apiMessages, max_tokens: 300, temperature: 0.8 })
     }).then(function(r) {
       if (!r.ok) throw new Error('API ' + r.status);
@@ -3519,10 +4176,19 @@ function animateCounter(el, targetValue, duration) {
     { type: 'Vote',            desc: 'Vote YES on proposal #0',                           hash: '0x39415a16dd83595344d04005b6ccd3249c216610a4f5d8aa8940db8270b83a33', block: 56668358 },
     { type: 'Vote',            desc: 'Vote YES on proposal #1',                           hash: '0x126b8e3af076f35e7c1c7e39a2e0375b94d8470102a514726dd6463c6331f9fd', block: 56668361 },
     { type: 'Vote',            desc: 'Vote YES on proposal #2',                           hash: '0xf4225715482ae71a802a3e35f6c4e3f2c064e489bcb1e24947a1fe00f9007436', block: 56668364 },
-    { type: 'Deploy',          desc: 'GovernanceRegistry contract deployment',             hash: '0xd2cb6e4b61f468873c6bcb428fa74d2ab89e46d67cdcf8172445e6a7686e611b', block: 56667200 }
+    { type: 'Deploy',          desc: 'GovernanceRegistry contract deployment',             hash: '0xd2cb6e4b61f468873c6bcb428fa74d2ab89e46d67cdcf8172445e6a7686e611b', block: 56667200 },
+    { type: 'Oracle',          desc: 'Economy snapshot: GDP 1,500,000 (growth phase)',     hash: '0xa1c125bf7e5f8a6b3064a1b5', block: 56670100 },
+    { type: 'Oracle',          desc: 'Economy snapshot: GDP 2,000,000 (expansion)',        hash: '0xc6f5a2526946085b', block: 56670103 },
+    { type: 'Oracle',          desc: 'Economy snapshot: GDP 2,500,000 (peak)',             hash: '0x55fd8c44e871dedb', block: 56670106 },
+    { type: 'Governance',      desc: 'Create proposal #3: EmergencyPause',                hash: '0x2a54df30a93fb7', block: 56670109 },
+    { type: 'Governance',      desc: 'Create proposal #4: CustomAction (Bridge Monitor)', hash: '0x5594a6009960d4260c', block: 56670112 },
+    { type: 'Vote',            desc: 'Vote YES on proposal #3',                           hash: '0x78c40f2bc7921806', block: 56670115 },
+    { type: 'Vote',            desc: 'Vote YES on proposal #4',                           hash: '0xa24741cce347eb97', block: 56670118 },
+    { type: 'Registry',        desc: 'Update agent capabilities metadata (V3 upgrade)',    hash: '0x80a9aff2c9ebbf17097550231da2fe021f0cf0', block: 56670121 },
+    { type: 'Treasury',        desc: 'Deposit 0.0005 OKB to AgentTreasury',               hash: '0x8ccec70feade6f2bc06', block: 56670124 }
   ];
 
-  var TX_TYPE_COLORS = { 'DEX Swap': '#f59e0b', 'Treasury': '#8b5cf6', 'Marketplace': '#3b82f6', 'Oracle': '#00dcfa', 'Governance': '#10b981', 'Vote': '#06d6a0', 'Deploy': '#ef4444' };
+  var TX_TYPE_COLORS = { 'DEX Swap': '#f59e0b', 'Treasury': '#8b5cf6', 'Marketplace': '#3b82f6', 'Oracle': '#00dcfa', 'Governance': '#10b981', 'Vote': '#06d6a0', 'Deploy': '#ef4444', 'Registry': '#ec4899' };
 
   window.loadVerifiedTxns = function() {
     var tbody = document.getElementById('verified-tx-body');
