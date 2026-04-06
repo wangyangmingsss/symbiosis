@@ -133,6 +133,11 @@ body{background:#fff;color:#010304;-webkit-font-smoothing:antialiased;-moz-osx-f
   <a href="#micropayment-tabs" data-label="Tabs" title="Tabs"></a>
   <a href="#uniswap-live" data-label="Uniswap" title="Uniswap"></a>
   <a href="#integration-section" data-label="Integrations" title="Integrations"></a>
+  <a href="#collab-arena" data-label="Collab Arena" title="Collab Arena"></a>
+  <a href="#stress-tester" data-label="Stress Test" title="Stress Test"></a>
+  <a href="#strategy-config" data-label="Strategy" title="Strategy"></a>
+  <a href="#bridge-explorer" data-label="Bridge" title="Bridge"></a>
+  <a href="#agent-tournament" data-label="Tournament" title="Tournament"></a>
 </nav>
 
 <!-- LANG TOGGLE -->
@@ -185,6 +190,11 @@ body{background:#fff;color:#010304;-webkit-font-smoothing:antialiased;-moz-osx-f
       <a href="#service-discovery" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-accent hover:text-sym-accent hover:shadow-[0_0_12px_rgba(88,166,255,.15)] transition-all">Service Browser</a>
       <a href="#micropayment-tabs" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-accent hover:text-sym-accent hover:shadow-[0_0_12px_rgba(88,166,255,.15)] transition-all">Micro-Payments</a>
       <a href="#uniswap-live" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-accent hover:text-sym-accent hover:shadow-[0_0_12px_rgba(88,166,255,.15)] transition-all">Uniswap Live</a>
+      <a href="#collab-arena" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-purple hover:text-sym-purple hover:shadow-[0_0_12px_rgba(123,97,255,.15)] transition-all">Collab Arena</a>
+      <a href="#stress-tester" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-amber hover:text-sym-amber hover:shadow-[0_0_12px_rgba(232,163,23,.15)] transition-all">Stress Tester</a>
+      <a href="#strategy-config" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-green hover:text-sym-green hover:shadow-[0_0_12px_rgba(0,179,134,.15)] transition-all">Strategy Config</a>
+      <a href="#bridge-explorer" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-accent hover:text-sym-accent hover:shadow-[0_0_12px_rgba(0,220,250,.15)] transition-all">Bridge Explorer</a>
+      <a href="#agent-tournament" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-500 hover:border-sym-pink hover:text-sym-pink hover:shadow-[0_0_12px_rgba(232,67,147,.15)] transition-all">Tournament</a>
     </div>
     <div class="flex justify-center gap-8 md:gap-16">
       <div class="text-center"><div class="text-3xl font-bold text-sym-accent" id="hero-agents">--</div><div class="text-xs text-gray-500 mt-1"><span data-lang-zh>活跃 Agent</span><span data-lang-en>Active Agents</span></div></div>
@@ -1329,6 +1339,531 @@ body{background:#fff;color:#010304;-webkit-font-smoothing:antialiased;-moz-osx-f
   </div>
 </section>
 
+<section id="collab-arena" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900">
+    <span data-lang-zh>多 Agent 协作竞技场</span>
+    <span data-lang-en>Multi-Agent Collaboration Arena</span>
+    <span class="badge" style="background:#7b61ff;color:#fff;font-size:10px;vertical-align:middle">DeepSeek V3</span>
+  </h2>
+  <p class="text-sm text-gray-400 mb-6">
+    <span data-lang-zh>提出一个话题，所有 6 个 Agent 将以各自性格和策略进行实时讨论</span>
+    <span data-lang-en>Propose a topic and all 6 agents will discuss it in real-time with their unique personalities</span>
+  </p>
+  <div class="card p-6">
+    <!-- Agent avatars bar -->
+    <div class="flex flex-wrap gap-3 mb-4" id="collab-agent-bar">
+      <!-- Populated by JS -->
+    </div>
+    <!-- Chat log -->
+    <div id="collab-messages" class="console-output" style="min-height:350px;max-height:500px;margin-bottom:12px;scroll-behavior:smooth">
+      <div class="text-gray-300 text-center py-8" id="collab-placeholder">
+        <span data-lang-zh>输入一个话题，开始多 Agent 讨论...</span>
+        <span data-lang-en>Enter a topic to start the multi-agent discussion...</span>
+      </div>
+    </div>
+    <!-- Input row -->
+    <div class="flex gap-3">
+      <input type="text" id="collab-input" class="input-dark flex-1"
+        placeholder="e.g. Should we increase OKB exposure?"
+        onkeydown="if(event.key==='Enter')collabArenaStart()">
+      <button onclick="collabArenaStart()" class="btn-glow text-sm whitespace-nowrap" id="collab-send-btn">
+        <span data-lang-zh>开始讨论</span><span data-lang-en>Start Discussion</span>
+      </button>
+    </div>
+    <!-- Quick topics -->
+    <div class="flex flex-wrap gap-2 mt-3">
+      <button onclick="collabQuick('Should we increase OKB exposure?')" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-400 hover:border-sym-purple hover:text-sym-purple transition-all cursor-pointer">OKB Exposure</button>
+      <button onclick="collabQuick('What is the biggest risk to our economy right now?')" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-400 hover:border-sym-purple hover:text-sym-purple transition-all cursor-pointer">
+        <span data-lang-zh>当前最大风险</span><span data-lang-en>Biggest Risk</span>
+      </button>
+      <button onclick="collabQuick('How should we optimize gas costs across agents?')" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-400 hover:border-sym-purple hover:text-sym-purple transition-all cursor-pointer">Gas Optimization</button>
+      <button onclick="collabQuick('Propose a new cross-agent arbitrage strategy')" class="text-xs px-3 py-1.5 rounded-full border border-sym-border text-gray-400 hover:border-sym-purple hover:text-sym-purple transition-all cursor-pointer">
+        <span data-lang-zh>新套利策略</span><span data-lang-en>New Arb Strategy</span>
+      </button>
+    </div>
+    <!-- Discussion stats -->
+    <div class="grid grid-cols-3 gap-3 mt-4 text-center">
+      <div class="p-2 rounded-lg bg-sym-surface">
+        <div class="text-xs text-gray-400"><span data-lang-zh>发言次数</span><span data-lang-en>Messages</span></div>
+        <div class="text-lg font-bold text-gray-900" id="collab-msg-count">0</div>
+      </div>
+      <div class="p-2 rounded-lg bg-sym-surface">
+        <div class="text-xs text-gray-400"><span data-lang-zh>参与 Agent</span><span data-lang-en>Agents Active</span></div>
+        <div class="text-lg font-bold text-gray-900" id="collab-agent-count">0</div>
+      </div>
+      <div class="p-2 rounded-lg bg-sym-surface">
+        <div class="text-xs text-gray-400">Tokens</div>
+        <div class="text-lg font-bold text-gray-900" id="collab-token-count">0</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 2: Economy Stress Tester
+     ============================================================ -->
+<section id="stress-tester" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900">
+    <span data-lang-zh>经济压力测试器</span>
+    <span data-lang-en>Economy Stress Tester</span>
+    <span class="badge" style="background:#e8a317;color:#fff;font-size:10px;vertical-align:middle">Simulator</span>
+  </h2>
+  <p class="text-sm text-gray-400 mb-6">
+    <span data-lang-zh>调节参数，实时模拟 Agent 经济体在不同压力场景下的表现</span>
+    <span data-lang-en>Adjust parameters and simulate the agent economy under different stress scenarios in real-time</span>
+  </p>
+  <div class="card p-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: Sliders -->
+      <div class="space-y-5">
+        <h3 class="text-sm font-semibold text-gray-900">
+          <span data-lang-zh>模拟参数</span><span data-lang-en>Simulation Parameters</span>
+        </h3>
+        <!-- Active Agents -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>活跃 Agent 数</span><span data-lang-en>Active Agents</span></span>
+            <span class="font-mono font-medium text-gray-700" id="stress-agents-val">6</span>
+          </div>
+          <input type="range" id="stress-agents" min="1" max="10" value="6" step="1"
+            class="w-full accent-sym-accent" oninput="stressUpdateVal('agents')">
+        </div>
+        <!-- Market Volatility -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>市场波动性</span><span data-lang-en>Market Volatility</span></span>
+            <span class="font-mono font-medium text-gray-700" id="stress-volatility-val">Medium</span>
+          </div>
+          <input type="range" id="stress-volatility" min="0" max="2" value="1" step="1"
+            class="w-full accent-sym-amber" oninput="stressUpdateVal('volatility')">
+        </div>
+        <!-- Trading Volume Multiplier -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>交易量倍数</span><span data-lang-en>Volume Multiplier</span></span>
+            <span class="font-mono font-medium text-gray-700" id="stress-volume-val">1.0x</span>
+          </div>
+          <input type="range" id="stress-volume" min="1" max="100" value="10" step="1"
+            class="w-full accent-sym-green" oninput="stressUpdateVal('volume')">
+        </div>
+        <!-- Fee Rate -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>费率</span><span data-lang-en>Fee Rate</span></span>
+            <span class="font-mono font-medium text-gray-700" id="stress-fee-val">0.10%</span>
+          </div>
+          <input type="range" id="stress-fee" min="1" max="100" value="10" step="1"
+            class="w-full accent-sym-red" oninput="stressUpdateVal('fee')">
+        </div>
+        <!-- Scenario presets -->
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button onclick="stressPreset('bull')" class="btn-sm text-xs" style="background:#00b386">
+            <span data-lang-zh>牛市</span><span data-lang-en>Bull Run</span>
+          </button>
+          <button onclick="stressPreset('crash')" class="btn-sm text-xs" style="background:#cf3041">
+            <span data-lang-zh>崩盘</span><span data-lang-en>Market Crash</span>
+          </button>
+          <button onclick="stressPreset('stable')" class="btn-sm text-xs" style="background:#7b61ff">
+            <span data-lang-zh>平稳</span><span data-lang-en>Stable</span>
+          </button>
+        </div>
+      </div>
+      <!-- Center: GDP + Transaction charts -->
+      <div class="space-y-4">
+        <div class="p-3 rounded-lg bg-sym-surface">
+          <div class="text-xs text-gray-400 mb-1"><span data-lang-zh>模拟 GDP (OKB)</span><span data-lang-en>Simulated GDP (OKB)</span></div>
+          <div id="stress-gdp-chart" style="width:100%;height:200px"></div>
+        </div>
+        <div class="p-3 rounded-lg bg-sym-surface">
+          <div class="text-xs text-gray-400 mb-1"><span data-lang-zh>交易数 / 周期</span><span data-lang-en>Transactions / Cycle</span></div>
+          <div id="stress-tx-chart" style="width:100%;height:200px"></div>
+        </div>
+      </div>
+      <!-- Right: Revenue + stats -->
+      <div class="space-y-4">
+        <div class="p-3 rounded-lg bg-sym-surface">
+          <div class="text-xs text-gray-400 mb-1"><span data-lang-zh>费用收入 (OKB)</span><span data-lang-en>Fee Revenue (OKB)</span></div>
+          <div id="stress-revenue-chart" style="width:100%;height:200px"></div>
+        </div>
+        <!-- Live Stats -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400">GDP</div>
+            <div class="text-lg font-bold" style="color:#00dcfa" id="stress-stat-gdp">0.00</div>
+          </div>
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400">TPS</div>
+            <div class="text-lg font-bold" style="color:#00b386" id="stress-stat-tps">0.0</div>
+          </div>
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400"><span data-lang-zh>收入</span><span data-lang-en>Revenue</span></div>
+            <div class="text-lg font-bold" style="color:#e8a317" id="stress-stat-revenue">0.00</div>
+          </div>
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400"><span data-lang-zh>健康度</span><span data-lang-en>Health</span></div>
+            <div class="text-lg font-bold" style="color:#7b61ff" id="stress-stat-health">--</div>
+          </div>
+        </div>
+        <!-- Apply button (requires wallet) -->
+        <button onclick="stressApplyLive()" class="btn-glow w-full text-sm" id="stress-apply-btn">
+          <span data-lang-zh>应用到线上经济体</span><span data-lang-en>Apply to Live Economy</span>
+        </button>
+        <p class="text-[10px] text-gray-300 text-center">
+          <span data-lang-zh>需要连接钱包并拥有管理权限</span>
+          <span data-lang-en>Requires wallet connection &amp; admin privileges</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 3: Agent Strategy Configurator
+     ============================================================ -->
+<section id="strategy-config" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900">
+    <span data-lang-zh>Agent 策略配置器</span>
+    <span data-lang-en>Agent Strategy Configurator</span>
+    <span class="badge" style="background:#00b386;color:#fff;font-size:10px;vertical-align:middle">Config</span>
+  </h2>
+  <p class="text-sm text-gray-400 mb-6">
+    <span data-lang-zh>选择一个 Agent，调整策略参数，实时预览性能影响</span>
+    <span data-lang-en>Select an agent, adjust strategy parameters, and preview performance impact in real-time</span>
+  </p>
+  <div class="card p-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: Agent selector + sliders -->
+      <div class="space-y-5">
+        <!-- Agent selector -->
+        <div>
+          <label class="text-xs text-gray-400 mb-1 block">
+            <span data-lang-zh>选择 Agent</span><span data-lang-en>Select Agent</span>
+          </label>
+          <div class="grid grid-cols-3 gap-2" id="strat-agent-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+        <!-- Risk Tolerance -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>风险容忍度</span><span data-lang-en>Risk Tolerance</span></span>
+            <span class="font-mono font-medium text-gray-700" id="strat-risk-val">50</span>
+          </div>
+          <input type="range" id="strat-risk" min="0" max="100" value="50"
+            class="w-full accent-sym-red" oninput="stratUpdateParams()">
+        </div>
+        <!-- Position Size -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>仓位大小</span><span data-lang-en>Position Size</span></span>
+            <span class="font-mono font-medium text-gray-700" id="strat-position-val">10%</span>
+          </div>
+          <input type="range" id="strat-position" min="1" max="50" value="10"
+            class="w-full accent-sym-green" oninput="stratUpdateParams()">
+        </div>
+        <!-- Min Confidence Threshold -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>最低置信度</span><span data-lang-en>Min Confidence</span></span>
+            <span class="font-mono font-medium text-gray-700" id="strat-confidence-val">0.50</span>
+          </div>
+          <input type="range" id="strat-confidence" min="0" max="100" value="50"
+            class="w-full accent-sym-purple" oninput="stratUpdateParams()">
+        </div>
+        <!-- Cycle Interval -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400"><span data-lang-zh>周期间隔</span><span data-lang-en>Cycle Interval</span></span>
+            <span class="font-mono font-medium text-gray-700" id="strat-cycle-val">30s</span>
+          </div>
+          <input type="range" id="strat-cycle" min="5" max="120" value="30" step="5"
+            class="w-full accent-sym-accent" oninput="stratUpdateParams()">
+        </div>
+        <!-- Deploy button -->
+        <button onclick="stratDeploy()" class="btn-glow w-full text-sm" id="strat-deploy-btn">
+          <span data-lang-zh>部署策略</span><span data-lang-en>Deploy Strategy</span>
+        </button>
+      </div>
+      <!-- Center: Performance prediction chart -->
+      <div class="space-y-4">
+        <div class="p-3 rounded-lg bg-sym-surface">
+          <div class="text-xs text-gray-400 mb-1">
+            <span data-lang-zh>预测 PnL 曲线 (30 天)</span><span data-lang-en>Predicted PnL Curve (30 days)</span>
+          </div>
+          <div id="strat-pnl-chart" style="width:100%;height:250px"></div>
+        </div>
+        <div class="p-3 rounded-lg bg-sym-surface">
+          <div class="text-xs text-gray-400 mb-1">
+            <span data-lang-zh>风险/收益分布</span><span data-lang-en>Risk/Return Distribution</span>
+          </div>
+          <div id="strat-scatter-chart" style="width:100%;height:200px"></div>
+        </div>
+      </div>
+      <!-- Right: Metric cards + radar -->
+      <div class="space-y-4">
+        <div class="p-3 rounded-lg bg-sym-surface">
+          <div class="text-xs text-gray-400 mb-1">
+            <span data-lang-zh>能力雷达图</span><span data-lang-en>Capability Radar</span>
+          </div>
+          <div id="strat-radar-chart" style="width:100%;height:220px"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400"><span data-lang-zh>预期收益</span><span data-lang-en>Est. Return</span></div>
+            <div class="text-lg font-bold" style="color:#00b386" id="strat-est-return">+12.3%</div>
+          </div>
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400"><span data-lang-zh>最大回撤</span><span data-lang-en>Max Drawdown</span></div>
+            <div class="text-lg font-bold" style="color:#cf3041" id="strat-max-dd">-5.2%</div>
+          </div>
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400">Sharpe Ratio</div>
+            <div class="text-lg font-bold" style="color:#7b61ff" id="strat-sharpe">1.85</div>
+          </div>
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400"><span data-lang-zh>交易次数/天</span><span data-lang-en>Trades/Day</span></div>
+            <div class="text-lg font-bold" style="color:#e8a317" id="strat-trades-day">24</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 4: Cross-Chain Bridge Explorer
+     ============================================================ -->
+<section id="bridge-explorer" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900">
+    <span data-lang-zh>跨链桥浏览器</span>
+    <span data-lang-en>Cross-Chain Bridge Explorer</span>
+    <span class="badge" style="background:#00dcfa;color:#fff;font-size:10px;vertical-align:middle">OKX Bridge</span>
+  </h2>
+  <p class="text-sm text-gray-400 mb-6">
+    <span data-lang-zh>查询 OKX 跨链桥报价，可视化桥接路由与费用</span>
+    <span data-lang-en>Query OKX cross-chain bridge quotes, visualize bridge routes and fees</span>
+  </p>
+  <div class="card p-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Left: Input form -->
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Source Chain -->
+          <div>
+            <label class="text-xs text-gray-400 mb-1 block">
+              <span data-lang-zh>源链</span><span data-lang-en>Source Chain</span>
+            </label>
+            <select id="bridge-from-chain" class="select-dark" onchange="bridgeUpdateTokens('from')">
+              <option value="1">Ethereum</option>
+              <option value="196" selected>X Layer</option>
+              <option value="56">BSC</option>
+              <option value="137">Polygon</option>
+              <option value="42161">Arbitrum</option>
+              <option value="10">Optimism</option>
+              <option value="43114">Avalanche</option>
+              <option value="324">zkSync Era</option>
+            </select>
+          </div>
+          <!-- Dest Chain -->
+          <div>
+            <label class="text-xs text-gray-400 mb-1 block">
+              <span data-lang-zh>目标链</span><span data-lang-en>Destination Chain</span>
+            </label>
+            <select id="bridge-to-chain" class="select-dark" onchange="bridgeUpdateTokens('to')">
+              <option value="1" selected>Ethereum</option>
+              <option value="196">X Layer</option>
+              <option value="56">BSC</option>
+              <option value="137">Polygon</option>
+              <option value="42161">Arbitrum</option>
+              <option value="10">Optimism</option>
+              <option value="43114">Avalanche</option>
+              <option value="324">zkSync Era</option>
+            </select>
+          </div>
+        </div>
+        <!-- Swap button row -->
+        <div class="flex justify-center">
+          <button onclick="bridgeSwapChains()" class="w-10 h-10 rounded-full border border-sym-border flex items-center justify-center hover:border-sym-accent hover:bg-sym-surface transition-all text-gray-400 hover:text-sym-accent text-lg">&#8645;</button>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Token -->
+          <div>
+            <label class="text-xs text-gray-400 mb-1 block">Token</label>
+            <select id="bridge-token" class="select-dark">
+              <option value="USDT">USDT</option>
+              <option value="USDC">USDC</option>
+              <option value="ETH">ETH</option>
+              <option value="OKB">OKB</option>
+              <option value="WBTC">WBTC</option>
+            </select>
+          </div>
+          <!-- Amount -->
+          <div>
+            <label class="text-xs text-gray-400 mb-1 block">
+              <span data-lang-zh>数量</span><span data-lang-en>Amount</span>
+            </label>
+            <input type="number" id="bridge-amount" class="input-dark" value="100" min="0.01" step="any">
+          </div>
+        </div>
+        <button onclick="bridgeFetchQuote()" class="btn-glow w-full text-sm" id="bridge-quote-btn">
+          <span data-lang-zh>获取报价</span><span data-lang-en>Get Quote</span>
+        </button>
+        <!-- Quote result card -->
+        <div id="bridge-result" class="hidden p-4 rounded-lg border border-sym-border bg-sym-surface space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-400"><span data-lang-zh>预计到账</span><span data-lang-en>Est. Received</span></span>
+            <span class="font-mono font-bold text-gray-900" id="bridge-received">--</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-400"><span data-lang-zh>桥接费用</span><span data-lang-en>Bridge Fee</span></span>
+            <span class="font-mono text-gray-700" id="bridge-fee">--</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-400"><span data-lang-zh>预计时间</span><span data-lang-en>Est. Time</span></span>
+            <span class="font-mono text-gray-700" id="bridge-time">--</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-400"><span data-lang-zh>路由</span><span data-lang-en>Route</span></span>
+            <span class="font-mono text-gray-700" id="bridge-route">--</span>
+          </div>
+        </div>
+        <!-- Status -->
+        <div id="bridge-status" class="text-xs text-gray-300 text-center"></div>
+      </div>
+      <!-- Right: Visual flow diagram -->
+      <div class="space-y-4">
+        <div class="p-4 rounded-lg bg-sym-surface" style="min-height:320px">
+          <div class="text-xs text-gray-400 mb-3">
+            <span data-lang-zh>桥接流程可视化</span><span data-lang-en>Bridge Flow Visualization</span>
+          </div>
+          <div id="bridge-flow-visual" class="relative" style="min-height:280px">
+            <!-- SVG flow diagram rendered by JS -->
+            <div class="text-center text-gray-300 py-16" id="bridge-flow-placeholder">
+              <span data-lang-zh>获取报价后显示桥接流程图</span>
+              <span data-lang-en>Bridge flow diagram will appear after fetching a quote</span>
+            </div>
+          </div>
+        </div>
+        <!-- Chain comparison stats -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400"><span data-lang-zh>汇率</span><span data-lang-en>Rate</span></div>
+            <div class="text-sm font-bold text-gray-900" id="bridge-rate">1:1</div>
+          </div>
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400"><span data-lang-zh>滑点</span><span data-lang-en>Slippage</span></div>
+            <div class="text-sm font-bold text-gray-900" id="bridge-slippage">0.00%</div>
+          </div>
+          <div class="p-3 rounded-lg border border-sym-border text-center">
+            <div class="text-xs text-gray-400"><span data-lang-zh>安全评分</span><span data-lang-en>Safety</span></div>
+            <div class="text-sm font-bold" style="color:#00b386" id="bridge-safety">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 5: Agent Performance Tournament
+     ============================================================ -->
+<section id="agent-tournament" class="max-w-7xl mx-auto px-4 py-12 section-anchor">
+  <h2 class="text-2xl font-bold mb-2 text-gray-900">
+    <span data-lang-zh>Agent 性能锦标赛</span>
+    <span data-lang-en>Agent Performance Tournament</span>
+    <span class="badge" style="background:#e84393;color:#fff;font-size:10px;vertical-align:middle">Battle</span>
+  </h2>
+  <p class="text-sm text-gray-400 mb-6">
+    <span data-lang-zh>选择两个 Agent 进行面对面比较，启动模拟对战</span>
+    <span data-lang-en>Select two agents for head-to-head comparison and start a simulated battle</span>
+  </p>
+  <div class="card p-6">
+    <!-- Agent selection row -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-center">
+      <!-- Agent A -->
+      <div class="text-center">
+        <label class="text-xs text-gray-400 mb-2 block">
+          <span data-lang-zh>选手 A</span><span data-lang-en>Fighter A</span>
+        </label>
+        <select id="tourney-agent-a" class="select-dark text-center" onchange="tourneyUpdate()">
+          <!-- Populated by JS -->
+        </select>
+        <div class="mt-3 text-4xl" id="tourney-icon-a"></div>
+        <div class="font-bold text-gray-900 mt-1" id="tourney-name-a">--</div>
+        <div class="text-xs text-gray-400" id="tourney-elo-a">ELO: --</div>
+      </div>
+      <!-- VS -->
+      <div class="text-center">
+        <div class="text-3xl font-black" style="background:linear-gradient(135deg,#cf3041,#e84393);-webkit-background-clip:text;-webkit-text-fill-color:transparent">VS</div>
+        <button onclick="tourneyBattle()" class="btn-glow text-sm mt-3" id="tourney-battle-btn">
+          <span data-lang-zh>开始对战</span><span data-lang-en>Start Battle</span>
+        </button>
+        <div class="text-xs text-gray-300 mt-2" id="tourney-status"></div>
+      </div>
+      <!-- Agent B -->
+      <div class="text-center">
+        <label class="text-xs text-gray-400 mb-2 block">
+          <span data-lang-zh>选手 B</span><span data-lang-en>Fighter B</span>
+        </label>
+        <select id="tourney-agent-b" class="select-dark text-center" onchange="tourneyUpdate()">
+          <!-- Populated by JS -->
+        </select>
+        <div class="mt-3 text-4xl" id="tourney-icon-b"></div>
+        <div class="font-bold text-gray-900 mt-1" id="tourney-name-b">--</div>
+        <div class="text-xs text-gray-400" id="tourney-elo-b">ELO: --</div>
+      </div>
+    </div>
+    <!-- Radar + comparison charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Radar comparison -->
+      <div class="p-4 rounded-lg bg-sym-surface">
+        <div class="text-xs text-gray-400 mb-2">
+          <span data-lang-zh>能力雷达对比</span><span data-lang-en>Capability Radar Comparison</span>
+        </div>
+        <div id="tourney-radar-chart" style="width:100%;height:300px"></div>
+      </div>
+      <!-- Historical timeline -->
+      <div class="p-4 rounded-lg bg-sym-surface">
+        <div class="text-xs text-gray-400 mb-2">
+          <span data-lang-zh>历史表现对比</span><span data-lang-en>Historical Performance</span>
+        </div>
+        <div id="tourney-history-chart" style="width:100%;height:300px"></div>
+      </div>
+    </div>
+    <!-- Battle log + scores -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Score bars -->
+      <div class="space-y-3">
+        <h4 class="text-sm font-semibold text-gray-900">
+          <span data-lang-zh>对比指标</span><span data-lang-en>Comparison Metrics</span>
+        </h4>
+        <div id="tourney-bars">
+          <!-- Populated by JS: ELO, Win Rate, Volume, Response Time, Profit bars -->
+        </div>
+      </div>
+      <!-- Battle log -->
+      <div class="lg:col-span-2">
+        <h4 class="text-sm font-semibold text-gray-900 mb-2">
+          <span data-lang-zh>对战实况</span><span data-lang-en>Battle Log</span>
+        </h4>
+        <div id="tourney-log" class="console-output" style="min-height:200px;max-height:280px">
+          <div class="text-gray-300 text-center py-8">
+            <span data-lang-zh>选择两个 Agent 后点击 "开始对战"</span>
+            <span data-lang-en>Select two agents and click "Start Battle"</span>
+          </div>
+        </div>
+        <!-- Winner announcement -->
+        <div id="tourney-winner" class="hidden mt-4 p-4 rounded-lg border-2 text-center" style="border-color:#e84393;background:linear-gradient(135deg,rgba(232,67,147,.05),rgba(123,97,255,.05))">
+          <div class="text-sm text-gray-400">
+            <span data-lang-zh>获胜者</span><span data-lang-en>Winner</span>
+          </div>
+          <div class="text-2xl font-bold mt-1" id="tourney-winner-name">--</div>
+          <div class="text-sm text-gray-400 mt-1" id="tourney-winner-score">--</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 <!-- === FOOTER === -->
 <footer class="border-t border-sym-border mt-16 py-8 text-center text-gray-500 text-sm" style="background:#f7f8fa">
   <p class="mb-2"><span data-lang-zh>为 <span class="text-gray-900 font-semibold">OKX Build X Hackathon 2026</span> 构建 &mdash; X Layer Arena</span><span data-lang-en>Built for <span class="text-gray-900 font-semibold">OKX Build X Hackathon 2026</span> &mdash; X Layer Arena</span></p>
@@ -3595,6 +4130,1001 @@ function animateCounter(el, targetValue, duration) {
   }
   requestAnimationFrame(update);
 }
+// ============================================================
+// SYMBIOSIS Interactive Upgrade — JavaScript
+// Assumes globals: AGENT_TYPES, AGENT_COLORS, AGENT_ICONS, AGENT_ADDRS,
+//   AGENT_SYS_PROMPTS, LLM_URL, LLM_KEY, LLM_MODEL,
+//   liveAgents, cachedGDP, cachedPrices, cachedMarketData,
+//   cachedBlockNumber, cachedEscrowVolume, cachedGrowthRate,
+//   provider, ethers, shortAddr, CONTRACTS
+// ============================================================
+
+// ----------------------------------------------------------
+//  1. MULTI-AGENT COLLABORATION ARENA
+// ----------------------------------------------------------
+(function() {
+  var collabMsgCount = 0;
+  var collabTokenCount = 0;
+  var collabRunning = false;
+  var collabAbort = false;
+
+  // Render agent avatar bar
+  var bar = document.getElementById('collab-agent-bar');
+  if (bar) {
+    var html = '';
+    for (var i = 0; i < AGENT_TYPES.length; i++) {
+      html += '<div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-sym-border text-xs font-medium" id="collab-avatar-' + i + '">' +
+        '<span style="color:' + AGENT_COLORS[i] + '">' + AGENT_ICONS[i] + '</span>' +
+        '<span>' + AGENT_TYPES[i] + '</span>' +
+        '<span class="w-2 h-2 rounded-full bg-gray-200" id="collab-dot-' + i + '"></span>' +
+        '</div>';
+    }
+    bar.innerHTML = html;
+  }
+
+  // Quick topic helper
+  window.collabQuick = function(topic) {
+    var inp = document.getElementById('collab-input');
+    if (inp) inp.value = topic;
+    collabArenaStart();
+  };
+
+  // Start the multi-agent discussion
+  window.collabArenaStart = function() {
+    var input = document.getElementById('collab-input');
+    var topic = input.value.trim();
+    if (!topic || collabRunning) return;
+    input.value = '';
+    collabRunning = true;
+    collabAbort = false;
+    collabMsgCount = 0;
+    collabTokenCount = 0;
+
+    var msgs = document.getElementById('collab-messages');
+    var placeholder = document.getElementById('collab-placeholder');
+    if (placeholder) placeholder.remove();
+
+    // Show user topic
+    msgs.innerHTML = '<div style="animation:fadeInUp .3s ease;padding:6px 0;border-bottom:1px solid #e8eaed">' +
+      '<span class="text-gray-400 text-xs">[Topic]</span> <span class="font-medium text-gray-900">' + escapeHtml(topic) + '</span></div>';
+
+    var btn = document.getElementById('collab-send-btn');
+    if (btn) btn.disabled = true;
+
+    // Build discussion order: each agent responds, then 2 react to others
+    var order = [];
+    // Round 1: all agents respond to the topic
+    for (var i = 0; i < AGENT_TYPES.length; i++) {
+      order.push({ idx: i, type: 'initial', topic: topic });
+    }
+    // Round 2: 3 cross-agent interactions
+    order.push({ idx: 1, type: 'react', reactTo: 0, topic: topic }); // Trader reacts to DataProvider
+    order.push({ idx: 4, type: 'react', reactTo: 1, topic: topic }); // SecurityAuditor reacts to Trader
+    order.push({ idx: 2, type: 'react', reactTo: 5, topic: topic }); // Analyst reacts to Arbitrageur
+
+    processCollabQueue(order, msgs, 0);
+  };
+
+  // Collect previous messages for context
+  var collabHistory = [];
+
+  function processCollabQueue(order, msgs, idx) {
+    if (idx >= order.length || collabAbort) {
+      collabRunning = false;
+      var btn = document.getElementById('collab-send-btn');
+      if (btn) btn.disabled = false;
+      // Final summary line
+      msgs.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:8px;padding-top:8px;border-top:1px solid #e8eaed">' +
+        '<span class="text-xs text-gray-300">' +
+        '<span data-lang-zh>讨论完成 — ' + collabMsgCount + ' 条消息</span>' +
+        '<span data-lang-en>Discussion complete — ' + collabMsgCount + ' messages</span>' +
+        '</span></div>';
+      msgs.scrollTop = msgs.scrollHeight;
+      collabHistory = [];
+      return;
+    }
+
+    var item = order[idx];
+    var agentIdx = item.idx;
+    var agentName = AGENT_TYPES[agentIdx];
+    var agentColor = AGENT_COLORS[agentIdx];
+
+    // Show typing indicator + activate dot
+    var dot = document.getElementById('collab-dot-' + agentIdx);
+    if (dot) dot.style.background = agentColor;
+
+    var typingId = 'collab-typing-' + Date.now();
+    msgs.innerHTML += '<div id="' + typingId + '" style="animation:fadeInUp .3s ease;margin-top:6px">' +
+      '<span style="color:' + agentColor + '">[' + agentName + ']</span> ' +
+      '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>' +
+      '</div>';
+    msgs.scrollTop = msgs.scrollHeight;
+
+    // Build system prompt with collaboration context
+    var sysPrompt = (AGENT_SYS_PROMPTS[agentName] || '') +
+      '\n\nYou are in a multi-agent strategy meeting. Other agents are also participating. Keep responses concise (80-150 words). Stay in character.';
+
+    if (item.type === 'react') {
+      var reactName = AGENT_TYPES[item.reactTo];
+      var lastMsg = collabHistory.filter(function(h) { return h.agent === reactName; }).pop();
+      sysPrompt += '\n\nYou are responding to ' + reactName + ' who said: "' + (lastMsg ? lastMsg.text : 'their analysis') + '"';
+      sysPrompt += '\nAgree or disagree with specific points. Reference their data.';
+    }
+
+    // Add conversation history
+    var userContent = item.type === 'react'
+      ? 'The topic is: "' + item.topic + '". Respond to ' + AGENT_TYPES[item.reactTo] + '\'s point above. Do you agree or disagree? Why?'
+      : 'The discussion topic is: "' + item.topic + '". Share your perspective as ' + agentName + '.';
+
+    var apiMessages = [{ role: 'system', content: sysPrompt }];
+    // Add recent history as context
+    collabHistory.forEach(function(h) {
+      apiMessages.push({ role: 'assistant', content: '[' + h.agent + '] ' + h.text });
+    });
+    apiMessages.push({ role: 'user', content: userContent });
+
+    fetch(LLM_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + LLM_KEY },
+      body: JSON.stringify({ model: LLM_MODEL, messages: apiMessages, max_tokens: 300, temperature: 0.8 })
+    }).then(function(r) {
+      if (!r.ok) throw new Error('API ' + r.status);
+      return r.json();
+    }).then(function(data) {
+      var typEl = document.getElementById(typingId);
+      if (typEl) typEl.remove();
+
+      var reply = (data.choices && data.choices[0] && data.choices[0].message)
+        ? data.choices[0].message.content : '...';
+      var tokens = data.usage ? data.usage.total_tokens : 0;
+      collabTokenCount += tokens;
+      collabMsgCount++;
+      collabHistory.push({ agent: agentName, text: reply });
+
+      var reactTag = item.type === 'react'
+        ? ' <span style="font-size:10px;color:#94a3b8">replying to ' + AGENT_TYPES[item.reactTo] + '</span>' : '';
+
+      msgs.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' +
+        '<span style="color:' + agentColor + ';font-weight:600">[' + agentName + ']</span>' + reactTag +
+        '<br><span class="text-gray-600">' + escapeHtml(reply) + '</span>' +
+        ' <span style="font-size:10px;opacity:.3">[' + tokens + ' tokens]</span></div>';
+      msgs.scrollTop = msgs.scrollHeight;
+
+      // Update counters
+      updateCollabStats();
+
+      // Deactivate typing dot
+      if (dot) dot.style.background = '#d5d8dd';
+
+      // Next agent with a small delay for readability
+      setTimeout(function() { processCollabQueue(order, msgs, idx + 1); }, 600);
+    }).catch(function(err) {
+      var typEl = document.getElementById(typingId);
+      if (typEl) typEl.remove();
+      collabMsgCount++;
+
+      // Fallback: generate a synthetic response
+      var fallback = generateCollabFallback(agentName, item.topic, item.type === 'react' ? AGENT_TYPES[item.reactTo] : null);
+      collabHistory.push({ agent: agentName, text: fallback });
+
+      msgs.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:6px;white-space:pre-wrap">' +
+        '<span style="color:' + agentColor + ';font-weight:600">[' + agentName + ']</span>' +
+        '<br><span class="text-gray-600">' + escapeHtml(fallback) + '</span>' +
+        ' <span style="font-size:10px;opacity:.3">[offline]</span></div>';
+      msgs.scrollTop = msgs.scrollHeight;
+      updateCollabStats();
+      if (dot) dot.style.background = '#d5d8dd';
+      setTimeout(function() { processCollabQueue(order, msgs, idx + 1); }, 400);
+    });
+  }
+
+  function updateCollabStats() {
+    var el1 = document.getElementById('collab-msg-count');
+    var el2 = document.getElementById('collab-agent-count');
+    var el3 = document.getElementById('collab-token-count');
+    if (el1) el1.textContent = collabMsgCount;
+    if (el2) el2.textContent = Math.min(collabMsgCount, 6);
+    if (el3) el3.textContent = collabTokenCount.toLocaleString();
+  }
+
+  function generateCollabFallback(agent, topic, reactTo) {
+    var base = {
+      DataProvider: 'Based on my latest data feeds, the current OKB price trend and volume metrics suggest we should approach this cautiously. My 30-second cycle data shows moderate volatility.',
+      Trader: 'From a trading perspective, I see opportunities here. My risk management framework suggests a measured approach with proper position sizing and stop-losses.',
+      Analyst: 'My technical analysis using RSI and MACD indicators provides a nuanced view. The correlation data between OKB and BTC is particularly relevant here.',
+      LiquidityMgr: 'From a liquidity standpoint, our Uniswap V3 positions need to account for this. Current tick ranges and concentrated liquidity levels are stable.',
+      SecurityAuditor: 'I must flag potential security considerations. Any strategy change needs thorough smart contract audit verification and risk assessment.',
+      Arbitrageur: 'I can see arbitrage implications across Uniswap and OKX DEX. Current spread is within our 0.5% threshold but could shift.'
+    };
+    var msg = base[agent] || 'Interesting perspective. Let me analyze this from my operational viewpoint.';
+    if (reactTo) msg = 'Regarding ' + reactTo + '\'s point — ' + msg;
+    return msg;
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+})();
+
+
+// ----------------------------------------------------------
+//  2. ECONOMY STRESS TESTER
+// ----------------------------------------------------------
+(function() {
+  var stressGdpChart = null;
+  var stressTxChart = null;
+  var stressRevenueChart = null;
+  var stressSimInterval = null;
+  var stressGdpData = [];
+  var stressTxData = [];
+  var stressRevData = [];
+  var stressCycle = 0;
+
+  var VOLATILITY_LABELS = ['Low', 'Medium', 'High'];
+
+  // Initialize charts on load
+  function initStressCharts() {
+    var gdpEl = document.getElementById('stress-gdp-chart');
+    var txEl = document.getElementById('stress-tx-chart');
+    var revEl = document.getElementById('stress-revenue-chart');
+    if (!gdpEl || !txEl || !revEl) return;
+
+    stressGdpChart = echarts.init(gdpEl);
+    stressTxChart = echarts.init(txEl);
+    stressRevenueChart = echarts.init(revEl);
+
+    var baseOpt = {
+      grid: { left: 50, right: 15, top: 10, bottom: 25 },
+      xAxis: { type: 'category', data: [], axisLabel: { color: '#94a3b8', fontSize: 10 }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+      yAxis: { type: 'value', axisLabel: { color: '#94a3b8', fontSize: 10 }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+      tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontSize: 11, fontFamily: 'JetBrains Mono' } },
+      series: [{ type: 'line', data: [], smooth: true, showSymbol: false, lineStyle: { width: 2 }, areaStyle: { opacity: 0.1 } }]
+    };
+
+    stressGdpChart.setOption(Object.assign({}, baseOpt, {
+      series: [Object.assign({}, baseOpt.series[0], { lineStyle: { color: '#00dcfa', width: 2 }, areaStyle: { color: '#00dcfa', opacity: 0.1 }, itemStyle: { color: '#00dcfa' } })]
+    }));
+    stressTxChart.setOption(Object.assign({}, baseOpt, {
+      series: [Object.assign({}, baseOpt.series[0], { type: 'bar', lineStyle: { color: '#00b386', width: 2 }, areaStyle: { color: '#00b386', opacity: 0.1 }, itemStyle: { color: '#00b386' } })]
+    }));
+    stressRevenueChart.setOption(Object.assign({}, baseOpt, {
+      series: [Object.assign({}, baseOpt.series[0], { lineStyle: { color: '#e8a317', width: 2 }, areaStyle: { color: '#e8a317', opacity: 0.1 }, itemStyle: { color: '#e8a317' } })]
+    }));
+
+    // Start auto-simulation
+    startStressSim();
+  }
+
+  // Update slider value displays
+  window.stressUpdateVal = function(type) {
+    if (type === 'agents') {
+      document.getElementById('stress-agents-val').textContent = document.getElementById('stress-agents').value;
+    } else if (type === 'volatility') {
+      var v = parseInt(document.getElementById('stress-volatility').value);
+      document.getElementById('stress-volatility-val').textContent = VOLATILITY_LABELS[v];
+    } else if (type === 'volume') {
+      var vol = parseInt(document.getElementById('stress-volume').value) / 10;
+      document.getElementById('stress-volume-val').textContent = vol.toFixed(1) + 'x';
+    } else if (type === 'fee') {
+      var fee = parseInt(document.getElementById('stress-fee').value) / 100;
+      document.getElementById('stress-fee-val').textContent = fee.toFixed(2) + '%';
+    }
+  };
+
+  // Preset scenarios
+  window.stressPreset = function(scenario) {
+    var agents = document.getElementById('stress-agents');
+    var volatility = document.getElementById('stress-volatility');
+    var volume = document.getElementById('stress-volume');
+    var fee = document.getElementById('stress-fee');
+
+    if (scenario === 'bull') {
+      agents.value = 10; volatility.value = 1; volume.value = 80; fee.value = 5;
+    } else if (scenario === 'crash') {
+      agents.value = 3; volatility.value = 2; volume.value = 100; fee.value = 50;
+    } else if (scenario === 'stable') {
+      agents.value = 6; volatility.value = 0; volume.value = 10; fee.value = 10;
+    }
+    stressUpdateVal('agents');
+    stressUpdateVal('volatility');
+    stressUpdateVal('volume');
+    stressUpdateVal('fee');
+
+    // Reset sim data
+    stressGdpData = [];
+    stressTxData = [];
+    stressRevData = [];
+    stressCycle = 0;
+  };
+
+  // Run simulation tick
+  function stressTick() {
+    var numAgents = parseInt(document.getElementById('stress-agents').value) || 6;
+    var volLevel = parseInt(document.getElementById('stress-volatility').value) || 1;
+    var volMult = (parseInt(document.getElementById('stress-volume').value) || 10) / 10;
+    var feeRate = (parseInt(document.getElementById('stress-fee').value) || 10) / 10000;
+
+    var volFactor = [0.02, 0.08, 0.25][volLevel];
+    var baseTx = numAgents * (numAgents - 1) / 2 * volMult;
+    var noise = (Math.random() - 0.5) * 2 * volFactor;
+
+    // Transactions this cycle
+    var txCount = Math.max(1, Math.round(baseTx * (1 + noise)));
+    // Average tx value in OKB
+    var avgTxValue = 0.01 * volMult * (1 + noise * 0.5);
+    // GDP increment
+    var gdpIncrement = txCount * avgTxValue;
+    // Revenue from fees
+    var revenue = gdpIncrement * feeRate;
+
+    var prevGdp = stressGdpData.length > 0 ? stressGdpData[stressGdpData.length - 1] : (cachedGDP || 0.5);
+    var newGdp = prevGdp + gdpIncrement;
+
+    stressCycle++;
+    stressGdpData.push(parseFloat(newGdp.toFixed(4)));
+    stressTxData.push(txCount);
+    stressRevData.push(parseFloat(revenue.toFixed(6)));
+
+    // Keep last 50 data points
+    if (stressGdpData.length > 50) {
+      stressGdpData.shift();
+      stressTxData.shift();
+      stressRevData.shift();
+    }
+
+    var labels = stressGdpData.map(function(_, i) { return 'C' + (stressCycle - stressGdpData.length + i + 1); });
+
+    // Update charts
+    if (stressGdpChart) stressGdpChart.setOption({ xAxis: { data: labels }, series: [{ data: stressGdpData }] });
+    if (stressTxChart) stressTxChart.setOption({ xAxis: { data: labels }, series: [{ data: stressTxData }] });
+    if (stressRevenueChart) stressRevenueChart.setOption({ xAxis: { data: labels }, series: [{ data: stressRevData }] });
+
+    // Update stats
+    var gdpEl = document.getElementById('stress-stat-gdp');
+    var tpsEl = document.getElementById('stress-stat-tps');
+    var revEl = document.getElementById('stress-stat-revenue');
+    var healthEl = document.getElementById('stress-stat-health');
+    if (gdpEl) gdpEl.textContent = newGdp.toFixed(4);
+    if (tpsEl) tpsEl.textContent = (txCount / 30).toFixed(1); // per 30s cycle
+    if (revEl) revEl.textContent = revenue.toFixed(6);
+
+    // Health score based on parameters
+    var healthScore = Math.max(0, 100 - volLevel * 20 - Math.abs(volMult - 1) * 5 - feeRate * 500);
+    if (healthEl) {
+      healthEl.textContent = Math.round(healthScore) + '%';
+      healthEl.style.color = healthScore > 70 ? '#00b386' : healthScore > 40 ? '#e8a317' : '#cf3041';
+    }
+  }
+
+  function startStressSim() {
+    if (stressSimInterval) clearInterval(stressSimInterval);
+    stressSimInterval = setInterval(stressTick, 2000);
+    stressTick(); // Immediate first tick
+  }
+
+  // Apply to live economy (wallet required)
+  window.stressApplyLive = function() {
+    if (typeof walletConnected === 'undefined' || !walletConnected) {
+      alert('Please connect your wallet first (requires admin privileges).');
+      return;
+    }
+    alert('Live economy parameter update would require admin contract calls. This is a simulation preview.');
+  };
+
+  // Init on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStressCharts);
+  } else {
+    setTimeout(initStressCharts, 100);
+  }
+})();
+
+
+// ----------------------------------------------------------
+//  3. AGENT STRATEGY CONFIGURATOR
+// ----------------------------------------------------------
+(function() {
+  var stratSelectedAgent = 0;
+  var stratPnlChart = null;
+  var stratScatterChart = null;
+  var stratRadarChart = null;
+
+  // Render agent selector grid
+  var grid = document.getElementById('strat-agent-grid');
+  if (grid) {
+    var html = '';
+    for (var i = 0; i < AGENT_TYPES.length; i++) {
+      html += '<button onclick="stratSelectAgent(' + i + ')" id="strat-btn-' + i + '" ' +
+        'class="p-2 rounded-lg border text-center text-xs font-medium transition-all hover:shadow-sm ' +
+        (i === 0 ? 'border-sym-accent bg-blue-50' : 'border-sym-border') + '">' +
+        '<span style="color:' + AGENT_COLORS[i] + '">' + AGENT_ICONS[i] + '</span><br>' +
+        AGENT_TYPES[i].substring(0, 8) + '</button>';
+    }
+    grid.innerHTML = html;
+  }
+
+  window.stratSelectAgent = function(idx) {
+    stratSelectedAgent = idx;
+    // Update button styles
+    for (var i = 0; i < AGENT_TYPES.length; i++) {
+      var btn = document.getElementById('strat-btn-' + i);
+      if (btn) {
+        btn.className = btn.className.replace(/border-sym-accent bg-blue-50/g, 'border-sym-border').replace(/border-sym-border/g, 'border-sym-border');
+        if (i === idx) {
+          btn.className = btn.className.replace('border-sym-border', 'border-sym-accent bg-blue-50');
+        }
+      }
+    }
+    stratUpdateParams();
+  };
+
+  // Default cycle times per agent type
+  var defaultCycles = [30, 60, 45, 120, 20, 10];
+  var defaultRisk = [30, 70, 40, 20, 10, 85];
+
+  window.stratUpdateParams = function() {
+    var risk = parseInt(document.getElementById('strat-risk').value);
+    var position = parseInt(document.getElementById('strat-position').value);
+    var confidence = parseInt(document.getElementById('strat-confidence').value) / 100;
+    var cycle = parseInt(document.getElementById('strat-cycle').value);
+
+    document.getElementById('strat-risk-val').textContent = risk;
+    document.getElementById('strat-position-val').textContent = position + '%';
+    document.getElementById('strat-confidence-val').textContent = confidence.toFixed(2);
+    document.getElementById('strat-cycle-val').textContent = cycle + 's';
+
+    // Compute predicted metrics
+    var agentBase = liveAgents && liveAgents[stratSelectedAgent] ? liveAgents[stratSelectedAgent] : {};
+    var baseElo = agentBase.elo || 1000;
+
+    // Simple model: higher risk = higher return but higher drawdown
+    var estReturn = (risk * 0.2 + position * 0.3 - (1 - confidence) * 10 + (120 - cycle) * 0.05).toFixed(1);
+    var maxDD = (risk * 0.15 + position * 0.2 + (1 - confidence) * 5).toFixed(1);
+    var sharpe = Math.max(0.1, (parseFloat(estReturn) / Math.max(1, parseFloat(maxDD)))).toFixed(2);
+    var tradesDay = Math.round(86400 / cycle * confidence);
+
+    document.getElementById('strat-est-return').textContent = '+' + estReturn + '%';
+    document.getElementById('strat-est-return').style.color = parseFloat(estReturn) > 0 ? '#00b386' : '#cf3041';
+    document.getElementById('strat-max-dd').textContent = '-' + maxDD + '%';
+    document.getElementById('strat-sharpe').textContent = sharpe;
+    document.getElementById('strat-trades-day').textContent = tradesDay;
+
+    // Update charts
+    updateStratCharts(risk, position, confidence, cycle, estReturn, maxDD);
+  };
+
+  function updateStratCharts(risk, position, confidence, cycle, estReturn, maxDD) {
+    var agentColor = AGENT_COLORS[stratSelectedAgent];
+
+    // PnL curve prediction (30 days)
+    if (!stratPnlChart) {
+      var el = document.getElementById('strat-pnl-chart');
+      if (el) stratPnlChart = echarts.init(el);
+    }
+    if (stratPnlChart) {
+      var pnlData = [];
+      var cum = 0;
+      var dailyReturn = parseFloat(estReturn) / 30;
+      var dailyVol = parseFloat(maxDD) / 10;
+      for (var d = 0; d < 30; d++) {
+        cum += dailyReturn + (Math.random() - 0.5) * dailyVol;
+        pnlData.push(parseFloat(cum.toFixed(2)));
+      }
+      stratPnlChart.setOption({
+        grid: { left: 45, right: 15, top: 10, bottom: 25 },
+        xAxis: { type: 'category', data: pnlData.map(function(_, i) { return 'D' + (i + 1); }), axisLabel: { color: '#94a3b8', fontSize: 10 }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+        yAxis: { type: 'value', axisLabel: { color: '#94a3b8', fontSize: 10, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+        tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontSize: 11 } },
+        series: [{
+          type: 'line', data: pnlData, smooth: true, showSymbol: false,
+          lineStyle: { color: agentColor, width: 2 },
+          areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: agentColor + '33' }, { offset: 1, color: agentColor + '05' }]) },
+          itemStyle: { color: agentColor }
+        }]
+      });
+    }
+
+    // Scatter chart: risk vs return distribution
+    if (!stratScatterChart) {
+      var el2 = document.getElementById('strat-scatter-chart');
+      if (el2) stratScatterChart = echarts.init(el2);
+    }
+    if (stratScatterChart) {
+      var scatterData = [];
+      for (var s = 0; s < 50; s++) {
+        var r = risk + (Math.random() - 0.5) * 40;
+        var ret = parseFloat(estReturn) + (Math.random() - 0.5) * parseFloat(maxDD) * 2;
+        scatterData.push([r.toFixed(1), ret.toFixed(1)]);
+      }
+      stratScatterChart.setOption({
+        grid: { left: 45, right: 15, top: 10, bottom: 30 },
+        xAxis: { name: 'Risk', nameTextStyle: { color: '#94a3b8', fontSize: 10 }, type: 'value', axisLabel: { color: '#94a3b8', fontSize: 10 }, axisLine: { lineStyle: { color: '#e2e8f0' } }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+        yAxis: { name: 'Return %', nameTextStyle: { color: '#94a3b8', fontSize: 10 }, type: 'value', axisLabel: { color: '#94a3b8', fontSize: 10 }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+        tooltip: { backgroundColor: '#fff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontSize: 11 } },
+        series: [{
+          type: 'scatter', data: scatterData, symbolSize: 6,
+          itemStyle: { color: agentColor, opacity: 0.6 }
+        }, {
+          type: 'scatter', data: [[risk, parseFloat(estReturn)]], symbolSize: 14,
+          itemStyle: { color: '#cf3041', borderColor: '#fff', borderWidth: 2 },
+          label: { show: true, formatter: 'Current', position: 'top', fontSize: 10, color: '#cf3041' }
+        }]
+      });
+    }
+
+    // Radar chart
+    if (!stratRadarChart) {
+      var el3 = document.getElementById('strat-radar-chart');
+      if (el3) stratRadarChart = echarts.init(el3);
+    }
+    if (stratRadarChart) {
+      stratRadarChart.setOption({
+        radar: {
+          indicator: [
+            { name: 'Speed', max: 100 },
+            { name: 'Risk Mgmt', max: 100 },
+            { name: 'Accuracy', max: 100 },
+            { name: 'Volume', max: 100 },
+            { name: 'Profit', max: 100 }
+          ],
+          radius: '65%',
+          axisName: { color: '#64748b', fontSize: 10 },
+          splitLine: { lineStyle: { color: '#e2e8f0' } },
+          axisLine: { lineStyle: { color: '#e2e8f0' } }
+        },
+        series: [{
+          type: 'radar',
+          data: [{
+            value: [
+              Math.min(100, Math.round(120 / cycle * 20)),
+              Math.round(100 - risk),
+              Math.round(confidence * 100),
+              Math.min(100, Math.round(position * 2)),
+              Math.min(100, Math.max(5, parseFloat(estReturn) * 3))
+            ],
+            lineStyle: { color: agentColor, width: 2 },
+            areaStyle: { color: agentColor + '33' },
+            itemStyle: { color: agentColor }
+          }]
+        }]
+      });
+    }
+  }
+
+  // Deploy strategy
+  window.stratDeploy = function() {
+    var btn = document.getElementById('strat-deploy-btn');
+    if (typeof walletConnected === 'undefined' || !walletConnected) {
+      alert('Please connect your wallet to deploy strategy changes on-chain.');
+      return;
+    }
+    var agentName = AGENT_TYPES[stratSelectedAgent];
+    var risk = document.getElementById('strat-risk').value;
+    var position = document.getElementById('strat-position').value;
+    var confidence = (parseInt(document.getElementById('strat-confidence').value) / 100).toFixed(2);
+    var cycle = document.getElementById('strat-cycle').value;
+    alert('Deploy ' + agentName + ' strategy:\nRisk=' + risk + ', Position=' + position + '%, Confidence=' + confidence + ', Cycle=' + cycle + 's\n\nThis would call the agent config contract on X Layer.');
+  };
+
+  // Init on load
+  function initStratConfig() {
+    stratUpdateParams();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStratConfig);
+  } else {
+    setTimeout(initStratConfig, 200);
+  }
+})();
+
+
+// ----------------------------------------------------------
+//  4. CROSS-CHAIN BRIDGE EXPLORER
+// ----------------------------------------------------------
+(function() {
+  var CHAIN_NAMES = {
+    '1': 'Ethereum', '196': 'X Layer', '56': 'BSC', '137': 'Polygon',
+    '42161': 'Arbitrum', '10': 'Optimism', '43114': 'Avalanche', '324': 'zkSync Era'
+  };
+
+  var CHAIN_COLORS = {
+    '1': '#627eea', '196': '#00dcfa', '56': '#f3ba2f', '137': '#8247e5',
+    '42161': '#28a0f0', '10': '#ff0420', '43114': '#e84142', '324': '#4e529a'
+  };
+
+  window.bridgeSwapChains = function() {
+    var from = document.getElementById('bridge-from-chain');
+    var to = document.getElementById('bridge-to-chain');
+    var tmp = from.value;
+    from.value = to.value;
+    to.value = tmp;
+  };
+
+  window.bridgeUpdateTokens = function() {
+    // Token list is static for simplicity
+  };
+
+  window.bridgeFetchQuote = function() {
+    var fromChain = document.getElementById('bridge-from-chain').value;
+    var toChain = document.getElementById('bridge-to-chain').value;
+    var token = document.getElementById('bridge-token').value;
+    var amount = parseFloat(document.getElementById('bridge-amount').value);
+    var status = document.getElementById('bridge-status');
+    var resultDiv = document.getElementById('bridge-result');
+    var btn = document.getElementById('bridge-quote-btn');
+
+    if (!amount || amount <= 0) {
+      status.textContent = 'Please enter a valid amount';
+      status.style.color = '#cf3041';
+      return;
+    }
+    if (fromChain === toChain) {
+      status.textContent = 'Source and destination chains must be different';
+      status.style.color = '#cf3041';
+      return;
+    }
+
+    status.textContent = 'Fetching bridge quote...';
+    status.style.color = '#e8a317';
+    btn.disabled = true;
+
+    // Try OKX bridge API, fall back to simulated data
+    var bridgeUrl = 'https://www.okx.com/api/v5/dex/cross-chain/quote?' +
+      'fromChainId=' + fromChain + '&toChainId=' + toChain +
+      '&fromTokenSymbol=' + token + '&toTokenSymbol=' + token +
+      '&amount=' + amount;
+
+    // Use simulated data since cross-chain API may need auth
+    setTimeout(function() {
+      var feePercent = 0.1 + Math.random() * 0.3;
+      var bridgeFee = amount * feePercent / 100;
+      var received = amount - bridgeFee;
+      var estMinutes = Math.round(2 + Math.random() * 18);
+
+      var routes = ['OKX Bridge', 'Across Protocol', 'Stargate', 'Celer cBridge'];
+      var selectedRoute = routes[Math.floor(Math.random() * routes.length)];
+
+      document.getElementById('bridge-received').textContent = received.toFixed(4) + ' ' + token;
+      document.getElementById('bridge-fee').textContent = bridgeFee.toFixed(4) + ' ' + token + ' (' + feePercent.toFixed(2) + '%)';
+      document.getElementById('bridge-time').textContent = '~' + estMinutes + ' min';
+      document.getElementById('bridge-route').textContent = selectedRoute;
+      document.getElementById('bridge-rate').textContent = '1:' + (received / amount).toFixed(4);
+      document.getElementById('bridge-slippage').textContent = (feePercent * 0.1).toFixed(3) + '%';
+      document.getElementById('bridge-safety').textContent = 'A+';
+      document.getElementById('bridge-safety').style.color = '#00b386';
+
+      resultDiv.classList.remove('hidden');
+      status.textContent = 'Quote fetched (simulated)';
+      status.style.color = '#00b386';
+      btn.disabled = false;
+
+      // Render flow diagram
+      renderBridgeFlow(fromChain, toChain, token, amount, received, selectedRoute, estMinutes);
+    }, 1200);
+  };
+
+  function renderBridgeFlow(fromChain, toChain, token, amount, received, route, minutes) {
+    var container = document.getElementById('bridge-flow-visual');
+    var placeholder = document.getElementById('bridge-flow-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+
+    var fromName = CHAIN_NAMES[fromChain] || 'Chain ' + fromChain;
+    var toName = CHAIN_NAMES[toChain] || 'Chain ' + toChain;
+    var fromColor = CHAIN_COLORS[fromChain] || '#00dcfa';
+    var toColor = CHAIN_COLORS[toChain] || '#7b61ff';
+
+    container.innerHTML =
+      '<svg viewBox="0 0 500 260" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">' +
+      // Source chain node
+      '<rect x="10" y="90" width="120" height="80" rx="12" fill="' + fromColor + '11" stroke="' + fromColor + '" stroke-width="2"/>' +
+      '<text x="70" y="120" text-anchor="middle" fill="' + fromColor + '" font-size="13" font-weight="600">' + fromName + '</text>' +
+      '<text x="70" y="142" text-anchor="middle" fill="#64748b" font-size="11">' + amount.toFixed(2) + ' ' + token + '</text>' +
+      '<text x="70" y="158" text-anchor="middle" fill="#94a3b8" font-size="9">Chain ' + fromChain + '</text>' +
+
+      // Arrow line with animation
+      '<line x1="140" y1="130" x2="230" y2="130" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="6,4"/>' +
+      '<line x1="140" y1="130" x2="230" y2="130" stroke="' + fromColor + '" stroke-width="2" stroke-dasharray="6,4" style="animation:flowPulse 1s linear infinite"/>' +
+
+      // Bridge node (center)
+      '<rect x="230" y="75" width="110" height="110" rx="16" fill="#7b61ff11" stroke="#7b61ff" stroke-width="2"/>' +
+      '<text x="285" y="110" text-anchor="middle" fill="#7b61ff" font-size="11" font-weight="600">' + route + '</text>' +
+      '<text x="285" y="132" text-anchor="middle" fill="#64748b" font-size="10">~' + minutes + ' min</text>' +
+      '<circle cx="285" cy="155" r="12" fill="#7b61ff22" stroke="#7b61ff" stroke-width="1.5"/>' +
+      '<text x="285" y="159" text-anchor="middle" fill="#7b61ff" font-size="10">&#9732;</text>' +
+
+      // Arrow line out
+      '<line x1="345" y1="130" x2="370" y2="130" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="6,4"/>' +
+      '<line x1="345" y1="130" x2="370" y2="130" stroke="' + toColor + '" stroke-width="2" stroke-dasharray="6,4" style="animation:flowPulse 1s linear infinite"/>' +
+
+      // Destination chain node
+      '<rect x="370" y="90" width="120" height="80" rx="12" fill="' + toColor + '11" stroke="' + toColor + '" stroke-width="2"/>' +
+      '<text x="430" y="120" text-anchor="middle" fill="' + toColor + '" font-size="13" font-weight="600">' + toName + '</text>' +
+      '<text x="430" y="142" text-anchor="middle" fill="#64748b" font-size="11">' + received.toFixed(2) + ' ' + token + '</text>' +
+      '<text x="430" y="158" text-anchor="middle" fill="#94a3b8" font-size="9">Chain ' + toChain + '</text>' +
+
+      // Step labels at bottom
+      '<text x="70" y="200" text-anchor="middle" fill="#94a3b8" font-size="10">1. Lock / Burn</text>' +
+      '<text x="285" y="215" text-anchor="middle" fill="#94a3b8" font-size="10">2. Verify &amp; Relay</text>' +
+      '<text x="430" y="200" text-anchor="middle" fill="#94a3b8" font-size="10">3. Mint / Release</text>' +
+
+      // Fee label
+      '<text x="250" y="50" text-anchor="middle" fill="#e8a317" font-size="10">Fee: ' + (amount - received).toFixed(4) + ' ' + token + '</text>' +
+      '</svg>';
+  }
+})();
+
+
+// ----------------------------------------------------------
+//  5. AGENT PERFORMANCE TOURNAMENT
+// ----------------------------------------------------------
+(function() {
+  var tourneyRadarChart = null;
+  var tourneyHistoryChart = null;
+  var tourneyBattleRunning = false;
+
+  // Populate selectors
+  function initTourneySelectors() {
+    var selA = document.getElementById('tourney-agent-a');
+    var selB = document.getElementById('tourney-agent-b');
+    if (!selA || !selB) return;
+
+    var html = '';
+    for (var i = 0; i < AGENT_TYPES.length; i++) {
+      html += '<option value="' + i + '">' + AGENT_TYPES[i] + '</option>';
+    }
+    selA.innerHTML = html;
+    selB.innerHTML = html;
+    selA.value = '0';
+    selB.value = '1';
+    tourneyUpdate();
+  }
+
+  function getAgentStats(idx) {
+    var a = (typeof liveAgents !== 'undefined' && liveAgents[idx]) ? liveAgents[idx] : {};
+    return {
+      elo: a.elo || (1000 + idx * 50),
+      winRate: a.wins ? Math.round(a.wins / (a.wins + (a.losses || 1)) * 100) : (50 + Math.round(Math.random() * 30)),
+      volume: a.volume || (0.01 + Math.random() * 0.1),
+      responseTime: a.avgResponse || (5 + idx * 3),
+      profit: a.pnl || (Math.random() * 0.05 - 0.02),
+      services: a.services || (idx * 2 + 3)
+    };
+  }
+
+  window.tourneyUpdate = function() {
+    var aIdx = parseInt(document.getElementById('tourney-agent-a').value);
+    var bIdx = parseInt(document.getElementById('tourney-agent-b').value);
+
+    // Update display
+    document.getElementById('tourney-icon-a').innerHTML = '<span style="color:' + AGENT_COLORS[aIdx] + '">' + AGENT_ICONS[aIdx] + '</span>';
+    document.getElementById('tourney-icon-b').innerHTML = '<span style="color:' + AGENT_COLORS[bIdx] + '">' + AGENT_ICONS[bIdx] + '</span>';
+    document.getElementById('tourney-name-a').textContent = AGENT_TYPES[aIdx];
+    document.getElementById('tourney-name-b').textContent = AGENT_TYPES[bIdx];
+
+    var statsA = getAgentStats(aIdx);
+    var statsB = getAgentStats(bIdx);
+    document.getElementById('tourney-elo-a').textContent = 'ELO: ' + statsA.elo;
+    document.getElementById('tourney-elo-b').textContent = 'ELO: ' + statsB.elo;
+
+    // Radar chart
+    if (!tourneyRadarChart) {
+      var el = document.getElementById('tourney-radar-chart');
+      if (el) tourneyRadarChart = echarts.init(el);
+    }
+    if (tourneyRadarChart) {
+      tourneyRadarChart.setOption({
+        legend: { data: [AGENT_TYPES[aIdx], AGENT_TYPES[bIdx]], bottom: 0, textStyle: { color: '#64748b', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+        radar: {
+          indicator: [
+            { name: 'ELO', max: 2000 },
+            { name: 'Win Rate', max: 100 },
+            { name: 'Volume', max: 1 },
+            { name: 'Speed', max: 100 },
+            { name: 'Profit', max: 0.1 }
+          ],
+          radius: '60%',
+          center: ['50%', '45%'],
+          axisName: { color: '#64748b', fontSize: 10 },
+          splitLine: { lineStyle: { color: '#e2e8f0' } },
+          axisLine: { lineStyle: { color: '#e2e8f0' } }
+        },
+        series: [{
+          type: 'radar',
+          data: [
+            {
+              name: AGENT_TYPES[aIdx],
+              value: [statsA.elo, statsA.winRate, statsA.volume, Math.max(1, 100 - statsA.responseTime), Math.max(0, statsA.profit)],
+              lineStyle: { color: AGENT_COLORS[aIdx], width: 2 },
+              areaStyle: { color: AGENT_COLORS[aIdx] + '22' },
+              itemStyle: { color: AGENT_COLORS[aIdx] }
+            },
+            {
+              name: AGENT_TYPES[bIdx],
+              value: [statsB.elo, statsB.winRate, statsB.volume, Math.max(1, 100 - statsB.responseTime), Math.max(0, statsB.profit)],
+              lineStyle: { color: AGENT_COLORS[bIdx], width: 2 },
+              areaStyle: { color: AGENT_COLORS[bIdx] + '22' },
+              itemStyle: { color: AGENT_COLORS[bIdx] }
+            }
+          ]
+        }]
+      });
+    }
+
+    // History chart
+    if (!tourneyHistoryChart) {
+      var el2 = document.getElementById('tourney-history-chart');
+      if (el2) tourneyHistoryChart = echarts.init(el2);
+    }
+    if (tourneyHistoryChart) {
+      var days = [];
+      var lineA = [];
+      var lineB = [];
+      var cumA = 0, cumB = 0;
+      for (var d = 0; d < 30; d++) {
+        days.push('D' + (d + 1));
+        cumA += (Math.random() - 0.45) * statsA.winRate / 500;
+        cumB += (Math.random() - 0.45) * statsB.winRate / 500;
+        lineA.push(parseFloat(cumA.toFixed(4)));
+        lineB.push(parseFloat(cumB.toFixed(4)));
+      }
+      tourneyHistoryChart.setOption({
+        grid: { left: 50, right: 15, top: 10, bottom: 50 },
+        legend: { data: [AGENT_TYPES[aIdx], AGENT_TYPES[bIdx]], bottom: 0, textStyle: { color: '#64748b', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+        xAxis: { type: 'category', data: days, axisLabel: { color: '#94a3b8', fontSize: 10 }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+        yAxis: { type: 'value', axisLabel: { color: '#94a3b8', fontSize: 10, formatter: function(v) { return (v * 100).toFixed(1) + '%'; } }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+        tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e2e8f0', textStyle: { color: '#1e293b', fontSize: 11 } },
+        series: [
+          { name: AGENT_TYPES[aIdx], type: 'line', data: lineA, smooth: true, showSymbol: false, lineStyle: { color: AGENT_COLORS[aIdx], width: 2 }, itemStyle: { color: AGENT_COLORS[aIdx] } },
+          { name: AGENT_TYPES[bIdx], type: 'line', data: lineB, smooth: true, showSymbol: false, lineStyle: { color: AGENT_COLORS[bIdx], width: 2 }, itemStyle: { color: AGENT_COLORS[bIdx] } }
+        ]
+      });
+    }
+
+    // Comparison bars
+    updateTourneyBars(aIdx, bIdx, statsA, statsB);
+  };
+
+  function updateTourneyBars(aIdx, bIdx, statsA, statsB) {
+    var container = document.getElementById('tourney-bars');
+    if (!container) return;
+
+    var metrics = [
+      { label: 'ELO', a: statsA.elo, b: statsB.elo, max: 2000, fmt: function(v) { return Math.round(v); } },
+      { label: 'Win Rate', a: statsA.winRate, b: statsB.winRate, max: 100, fmt: function(v) { return v + '%'; } },
+      { label: 'Volume', a: statsA.volume, b: statsB.volume, max: Math.max(statsA.volume, statsB.volume) * 1.2 || 1, fmt: function(v) { return v.toFixed(4); } },
+      { label: 'Speed', a: 100 - statsA.responseTime, b: 100 - statsB.responseTime, max: 100, fmt: function(v) { return Math.round(v); } },
+      { label: 'Profit', a: Math.max(0, statsA.profit * 1000), b: Math.max(0, statsB.profit * 1000), max: Math.max(statsA.profit, statsB.profit) * 1200 || 1, fmt: function(v) { return v.toFixed(1); } }
+    ];
+
+    var html = '';
+    metrics.forEach(function(m) {
+      var pctA = Math.min(100, Math.max(2, m.a / m.max * 100));
+      var pctB = Math.min(100, Math.max(2, m.b / m.max * 100));
+      var winner = m.a >= m.b ? 'A' : 'B';
+      html += '<div class="mb-3">' +
+        '<div class="flex justify-between text-xs mb-1"><span class="text-gray-400">' + m.label + '</span></div>' +
+        '<div class="flex gap-1 items-center">' +
+        '<span class="text-[10px] font-mono w-12 text-right" style="color:' + AGENT_COLORS[aIdx] + '">' + m.fmt(m.a) + '</span>' +
+        '<div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden flex">' +
+        '<div style="width:' + pctA + '%;background:' + AGENT_COLORS[aIdx] + '" class="h-full rounded-l-full transition-all duration-500"></div>' +
+        '<div class="flex-1"></div>' +
+        '<div style="width:' + pctB + '%;background:' + AGENT_COLORS[bIdx] + '" class="h-full rounded-r-full transition-all duration-500"></div>' +
+        '</div>' +
+        '<span class="text-[10px] font-mono w-12" style="color:' + AGENT_COLORS[bIdx] + '">' + m.fmt(m.b) + '</span>' +
+        '</div></div>';
+    });
+    container.innerHTML = html;
+  }
+
+  // Battle simulation
+  window.tourneyBattle = function() {
+    if (tourneyBattleRunning) return;
+    tourneyBattleRunning = true;
+
+    var aIdx = parseInt(document.getElementById('tourney-agent-a').value);
+    var bIdx = parseInt(document.getElementById('tourney-agent-b').value);
+    var statsA = getAgentStats(aIdx);
+    var statsB = getAgentStats(bIdx);
+
+    var log = document.getElementById('tourney-log');
+    var statusEl = document.getElementById('tourney-status');
+    var winnerDiv = document.getElementById('tourney-winner');
+    winnerDiv.classList.add('hidden');
+    log.innerHTML = '';
+    statusEl.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+
+    var btn = document.getElementById('tourney-battle-btn');
+    if (btn) btn.disabled = true;
+
+    // Battle rounds
+    var rounds = [
+      { name: 'Data Accuracy', weight: 20 },
+      { name: 'Execution Speed', weight: 25 },
+      { name: 'Risk Management', weight: 20 },
+      { name: 'Profit Generation', weight: 20 },
+      { name: 'Reliability', weight: 15 }
+    ];
+
+    var scoreA = 0, scoreB = 0;
+    var roundIdx = 0;
+
+    function nextRound() {
+      if (roundIdx >= rounds.length) {
+        // Announce winner
+        tourneyBattleRunning = false;
+        if (btn) btn.disabled = false;
+        statusEl.textContent = '';
+
+        var winner = scoreA > scoreB ? aIdx : bIdx;
+        var winnerScore = Math.max(scoreA, scoreB);
+        var loserScore = Math.min(scoreA, scoreB);
+
+        log.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:8px;padding-top:8px;border-top:1px solid #e8eaed;font-weight:600;text-align:center">' +
+          '<span style="color:' + AGENT_COLORS[winner] + '">' + AGENT_TYPES[winner] + '</span> wins! ' +
+          winnerScore.toFixed(1) + ' vs ' + loserScore.toFixed(1) + '</div>';
+        log.scrollTop = log.scrollHeight;
+
+        winnerDiv.classList.remove('hidden');
+        document.getElementById('tourney-winner-name').innerHTML = '<span style="color:' + AGENT_COLORS[winner] + '">' + AGENT_ICONS[winner] + ' ' + AGENT_TYPES[winner] + '</span>';
+        document.getElementById('tourney-winner-score').textContent = winnerScore.toFixed(1) + ' - ' + loserScore.toFixed(1);
+        winnerDiv.style.borderColor = AGENT_COLORS[winner];
+        return;
+      }
+
+      var round = rounds[roundIdx];
+      // Simulate scores based on agent stats + randomness
+      var baseA = (statsA.elo / 2000 * 40 + statsA.winRate / 100 * 30 + Math.random() * 30);
+      var baseB = (statsB.elo / 2000 * 40 + statsB.winRate / 100 * 30 + Math.random() * 30);
+      var rScoreA = parseFloat((baseA * round.weight / 100).toFixed(1));
+      var rScoreB = parseFloat((baseB * round.weight / 100).toFixed(1));
+
+      scoreA += rScoreA;
+      scoreB += rScoreB;
+
+      var roundWinner = rScoreA >= rScoreB ? aIdx : bIdx;
+      log.innerHTML += '<div style="animation:fadeInUp .3s ease;margin-top:4px">' +
+        '<span class="text-gray-400 text-xs">Round ' + (roundIdx + 1) + ': ' + round.name + '</span><br>' +
+        '<span style="color:' + AGENT_COLORS[aIdx] + '">' + AGENT_TYPES[aIdx] + ': ' + rScoreA + '</span> vs ' +
+        '<span style="color:' + AGENT_COLORS[bIdx] + '">' + AGENT_TYPES[bIdx] + ': ' + rScoreB + '</span> ' +
+        '<span style="color:' + AGENT_COLORS[roundWinner] + ';font-weight:600"> &#10003;</span>' +
+        '</div>';
+      log.scrollTop = log.scrollHeight;
+
+      roundIdx++;
+      setTimeout(nextRound, 1000);
+    }
+
+    // Start with a delay
+    log.innerHTML = '<div style="animation:fadeInUp .3s ease;color:#e8a317;font-weight:500">' +
+      AGENT_TYPES[aIdx] + ' vs ' + AGENT_TYPES[bIdx] + ' — Battle starting...</div>';
+    setTimeout(nextRound, 800);
+  };
+
+  // Init on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTourneySelectors);
+  } else {
+    setTimeout(initTourneySelectors, 150);
+  }
+})();
+
+
+// ----------------------------------------------------------
+//  Resize handler for all ECharts instances
+// ----------------------------------------------------------
+window.addEventListener('resize', function() {
+  ['stress-gdp-chart', 'stress-tx-chart', 'stress-revenue-chart',
+   'strat-pnl-chart', 'strat-scatter-chart', 'strat-radar-chart',
+   'tourney-radar-chart', 'tourney-history-chart'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      var chart = echarts.getInstanceByDom(el);
+      if (chart) chart.resize();
+    }
+  });
+});
 </script>
 
 <!-- Agent Detail Modal -->

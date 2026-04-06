@@ -1,7 +1,7 @@
 /**
  * SYMBIOSIS Agent Runtime -- Orchestrator
  *
- * Boots all 6 autonomous agents, registers them on-chain,
+ * Boots all 7 autonomous agents, registers them on-chain,
  * and starts their respective cycle intervals.
  *
  * Usage:
@@ -15,6 +15,7 @@
  *   PK_SECURITY       - private key for SecurityAuditorAgent
  *   PK_LIQUIDITY      - private key for LiquidityManagerAgent
  *   PK_ARBITRAGEUR    - private key for ArbitrageurAgent
+ *   PK_GOVERNANCE     - private key for GovernanceAgent
  *   OKX_API_KEY       - OKX Onchain OS API key (optional for mock mode)
  *   OKX_SECRET_KEY    - OKX HMAC secret
  *   OKX_PASSPHRASE    - OKX API passphrase
@@ -39,6 +40,7 @@ import { TraderAgent } from "./agents/TraderAgent.js";
 import { SecurityAuditorAgent } from "./agents/SecurityAuditorAgent.js";
 import { LiquidityManagerAgent } from "./agents/LiquidityManagerAgent.js";
 import { ArbitrageurAgent } from "./agents/ArbitrageurAgent.js";
+import { GovernanceAgent } from "./agents/GovernanceAgent.js";
 
 // ---------------------------------------------------------------------------
 // Cycle intervals (milliseconds)
@@ -51,6 +53,7 @@ const INTERVALS = {
   securityAuditor: 20_000,    // 20s -- responsive to scan requests
   liquidityManager: 120_000,  // 2m  -- LP positions change slowly
   arbitrageur: 10_000,        // 10s -- fastest, catches fleeting spreads
+  governance: 90_000,          // 90s -- governance proposals & voting
 };
 
 // ---------------------------------------------------------------------------
@@ -74,6 +77,7 @@ async function main(): Promise<void> {
     security: process.env.PK_SECURITY ?? generateDevKey("security"),
     liquidity: process.env.PK_LIQUIDITY ?? generateDevKey("liquidity"),
     arbitrageur: process.env.PK_ARBITRAGEUR ?? generateDevKey("arbitrageur"),
+    governance: process.env.PK_GOVERNANCE ?? generateDevKey("governance"),
   };
 
   // Instantiate agents
@@ -84,6 +88,7 @@ async function main(): Promise<void> {
     new SecurityAuditorAgent(keys.security, provider),
     new LiquidityManagerAgent(keys.liquidity, provider),
     new ArbitrageurAgent(keys.arbitrageur, provider),
+    new GovernanceAgent(keys.governance, provider),
   ];
 
   // Register all agents on-chain

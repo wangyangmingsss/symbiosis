@@ -6,7 +6,7 @@
 
 # SYMBIOSIS
 
-**六个自主 AI 代理在 X Layer 上构建的自维持链上经济体。**
+**七个自主 AI 代理在 X Layer 上构建的自维持链上经济体。**
 
 > GitHub: https://github.com/wangyangmingsss/symbiosis
 > 演示站点: [https://9u84tgfh.mule.page/](https://9u84tgfh.mule.page/)
@@ -15,7 +15,7 @@
 
 ## 项目概述
 
-SYMBIOSIS 不是一个单独的 AI 代理 -- 它是一个由**六个专业化代理组成的经济体**，在 X Layer（OKX 的 L2，Chain ID 196）上相互交易服务。每个代理在链上注册身份、质押 OKB 作为保证金、通过荷兰拍卖市场挂牌服务、借助 ELO 评分系统积累信誉，并通过无需信任的托管合约完成支付结算。
+SYMBIOSIS 不是一个单独的 AI 代理 -- 它是一个由**七个专业化代理组成的经济体**，在 X Layer（OKX 的 L2，Chain ID 196）上相互交易服务。每个代理在链上注册身份、质押 OKB 作为保证金、通过荷兰拍卖市场挂牌服务、借助 ELO 评分系统积累信誉，并通过无需信任的托管合约完成支付结算。
 
 **为什么这很重要：** 大多数"AI 代理"项目只是一个代理做一件事。SYMBIOSIS 展示了**涌现的经济行为** -- 代理各自专精、相互发现、协商价格、随时间建立信誉。DataProvider 为 Analyst 提供数据，Analyst 为 Trader 提供信号，SecurityAuditor 守护所有人的安全，LiquidityManager 维持市场深度，Arbitrageur 保持价格效率。移除一个代理，经济体会退化；增加更多代理，经济体会变得更强。
 
@@ -197,6 +197,11 @@ cd docs && python3 -m http.server 8000
 - **Uniswap V3 LP Position Visualizer** -- 可视化集中流动性仓位的 tick 范围与资金分布
 - **Economy Time Machine** -- 回溯经济体历史快照，观察 GDP、匹配数和交易量的演变
 - **One-Click Economy Demo** -- 一键启动完整经济循环演示
+- **Multi-Agent Collaboration Arena** -- 提出话题，所有 Agent 以各自性格和策略进行实时多轮讨论（DeepSeek V3 驱动）
+- **Economy Stress Tester** -- 调节参数实时模拟 Agent 经济体在牛市/崩盘/平稳等不同压力场景下的表现
+- **Agent Strategy Configurator** -- 选择 Agent 调整策略参数，实时预览预测 PnL、风险/收益分布和能力雷达图
+- **Cross-Chain Bridge Explorer** -- 查询 OKX 跨链桥报价，可视化桥接路由、费用和安全评分
+- **Agent Performance Tournament** -- 选择两个 Agent 进行面对面能力对比和模拟对战
 
 ## 代理类型
 
@@ -210,6 +215,7 @@ cd docs && python3 -m http.server 8000
 | **SecurityAuditorAgent** | `SecurityAuditor` | 按需执行代币安全扫描，结果缓存（5 分钟 TTL），每周期处理最多 5 个请求，挂牌 `SECURITY_AUDIT` 服务 | `securityScan()` | 20s | 出售安全审计结果；经济体中最便宜的服务 |
 | **LiquidityManagerAgent** | `LiquidityManager` | 管理 Uniswap V3 集中 LP 仓位，检测超出范围，再平衡 tick，收取手续费，挂牌 `LP_MANAGEMENT` 服务 | `getMarketPrice()` | 120s | LP 手续费 + LP 管理服务费 |
 | **ArbitrageurAgent** | `Arbitrageur` | 比较 OKX 聚合器与 Uniswap V3 价格，价差 > 0.5% 时执行，交易前请求安全审计 | `getMarketPrice()`, `getDexQuote()`, `executeDexSwap()`, `securityScan()` | 10s | 套利利润；经济体中最快的代理 |
+| **GovernanceAgent** | `Governance` | 监控链上治理提案，自动分析投票影响，代表经济体参与治理决策 | `getMarketPrice()` | 90s | 治理参与奖励与投票激励 |
 
 ## 经济循环
 
@@ -479,7 +485,7 @@ cp ../.env.example .env
 # 编译 TypeScript
 npm run build
 
-# 启动全部 6 个代理
+# 启动全部 7 个代理
 npm start
 
 # 或以主网配置运行（默认）
@@ -496,6 +502,7 @@ NETWORK=mainnet node dist/index.js
 | `PK_SECURITY` | SecurityAuditorAgent 的私钥 |
 | `PK_LIQUIDITY` | LiquidityManagerAgent 的私钥 |
 | `PK_ARBITRAGEUR` | ArbitrageurAgent 的私钥 |
+| `PK_GOVERNANCE` | GovernanceAgent 的私钥 |
 | `OKX_API_KEY` | OKX Onchain OS API 密钥 |
 | `OKX_SECRET_KEY` | OKX HMAC 签名密钥 |
 | `OKX_PASSPHRASE` | OKX API 口令 |
@@ -538,7 +545,7 @@ symbiosis/
     ├── package.json
     ├── tsconfig.json
     └── src/
-        ├── index.ts                      # 编排器 -- 启动全部 6 个代理
+        ├── index.ts                      # 编排器 -- 启动全部 7 个代理
         ├── config/
         │   ├── xlayer.ts                 # X Layer 链配置
         │   └── contracts.ts              # 合约地址 + ABI
@@ -552,7 +559,8 @@ symbiosis/
             ├── TraderAgent.ts            # 基于信号的执行器 (60s)
             ├── SecurityAuditorAgent.ts   # 代币安全扫描器 (20s)
             ├── LiquidityManagerAgent.ts  # Uniswap V3 LP 管理器 (120s)
-            └── ArbitrageurAgent.ts       # 跨平台套利器 (10s)
+            ├── ArbitrageurAgent.ts       # 跨平台套利器 (10s)
+            └── GovernanceAgent.ts       # 治理参与代理 (90s)
 ```
 
 ## 演示
@@ -581,7 +589,7 @@ NETWORK=mainnet npm start
 
 ### 演示展示内容
 
-- **代理注册：** 全部 6 个代理在链上注册并各自质押 0.01 OKB
+- **代理注册：** 全部 7 个代理在链上注册并各自质押 0.01 OKB
 - **服务挂牌：** DataProvider、Analyst、SecurityAuditor 和 LiquidityManager 以荷兰拍卖定价挂牌服务
 - **数据流：** DataProvider 获取价格 -> Analyst 生成信号 -> Trader 执行交易
 - **安全循环：** Trader 和 Arbitrageur 在交易前请求安全审计
@@ -589,7 +597,7 @@ NETWORK=mainnet npm start
 - **LP 管理：** LiquidityManager 监控 tick 范围并在超出范围时再平衡
 - **经济指标：** EconomyOracle 追踪整个经济体的 GDP、匹配数和交易量
 
-观察控制台中 6 个代理并发运行的带时间戳日志：
+观察控制台中 7 个代理并发运行的带时间戳日志：
 
 ```
 [2026-04-03T10:00:00.000Z] [DataProvider] Published 4 prices. OKB=$48.5
@@ -606,7 +614,7 @@ NETWORK=mainnet npm start
 |---|---|
 | 独立开发者 | **wangyangmingssssss** |
 
-为 OKX 黑客松打造。六个合约。六个代理。一个经济体。
+为 OKX 黑客松打造。六个合约。七个代理。一个经济体。
 
 ## 许可证
 
